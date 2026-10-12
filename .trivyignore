@@ -1,0 +1,6 @@
+# Accepted findings. Each entry needs a reason; add "exp:YYYY-MM-DD" to force a review, e.g.
+#   CVE-2026-12345 exp:2026-12-31
+# The repo is public on purpose (FYP requirement; gives free branch rules and CodeQL). Trivy flags the public
+# repository declared in infra/github/main.tf as CRITICAL. Both ID formats are listed for older/newer Trivy.
+GIT-0001
+AVD-GIT-0001

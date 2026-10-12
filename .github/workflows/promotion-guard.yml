@@ -1,0 +1,30 @@
+name: promotion-guard
+
+# Required on QA and main: enforces develop -> QA -> main and a fresh VERSION for releases.
+on:
+  pull_request:
+    branches: [develop, QA, main]
+
+permissions:
+  contents: read
+
+jobs:
+  promotion-guard:
+    runs-on: ubuntu-latest
+    env:
+      BASE: ${{ github.base_ref }}
+      HEAD: ${{ github.head_ref }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Enforce the promotion path
+        run: |
+          if [ "$BASE" = "QA" ] && [ "$HEAD" != "develop" ]; then echo "PRs into QA must come from develop"; exit 1; fi
+          if [ "$BASE" = "main" ] && [ "$HEAD" != "QA" ]; then echo "PRs into main must come from QA"; exit 1; fi
+          echo "$HEAD -> $BASE is allowed"
+      - name: Require a new VERSION when releasing
+        if: github.base_ref == 'main'
+        run: |
+          v=$(tr -d '[:space:]' < VERSION)
+          if gh release view "v$v" >/dev/null 2>&1; then echo "v$v already exists - bump VERSION"; exit 1; fi
+          echo "will release v$v"

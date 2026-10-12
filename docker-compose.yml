@@ -1,0 +1,11 @@
+# Local:    docker compose up --build            -> http://localhost:8000
+# Release:  TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d
+services:
+  app:
+    image: ${TM_IMAGE:-threatmamba:local}
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      TM_MODEL_MODE: ${TM_MODEL_MODE:-stub}
+    restart: unless-stopped

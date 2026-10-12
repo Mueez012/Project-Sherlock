@@ -1,0 +1,24 @@
+# data and generated outputs are never committed (fetch with scripts/fetch_raw.sh)
+/raw/
+/phase1_out/
+/data/
+/artifacts/
+/models/*
+!/models/manifest.json
+*.pt
+# environments and caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+junit.xml
+node_modules/
+.env
+# infra state can hold secrets
+infra/**/.terraform/
+infra/**/*.tfstate*
+infra/**/*.tfvars
+!infra/**/*.tfvars.example

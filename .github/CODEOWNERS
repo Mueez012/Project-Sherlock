@@ -1,0 +1,9 @@
+# Reviewers are requested automatically for changes under each path. Replace the usernames.
+*                          @Mueez012
+/.github/                  @Mueez012
+/infra/                    @Mueez012
+/src/threatmamba/data/     @Mueez012
+/src/threatmamba/cskg/     @Mueez012
+/src/threatmamba/ioc/      @M-Huzaifa-Bin-Amir
+/src/threatmamba/ttp/      @Khalid-Umar1
+/src/threatmamba/contracts.py  @Mueez012 @M-Huzaifa-Bin-Amir @Khalid-Umar1

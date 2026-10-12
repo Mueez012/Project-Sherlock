@@ -1,0 +1,269 @@
+name: ci
+
+# develop: fast tests + stub stack     QA: adds slow tests     main: adds release
+on:
+  push:
+    branches: [develop, QA, main]
+  pull_request:
+    branches: [develop, QA, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+  UV_VERSION: "0.13.0"
+
+jobs:
+  # ------------------------------------------------------------------ lint
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          enable-cache: true
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - run: uv sync --frozen
+      - name: pre-commit (ruff lint + ruff security rules + formatting + hygiene)
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+      - name: Dockerfile lint
+        uses: hadolint/hadolint-action@v3.5.0
+        with:
+          dockerfile: Dockerfile
+      - name: Workflow lint
+        run: |
+          curl -fsSL -o /tmp/al.tgz https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          tar -xzf /tmp/al.tgz -C /tmp actionlint
+          /tmp/actionlint -color
+
+  # ------------------------------------------------------------------ unit tests
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: pytest (slow tests too on QA and main)
+        env:
+          MARKERS: ${{ (github.ref_name == 'QA' || github.ref_name == 'main' || github.base_ref == 'QA' || github.base_ref == 'main') && 'not system' || 'not slow and not system' }}
+        run: >
+          uv run pytest -m "$MARKERS"
+          --cov --cov-report=xml --cov-report=term --cov-fail-under=60
+          --junitxml=junit.xml
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-reports
+          path: |
+            coverage.xml
+            junit.xml
+
+  # ------------------------------------------------------------------ Phase 1 on the real public data
+  phase1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          enable-cache: true
+      - run: uv sync --frozen
+      - uses: actions/cache@v6
+        with:
+          path: raw
+          key: raw-${{ hashFiles('scripts/fetch_raw.sh') }}
+      - name: Fetch pinned raw data and verify SHA-256
+        run: bash scripts/fetch_raw.sh raw
+      - name: Build, verify, package, audit (62 numbers)
+        env:
+          PYTHON: uv run python
+        run: bash scripts/run_phase1.sh raw phase1_out
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: phase1-report
+          path: |
+            phase1_out/*.log
+            phase1_out/handoff/manifest.json
+
+  # ------------------------------------------------------------------ SAST: CodeQL
+  sast:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: python
+          build-mode: none
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:python
+
+  # ------------------------------------------------------------------ dependency, secret, config scan
+  trivy-fs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          skip-dirs: tests,.venv
+
+  # ------------------------------------------------------------------ build, scan and test the container
+  image:
+    needs: [lint, test, phase1, sast, trivy-fs]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: threatmamba:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy - image scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: threatmamba:ci
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Start the stack (waits for the health check)
+        env:
+          TM_IMAGE: threatmamba:ci
+        run: docker compose up -d --no-build --wait --wait-timeout 120
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          enable-cache: true
+      - name: System tests against the running container
+        env:
+          TM_BASE_URL: http://localhost:8000
+        run: uv sync --frozen && uv run pytest -m system tests/system
+      - name: Container logs
+        if: always()
+        run: docker compose logs --no-color
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+      - name: Save the tested image for delivery
+        if: github.event_name == 'push'
+        run: docker save threatmamba:ci | gzip > image.tar.gz
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'push'
+        with:
+          name: image
+          path: image.tar.gz
+          retention-days: 3
+
+  # ------------------------------------------------------------------ CD: push the exact image that was tested
+  deliver:
+    if: github.event_name == 'push'
+    needs: image
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'release' || github.ref_name == 'QA' && 'qa' || 'develop' }}
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      version: ${{ steps.tags.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: image
+      - run: gunzip -c image.tar.gz | docker load
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: tags
+        name: Tag and push
+        run: |
+          IMG="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SHA7="${GITHUB_SHA::7}"
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          case "$GITHUB_REF_NAME" in
+            develop) TAGS="develop develop-$SHA7" ;;
+            QA)      TAGS="qa qa-$SHA7" ;;
+            main)    TAGS="v$VERSION latest" ;;
+          esac
+          for t in $TAGS; do
+            docker tag threatmamba:ci "$IMG:$t"
+            docker push "$IMG:$t"
+            echo "pushed $IMG:$t" >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------------------------------------ CD: GitHub Release (main only)
+  release:
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    needs: deliver
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.deliver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Create release v${{ needs.deliver.outputs.version }}
+        run: |
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "v$VERSION already released - bump VERSION"; exit 1
+          fi
+          IMG="ghcr.io/${GITHUB_REPOSITORY,,}"
+          {
+            echo "Run it:"
+            echo '```'
+            echo "TM_IMAGE=$IMG:v$VERSION docker compose up -d"
+            echo '```'
+          } > notes.md
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --title "ThreatMAMBA v$VERSION" \
+            --notes-file notes.md --generate-notes docker-compose.yml
+
+  # ------------------------------------------------------------------ the one required check
+  ci-passed:
+    if: always()
+    needs: [lint, test, phase1, sast, trivy-fs, image, deliver, release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job failed or was cancelled
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS"
+          if echo "$RESULTS" | grep -Eq '"result": "(failure|cancelled)"'; then exit 1; fi

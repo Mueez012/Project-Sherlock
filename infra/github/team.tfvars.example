@@ -1,0 +1,7 @@
+# Copy to team.tfvars (git-ignored) and fill in.
+owner     = "your-github-username"   # or the organization that owns the repo
+repo_name = "your-existing-repo-name"
+collaborators = {
+  "ioc-teammate-username" = "push"
+  "ttp-teammate-username" = "push"
+}

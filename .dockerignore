@@ -1,0 +1,12 @@
+.git
+.github
+.venv
+raw
+phase1_out
+data
+artifacts
+models
+tests
+infra
+scripts
+**/__pycache__
