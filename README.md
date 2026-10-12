@@ -1,5 +1,7 @@
 # ThreatMAMBA
 
+[![ci](https://github.com/Mueez012/Project-Sherlock/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/Mueez012/Project-Sherlock/actions/workflows/ci.yml)
+
 Reproduction of *ThreatMAMBA: Achieving High-Robustness Cyber Threat Attribution During the Evolution of Attacks*
 (IEEE TIFS 2026). Paste a CTI report into the web interface and get its ATT&CK techniques, its indicators of
 compromise and, once the classifier is trained, the likely threat actor.
@@ -62,14 +64,20 @@ your machine; if it is lost, `terraform apply` simply imports the repo again.
 
 ## How the team works
 
-```
-feat/ioc-*, feat/ttp-*, feat/cskg-*  --PR-->  develop  --PR-->  QA  --PR-->  main  ->  release vX.Y.Z
+Every task, three steps:
+
+```bash
+git switch develop && git pull                      # 1. start from the latest code
+# 2. write code (and, ideally, a test in tests/unit/)
+bash scripts/ship.sh "feat(ioc): what you did"      # 3. send it
 ```
 
-- Branch from `develop` as `feat/<module>-<what>` and open a PR into `develop`. One teammate approves, and
-  `ci-passed` must be green. Commit messages follow conventional commits (`feat:`, `fix:`, `test:`, `docs:`).
-- To promote, open a PR `develop` -> `QA`, then `QA` -> `main`. `promotion-guard` rejects any other path.
-- To release, bump `VERSION` on `develop` before promoting to `main`. A version that already exists is refused.
+`ship.sh` commits, pushes, opens a pull request into `develop` and sets it to merge by itself once CI is green.
+No approval is needed for `develop`. If CI fails you get an email: fix the problem and run step 3 again.
+Messages start with `feat:`, `fix:`, `test:`, `docs:` or `chore:` (a scope like `feat(ttp):` is optional).
+
+Promotions (`develop` -> `QA` -> `main`) and releases are done by the repo owner and need one teammate's approval.
+To release, bump `VERSION` on `develop` before promoting to `main`.
 
 ## What the pipeline does
 

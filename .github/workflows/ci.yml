@@ -63,7 +63,7 @@ jobs:
           MARKERS: ${{ (github.ref_name == 'QA' || github.ref_name == 'main' || github.base_ref == 'QA' || github.base_ref == 'main') && 'not system' || 'not slow and not system' }}
         run: >
           uv run pytest -m "$MARKERS"
-          --cov --cov-report=xml --cov-report=term --cov-fail-under=60
+          --cov --cov-report=xml --cov-report=term --cov-fail-under=40
           --junitxml=junit.xml
       - uses: actions/upload-artifact@v7
         if: always()

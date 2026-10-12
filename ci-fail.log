@@ -1,0 +1,497 @@
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	﻿2026-10-12T16:02:39.2334194Z ##[group]Run aquasecurity/trivy-action@v0.36.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2334633Z with:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2335091Z   scan-type: fs
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2335346Z   scan-ref: .
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2335604Z   scanners: vuln,secret,misconfig
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2335916Z   severity: HIGH,CRITICAL
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2336196Z   ignore-unfixed: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2336462Z   exit-code: 1
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2336721Z   skip-dirs: tests,.venv
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2337000Z   vuln-type: os,library
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2337259Z   format: table
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2337654Z   cache-dir: /home/runner/work/Project-Sherlock/Project-Sherlock/.cache/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2338117Z   list-all-pkgs: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2338387Z   version: v0.70.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2338632Z   cache: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2338883Z   skip-setup-trivy: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2341468Z   token-setup-trivy: ***
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2341779Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2342015Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2342281Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2342573Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2403283Z ##[start-action display=Install Trivy;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2537244Z ##[group]Run aquasecurity/setup-trivy@3fb12ec12f41e471780db15c232d5dd185dcb514
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2537737Z with:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2537980Z   version: v0.70.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2538231Z   cache: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2540725Z   token: ***
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2540997Z   path: $HOME/.local/bin
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2541318Z   github-server-url: https://github.com
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2541658Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2541901Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2542175Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2542434Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2550480Z ##[start-action display=Binary dir;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.binary-dir]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2584086Z ##[group]Run echo "dir=$HOME/.local/bin/trivy-bin" >> $GITHUB_OUTPUT
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2584928Z ^[[36;1mecho "dir=$HOME/.local/bin/trivy-bin" >> $GITHUB_OUTPUT^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2859219Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2859695Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2859951Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2860239Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.2860501Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3008268Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.binary-dir;outcome=success;conclusion=success;duration_ms=45]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3013375Z ##[start-action display=Check the version for caching;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3021185Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run;outcome=skipped;conclusion=skipped;duration_ms=0]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3023849Z ##[start-action display=Restore Trivy binary from cache;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.cache]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3110736Z ##[group]Run actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3111209Z with:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3111479Z   path: /home/runner/.local/bin/trivy-bin
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3111839Z   key: trivy-binary-v0.70.0-Linux-X64
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3112172Z   enableCrossOsArchive: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3112478Z   fail-on-cache-miss: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3112761Z   lookup-only: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3113012Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3113244Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3113505Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.3113760Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5212003Z Cache not found for input keys: trivy-binary-v0.70.0-Linux-X64
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5313646Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.cache;outcome=success;conclusion=success;duration_ms=228]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5320140Z ##[start-action display=Checkout install script;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__actions_checkout]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5427060Z ##[group]Run actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5427729Z with:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5427984Z   repository: aquasecurity/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5428306Z   sparse-checkout: contrib
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5428612Z   path: trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5428858Z   fetch-depth: 1
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5429140Z   ref: 75c4dc0f45c5d7ffd05ae26df1e0c666787bdf2a
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5429522Z   github-server-url: https://github.com
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5432141Z   token: ***
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5432398Z   ssh-strict: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5432654Z   ssh-user: git
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5432918Z   persist-credentials: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5433205Z   clean: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5433470Z   sparse-checkout-cone-mode: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5433775Z   fetch-tags: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5434036Z   show-progress: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5434296Z   lfs: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5434533Z   submodules: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5435136Z   set-safe-directory: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5435496Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5435734Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5436019Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.5436275Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6271305Z Syncing repository: aquasecurity/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6276908Z ##[group]Getting Git version info
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6278215Z Working directory is '/home/runner/work/Project-Sherlock/Project-Sherlock/trivy'
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6319305Z [command]/usr/bin/git version
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6360653Z git version 2.55.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6382829Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6397492Z Temporarily overriding HOME='/home/runner/work/_temp/1ef1bee7-62e2-4f6c-89d3-e79eebc1cdcf' before making global git config changes
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6398987Z Adding repository directory to the temporary git global config as a safe directory
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6402631Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Project-Sherlock/Project-Sherlock/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6441008Z ##[group]Initializing the repository
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6445052Z [command]/usr/bin/git init /home/runner/work/Project-Sherlock/Project-Sherlock/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6496229Z hint: Using 'master' as the name for the initial branch. This default branch name
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6506987Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6508063Z hint: to use in all of your new repositories, which will suppress this warning,
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6508732Z hint: call:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6508993Z hint:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6509323Z hint: 	git config --global init.defaultBranch <name>
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6509735Z hint:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6510134Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6510768Z hint: 'development'. The just-created branch can be renamed via this command:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6511220Z hint:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6511489Z hint: 	git branch -m <name>
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6511846Z hint:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6512261Z hint: Disable this message with "git config set advice.defaultBranchName false"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6512982Z Initialized empty Git repository in /home/runner/work/Project-Sherlock/Project-Sherlock/trivy/.git/
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6515062Z [command]/usr/bin/git remote add origin https://github.com/aquasecurity/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6544084Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6545149Z ##[group]Disabling automatic garbage collection
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6549110Z [command]/usr/bin/git config --local gc.auto 0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6581369Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6582201Z ##[group]Setting up auth
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6582655Z Removing SSH command configuration
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6589958Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6622921Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6865523Z Removing HTTP extra header
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6872715Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.6906568Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7167830Z Removing includeIf entries pointing to credentials config files
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7173028Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7215514Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7477360Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-a396f48a-05cb-491c-a4dd-c278445cf2b3.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7524239Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Project-Sherlock/Project-Sherlock/trivy/.git.path /home/runner/work/_temp/git-credentials-a396f48a-05cb-491c-a4dd-c278445cf2b3.config
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7564131Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Project-Sherlock/Project-Sherlock/trivy/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-a396f48a-05cb-491c-a4dd-c278445cf2b3.config
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7606053Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/trivy/.git.path /github/runner_temp/git-credentials-a396f48a-05cb-491c-a4dd-c278445cf2b3.config
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7644487Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/trivy/.git/worktrees/*.path /github/runner_temp/git-credentials-a396f48a-05cb-491c-a4dd-c278445cf2b3.config
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7678928Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7679790Z ##[group]Fetching the repository
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.7688711Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --filter=blob:none --depth=1 origin 75c4dc0f45c5d7ffd05ae26df1e0c666787bdf2a
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9839975Z From https://github.com/aquasecurity/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9841274Z  * branch            75c4dc0f45c5d7ffd05ae26df1e0c666787bdf2a -> FETCH_HEAD
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9844407Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9845818Z ##[group]Determining the checkout info
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9848034Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9848998Z ##[group]Setting up sparse checkout
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9854516Z [command]/usr/bin/git sparse-checkout set contrib
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9897002Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9897877Z ##[group]Checking out the ref
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:39.9901777Z [command]/usr/bin/git checkout --progress --force 75c4dc0f45c5d7ffd05ae26df1e0c666787bdf2a
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2023654Z Note: switching to '75c4dc0f45c5d7ffd05ae26df1e0c666787bdf2a'.
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2024576Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2025649Z You are in 'detached HEAD' state. You can look around, make experimental
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2026883Z changes and commit them, and you can discard any commits you make in this
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2028072Z state without impacting any branches by switching back to a branch.
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2028806Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2029330Z If you want to create a new branch to retain commits you create, you may
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2030380Z do so (now or later) by using -c with the switch command. Example:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2031055Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2031430Z   git switch -c <new-branch-name>
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2031940Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2032335Z Or undo this operation with:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2032826Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2033164Z   git switch -
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2033620Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2034193Z Turn off this advice by setting config variable advice.detachedHead to false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2035372Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2035969Z HEAD is now at 75c4dc0 chore: add client option to install script (#9962)
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2038714Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2078462Z [command]/usr/bin/git log -1 --format=%H
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2110086Z 75c4dc0f45c5d7ffd05ae26df1e0c666787bdf2a
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2258823Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__actions_checkout;outcome=success;conclusion=success;duration_ms=693]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2261628Z ##[start-action display=Install Trivy;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run_2]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2286942Z ##[group]Run echo "installing Trivy binary"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2287296Z ^[[36;1mecho "installing Trivy binary"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2287816Z ^[[36;1mbash ./trivy/contrib/install.sh -b /home/runner/.local/bin/trivy-bin -c setup-trivy v0.70.0^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2288399Z ^[[36;1mcp -r ./trivy/contrib /home/runner/.local/bin/trivy-bin/contrib^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2288773Z ^[[36;1mrm -rf ./trivy^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2350430Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2350807Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2351003Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2351226Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2351442Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2428052Z installing Trivy binary
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.2568991Z aquasecurity/trivy info checking GitHub for tag 'v0.70.0'
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:40.3084462Z aquasecurity/trivy info found version: 0.70.0 for v0.70.0/Linux/64bit
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:41.9833490Z aquasecurity/trivy info installed /home/runner/.local/bin/trivy-bin/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0276368Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run_2;outcome=success;conclusion=success;duration_ms=1801]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0279541Z ##[start-action display=Add Trivy binary to $GITHUB_PATH;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run_3]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0300212Z ##[group]Run echo /home/runner/.local/bin/trivy-bin >> $GITHUB_PATH
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0300692Z ^[[36;1mecho /home/runner/.local/bin/trivy-bin >> $GITHUB_PATH^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0362343Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0362698Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0362908Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0363129Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0363334Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0448703Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__run_3;outcome=success;conclusion=success;duration_ms=16]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0451131Z ##[start-action display=Save Trivy binary to cache;id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__actions_cache]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0491924Z ##[group]Run actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0492309Z with:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0492532Z   path: /home/runner/.local/bin/trivy-bin
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0492869Z   key: trivy-binary-v0.70.0-Linux-X64
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0493152Z   enableCrossOsArchive: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0493387Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0493576Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0493813Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.0494022Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:42.1871829Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/Project-Sherlock/Project-Sherlock --files-from manifest.txt --use-compress-program zstdmt
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.6134669Z Sent 43751173 of 43751173 (100.0%), 47.8 MBs/sec
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7566618Z Cache saved with key: trivy-binary-v0.70.0-Linux-X64
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7646355Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy.__actions_cache;outcome=success;conclusion=success;duration_ms=1719]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7660921Z ##[end-action id=__aquasecurity_trivy-action.__aquasecurity_setup-trivy;outcome=success;conclusion=success;duration_ms=4525]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7663409Z ##[start-action display=Get current date;id=__aquasecurity_trivy-action.date]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7692693Z ##[group]Run echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7693141Z ^[[36;1mecho "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7754448Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7755234Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7755453Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7755679Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7755895Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7854285Z ##[end-action id=__aquasecurity_trivy-action.date;outcome=success;conclusion=success;duration_ms=19]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7857130Z ##[start-action display=Restore DB from cache;id=__aquasecurity_trivy-action.__actions_cache]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7898557Z ##[group]Run actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7898933Z with:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7899250Z   path: /home/runner/work/Project-Sherlock/Project-Sherlock/.cache/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7899655Z   key: cache-trivy-2026-10-12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7899927Z   restore-keys: cache-trivy-
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7900193Z   enableCrossOsArchive: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7900448Z   fail-on-cache-miss: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7900720Z   lookup-only: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7900942Z   save-always: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7901160Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7901365Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7901591Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.7901802Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:43.9956856Z Cache not found for input keys: cache-trivy-2026-10-12, cache-trivy-
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0093250Z ##[end-action id=__aquasecurity_trivy-action.__actions_cache;outcome=success;conclusion=success;duration_ms=223]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0100097Z ##[start-action display=Set GitHub Path;id=__aquasecurity_trivy-action.__run]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0125971Z ##[group]Run echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0126628Z ^[[36;1mecho "$GITHUB_ACTION_PATH" >> $GITHUB_PATH^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0214944Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0215542Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0215846Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0216206Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0217093Z   GITHUB_ACTION_PATH: /home/runner/work/_actions/aquasecurity/trivy-action/v0.36.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0217819Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0341705Z ##[end-action id=__aquasecurity_trivy-action.__run;outcome=success;conclusion=success;duration_ms=24]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0344179Z ##[start-action display=Clear Trivy Envs file;id=__aquasecurity_trivy-action.__run_2]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0361993Z ##[group]Run rm -f trivy_envs.txt
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0362323Z ^[[36;1mrm -f trivy_envs.txt^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0362590Z ^[[36;1mtouch trivy_envs.txt^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0422893Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0423274Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0423492Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0423741Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0423971Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0532922Z ##[end-action id=__aquasecurity_trivy-action.__run_2;outcome=success;conclusion=success;duration_ms=18]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0538979Z ##[start-action display=Set Trivy environment variables;id=__aquasecurity_trivy-action.__run_3]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0556317Z ##[group]Run # Note: There is currently no way to distinguish between undefined variables and empty strings in GitHub Actions.
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0557217Z ^[[36;1m# Note: There is currently no way to distinguish between undefined variables and empty strings in GitHub Actions.^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0557881Z ^[[36;1m# This limitation affects how we handle default values and empty inputs.^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0558447Z ^[[36;1m# For more information, see: https://github.com/actions/runner/issues/924^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0558843Z ^[[36;1m^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0559218Z ^[[36;1m# The following logic implements the configuration priority described in the README:^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0559647Z ^[[36;1m#^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0559843Z ^[[36;1m# Inputs^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0560063Z ^[[36;1m# Environment Variables^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0560324Z ^[[36;1m# Config File^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0560546Z ^[[36;1m# Defaults^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0560760Z ^[[36;1m#^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0561176Z ^[[36;1m# As noted above defaults are awkward to handle as GitHub Actions will inject those values as the input^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0562026Z ^[[36;1m# if the caller doesn't provide them, thus if the input matches the default we don't set it as we^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0562701Z ^[[36;1m# can't tell the difference.  Plus if we did set it when it was the default value then it could potentially^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0563439Z ^[[36;1m# override an external environment variable, or something in the callers configuration file, which then wouldn't^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0564041Z ^[[36;1m# match the configuration priority that is documented.^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0564392Z ^[[36;1mset_env_var_if_provided() {^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0564661Z ^[[36;1m  local var_name="$1"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0565324Z ^[[36;1m  local input_value="$2"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0565710Z ^[[36;1m  local default_value="$3"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0565971Z ^[[36;1m^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0566274Z ^[[36;1m  if [ -n "$input_value" ] && [ "$input_value" != "$default_value" ]; then^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0566777Z ^[[36;1m    # If action was provided with explicit input by the caller set that^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0567323Z ^[[36;1m    # Use printf %q to safely escape special characters and prevent command injection^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0567858Z ^[[36;1m    printf 'export %s=%q\n' "$var_name" "$input_value" >> trivy_envs.txt^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0568227Z ^[[36;1m  fi^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0568421Z ^[[36;1m}^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0568625Z ^[[36;1m^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0568917Z ^[[36;1m# Set environment variables, handling those with default values^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0569506Z ^[[36;1m# cf. https://aquasecurity.github.io/trivy/latest/docs/configuration/#environment-variables^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0570066Z ^[[36;1mset_env_var_if_provided "TRIVY_INPUT" "$INPUT_INPUT" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0570503Z ^[[36;1mset_env_var_if_provided "TRIVY_EXIT_CODE" "$INPUT_EXIT_CODE" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0571187Z ^[[36;1mset_env_var_if_provided "TRIVY_IGNORE_UNFIXED" "$INPUT_IGNORE_UNFIXED" "false"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0571732Z ^[[36;1mset_env_var_if_provided "TRIVY_PKG_TYPES" "$INPUT_VULN_TYPE" "os,library"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0572324Z ^[[36;1mset_env_var_if_provided "TRIVY_SEVERITY" "$INPUT_SEVERITY" "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0572876Z ^[[36;1mset_env_var_if_provided "TRIVY_FORMAT" "$INPUT_FORMAT" "table"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0573322Z ^[[36;1mset_env_var_if_provided "TRIVY_TEMPLATE" "$INPUT_TEMPLATE" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0573785Z ^[[36;1mset_env_var_if_provided "TRIVY_OUTPUT" "$INPUT_OUTPUT" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0574231Z ^[[36;1mset_env_var_if_provided "TRIVY_SKIP_DIRS" "$INPUT_SKIP_DIRS" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0574690Z ^[[36;1mset_env_var_if_provided "TRIVY_SKIP_FILES" "$INPUT_SKIP_FILES" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0575308Z ^[[36;1mset_env_var_if_provided "TRIVY_TIMEOUT" "$INPUT_TIMEOUT" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0575900Z ^[[36;1mset_env_var_if_provided "TRIVY_IGNORE_POLICY" "$INPUT_IGNORE_POLICY" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0576402Z ^[[36;1mset_env_var_if_provided "TRIVY_QUIET" "$INPUT_HIDE_PROGRESS" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0576888Z ^[[36;1mset_env_var_if_provided "TRIVY_LIST_ALL_PKGS" "$INPUT_LIST_ALL_PKGS" "false"^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0577382Z ^[[36;1mset_env_var_if_provided "TRIVY_SCANNERS" "$INPUT_SCANNERS" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0577821Z ^[[36;1mset_env_var_if_provided "TRIVY_CONFIG" "$INPUT_TRIVY_CONFIG" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0578247Z ^[[36;1mset_env_var_if_provided "TRIVY_TF_VARS" "$INPUT_TF_VARS" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0578700Z ^[[36;1mset_env_var_if_provided "TRIVY_DOCKER_HOST" "$INPUT_DOCKER_HOST" ""^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0636847Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0637193Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0637395Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0637621Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0637832Z   INPUT_INPUT:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0638047Z   INPUT_EXIT_CODE: 1
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0638268Z   INPUT_IGNORE_UNFIXED: true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0638511Z   INPUT_VULN_TYPE: os,library
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0638935Z   INPUT_SEVERITY: HIGH,CRITICAL
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0639177Z   INPUT_FORMAT: table
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0639388Z   INPUT_TEMPLATE:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0639601Z   INPUT_OUTPUT:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0639810Z   INPUT_SKIP_DIRS: tests,.venv
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0640042Z   INPUT_SKIP_FILES:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0640243Z   INPUT_TIMEOUT:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0640450Z   INPUT_IGNORE_POLICY:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0640669Z   INPUT_HIDE_PROGRESS:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0640890Z   INPUT_LIST_ALL_PKGS: false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0641144Z   INPUT_SCANNERS: vuln,secret,misconfig
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0641422Z   INPUT_TRIVY_CONFIG:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0641639Z   INPUT_TF_VARS:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0641841Z   INPUT_DOCKER_HOST:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0642050Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0732535Z ##[end-action id=__aquasecurity_trivy-action.__run_3;outcome=success;conclusion=success;duration_ms=19]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0736765Z ##[start-action display=Run Trivy;id=__aquasecurity_trivy-action.__run_4]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0753032Z ##[group]Run entrypoint.sh
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0753316Z ^[[36;1mentrypoint.sh^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0810103Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0810452Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0810659Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0810897Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0811108Z   INPUT_SCAN_TYPE: fs
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0811321Z   INPUT_IMAGE_REF:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0811525Z   INPUT_SCAN_REF: .
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0811739Z   INPUT_TRIVYIGNORES:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0811953Z   INPUT_GITHUB_PAT:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0812173Z   INPUT_LIMIT_SEVERITIES_FOR_SARIF:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0812585Z   TRIVY_CACHE_DIR: /home/runner/work/Project-Sherlock/Project-Sherlock/.cache/trivy
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0813001Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.0924985Z Running Trivy with options: trivy fs .
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.1425047Z 2026-10-12T16:02:44Z	INFO	[vulndb] Need to update DB
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.1425657Z 2026-10-12T16:02:44Z	INFO	[vulndb] Downloading vulnerability DB...
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:44.1426261Z 2026-10-12T16:02:44Z	INFO	[vulndb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-db:2"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:49.1209987Z 36.75 MiB / 126.85 MiB [----------------->__________________________________________] 28.97% ? p/s ?94.30 MiB / 126.85 MiB [-------------------------------------------->_______________] 74.34% ? p/s ?126.85 MiB / 126.85 MiB [--------------------------------------------------------->] 100.00% ? p/s ?126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 149.96 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 149.96 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 149.96 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 140.28 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 140.28 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 140.28 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 131.23 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 131.23 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 131.23 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 122.76 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 122.76 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 122.76 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 114.84 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 114.84 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 114.84 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 107.43 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [------------------------------------------->] 100.00% 107.43 MiB p/s ETA 0s126.85 MiB / 126.85 MiB [-----------------------------------------------] 100.00% 32.64 MiB p/s 4.1s2026-10-12T16:02:49Z	INFO	[vulndb] Artifact successfully downloaded	repo="mirror.gcr.io/aquasec/trivy-db:2"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:49.1221079Z 2026-10-12T16:02:49Z	INFO	[vuln] Vulnerability scanning is enabled
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:49.1221880Z 2026-10-12T16:02:49Z	INFO	[misconfig] Misconfiguration scanning is enabled
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:49.1222689Z 2026-10-12T16:02:49Z	INFO	[checks-client] Need to update the checks bundle
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:49.1223473Z 2026-10-12T16:02:49Z	INFO	[checks-client] Downloading the checks bundle...
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.1328526Z 234.65 KiB / 234.65 KiB [------------------------------------------------------] 100.00% ? p/s 100ms2026-10-12T16:02:51Z	INFO	[secret] Secret scanning is enabled
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.1329773Z 2026-10-12T16:02:51Z	INFO	[secret] If your scanning is slow, please try '--scanners vuln,misconfig' to disable secret scanning
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.1330899Z 2026-10-12T16:02:51Z	INFO	[secret] Please see https://trivy.dev/docs/v0.70/guide/scanner/secret#recommendation for faster secret detection
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3121641Z 2026-10-12T16:02:51Z	INFO	[terraform scanner] Scanning root module	file_path="infra/github"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3134449Z 2026-10-12T16:02:51Z	WARN	[terraform parser] Variable values were not found in the environment or variable files. Evaluating may not work correctly.	module="root" variables="owner"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3779935Z 2026-10-12T16:02:51Z	INFO	Suppressing dependencies for development and testing. To display them, try the '--include-dev-deps' flag.
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3781216Z 2026-10-12T16:02:51Z	INFO	Number of language-specific files	num=1
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3781966Z 2026-10-12T16:02:51Z	INFO	[uv] Detecting vulnerabilities...
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3794262Z 2026-10-12T16:02:51Z	INFO	Detected config files	num=3
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3801092Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3801453Z Report Summary
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3801711Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3802429Z ┌──────────────────────┬────────────┬─────────────────┬─────────┬───────────────────┐
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3802976Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3803230Z 📣 ^[[34mNotices:^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3803740Z   - Version 0.75.0 of Trivy is now available, current version is 0.70.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3804079Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3804329Z To suppress version checks, run Trivy scans with the --skip-version-check flag
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3804660Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3805385Z │        Target        │    Type    │ Vulnerabilities │ Secrets │ Misconfigurations │
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3806508Z ├──────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3807695Z │ uv.lock              │     uv     │        0        │    -    │         -         │
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3808675Z ├──────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3809603Z │ Dockerfile           │ dockerfile │        -        │    -    │         0         │
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3810558Z ├──────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3811426Z │ infra/github         │ terraform  │        -        │    -    │         0         │
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3812358Z ├──────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3813253Z │ infra/github/main.tf │ terraform  │        -        │    -    │         1         │
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3814234Z └──────────────────────┴────────────┴─────────────────┴─────────┴───────────────────┘
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3814974Z Legend:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3815296Z - '-': Not scanned
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3815690Z - '0': Clean (no security findings detected)
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3816030Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3816067Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3816240Z infra/github/main.tf (terraform)
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3816655Z ================================
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3817306Z Tests: 1 (SUCCESSES: 0, FAILURES: 1)
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3817740Z Failures: 1 (HIGH: 1, CRITICAL: 0)
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3818021Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3818323Z GIT-0003 (HIGH): Repository does not have vulnerability alerts enabled
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3819056Z ════════════════════════════════════════
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3819619Z GitHub repository should be set to use vulnerability alerts.
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3820057Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3820457Z You can do this by setting the <code>vulnerability_alerts</code> attribute to 'true'.
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3821033Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3821039Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3821279Z See https://avd.aquasec.com/misconfig/git-0003
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3821958Z ────────────────────────────────────────
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3822503Z  infra/github/main.tf:27-48
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3823026Z ────────────────────────────────────────
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3823795Z   27 ┌ resource "github_repository" "this" {
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3824360Z   28 │   name        = var.repo_name
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3825601Z   29 │   description = "ThreatMAMBA: cyber threat attribution from CTI reports (TTPs, IOCs, CSKG, GAT+MAMBA)"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3826553Z   30 │   visibility  = "public"
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3827460Z   31 │   topics      = ["cyber-threat-intelligence", "threat-attribution", "mitre-attack", "fastapi"]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3828288Z   32 │
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3828669Z   33 │   has_issues   = true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3829142Z   34 │   has_projects = true
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3829613Z   35 └   has_wiki     = false
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3830002Z   ..
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3830436Z ────────────────────────────────────────
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3830756Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3830762Z
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3870168Z ##[error]Process completed with exit code 1.
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3878228Z ##[end-action id=__aquasecurity_trivy-action.__run_4;outcome=failure;conclusion=failure;duration_ms=7314]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3882128Z ##[start-action display=Remove Trivy Envs file;id=__aquasecurity_trivy-action.__run_5]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3901045Z ##[group]Run rm -f trivy_envs.txt
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3901360Z ^[[36;1mrm -f trivy_envs.txt^[[0m
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3962888Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3963353Z env:
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3963659Z   PYTHON_VERSION: 3.12
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3964082Z   UV_VERSION: 0.13.0
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.3974071Z ##[endgroup]
+trivy-fs	Trivy - dependencies (uv.lock), secrets, Dockerfile misconfig	2026-10-12T16:02:51.4074202Z ##[end-action id=__aquasecurity_trivy-action.__run_5;outcome=success;conclusion=success;duration_ms=19]
+ci-passed	Fail if any job failed or was cancelled	﻿2026-10-12T16:03:39.6227486Z ##[group]Run echo "$RESULTS"
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.6228197Z ^[[36;1mecho "$RESULTS"^[[0m
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.6228986Z ^[[36;1mif echo "$RESULTS" | grep -Eq '"result": "(failure|cancelled)"'; then exit 1; fi^[[0m
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7394202Z shell: /usr/bin/bash -e {0}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7394853Z env:
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7395171Z   PYTHON_VERSION: 3.12
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7395585Z   UV_VERSION: 0.13.0
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7396813Z   RESULTS: {
+ci-passed	Fail if any job failed or was cancelled	  "lint": {
+ci-passed	Fail if any job failed or was cancelled	    "result": "success",
+ci-passed	Fail if any job failed or was cancelled	    "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	  },
+ci-passed	Fail if any job failed or was cancelled	  "test": {
+ci-passed	Fail if any job failed or was cancelled	    "result": "success",
+ci-passed	Fail if any job failed or was cancelled	    "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	  },
+ci-passed	Fail if any job failed or was cancelled	  "phase1": {
+ci-passed	Fail if any job failed or was cancelled	    "result": "success",
+ci-passed	Fail if any job failed or was cancelled	    "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	  },
+ci-passed	Fail if any job failed or was cancelled	  "sast": {
+ci-passed	Fail if any job failed or was cancelled	    "result": "success",
+ci-passed	Fail if any job failed or was cancelled	    "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	  },
+ci-passed	Fail if any job failed or was cancelled	  "trivy-fs": {
+ci-passed	Fail if any job failed or was cancelled	    "result": "failure",
+ci-passed	Fail if any job failed or was cancelled	    "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	  },
+ci-passed	Fail if any job failed or was cancelled	  "image": {
+ci-passed	Fail if any job failed or was cancelled	    "result": "skipped",
+ci-passed	Fail if any job failed or was cancelled	    "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	  },
+ci-passed	Fail if any job failed or was cancelled	  "deliver": {
+ci-passed	Fail if any job failed or was cancelled	    "result": "skipped",
+ci-passed	Fail if any job failed or was cancelled	    "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	  },
+ci-passed	Fail if any job failed or was cancelled	  "release": {
+ci-passed	Fail if any job failed or was cancelled	    "result": "skipped",
+ci-passed	Fail if any job failed or was cancelled	    "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	  }
+ci-passed	Fail if any job failed or was cancelled	}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7398222Z ##[endgroup]
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7545806Z {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7546445Z   "lint": {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7546889Z     "result": "success",
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7547416Z     "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7547887Z   },
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7548340Z   "test": {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7548850Z     "result": "success",
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7549381Z     "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7549897Z   },
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7550442Z   "phase1": {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7550855Z     "result": "success",
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7551206Z     "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7551539Z   },
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7551831Z   "sast": {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7552128Z     "result": "success",
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7552518Z     "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7552975Z   },
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7553359Z   "trivy-fs": {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7553864Z     "result": "failure",
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7554336Z     "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7554803Z   },
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7555284Z   "image": {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7555581Z     "result": "skipped",
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7555948Z     "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7556255Z   },
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7556559Z   "deliver": {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7556906Z     "result": "skipped",
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7557228Z     "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7557557Z   },
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7557842Z   "release": {
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7558148Z     "result": "skipped",
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7558614Z     "outputs": {}
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7559176Z   }
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7559469Z }
+ci-passed	Fail if any job failed or was cancelled	2026-10-12T16:03:39.7569320Z ##[error]Process completed with exit code 1.
