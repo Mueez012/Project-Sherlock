@@ -4,3 +4,7 @@
 # repository declared in infra/github/main.tf as CRITICAL. Both ID formats are listed for older/newer Trivy.
 GIT-0001
 AVD-GIT-0001
+# Dependabot alerts are enabled by the github_repository_vulnerability_alerts resource in infra/github/main.tf.
+# Trivy 0.70 (the trivy-action default) only recognises the deprecated vulnerability_alerts attribute.
+GIT-0003
+AVD-GIT-0003
