@@ -65,11 +65,12 @@ resource "github_branch_default" "this" {
 }
 
 locals {
-  # branch => status checks that must be green before a PR can merge into it
+  # develop: plain `git push` works (only force-push and deletion are blocked); CI still runs on every push.
+  # QA and main: change only through a PR with green checks and one approval.
   protected_branches = {
-    develop = ["ci-passed"]
-    QA      = ["ci-passed", "promotion-guard"]
-    main    = ["ci-passed", "promotion-guard"]
+    develop = { require_pr = false, checks = [] }
+    QA      = { require_pr = true, checks = ["ci-passed", "promotion-guard"] }
+    main    = { require_pr = true, checks = ["ci-passed", "promotion-guard"] }
   }
 }
 
@@ -88,23 +89,29 @@ resource "github_repository_ruleset" "branch" {
   }
 
   rules {
-    deletion         = true # branch cannot be deleted
-    non_fast_forward = true # no force-push
+    deletion         = true
+    non_fast_forward = true
 
-    pull_request {
-      required_approving_review_count   = var.required_approvals
-      dismiss_stale_reviews_on_push     = true
-      require_code_owner_review         = false # a code owner cannot approve their own PR
-      require_last_push_approval        = false
-      required_review_thread_resolution = false
+    dynamic "pull_request" {
+      for_each = each.value.require_pr ? [1] : []
+      content {
+        required_approving_review_count   = var.required_approvals
+        dismiss_stale_reviews_on_push     = true
+        require_code_owner_review         = false
+        require_last_push_approval        = false
+        required_review_thread_resolution = false
+      }
     }
 
-    required_status_checks {
-      strict_required_status_checks_policy = false # "up to date" would block every promotion
-      dynamic "required_check" {
-        for_each = each.value
-        content {
-          context = required_check.value
+    dynamic "required_status_checks" {
+      for_each = length(each.value.checks) > 0 ? [1] : []
+      content {
+        strict_required_status_checks_policy = false
+        dynamic "required_check" {
+          for_each = each.value.checks
+          content {
+            context = required_check.value
+          }
         }
       }
     }
