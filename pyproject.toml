@@ -64,9 +64,6 @@ addopts = "--strict-markers -m 'not system'"
 [tool.coverage.run]
 source = ["src/threatmamba"]
 omit = [
-    # executable scripts, exercised end-to-end by the phase1 CI job instead of unit tests
-    "src/threatmamba/data/verify_base.py",
-    "src/threatmamba/data/make_handoff.py",
-    "src/threatmamba/data/audit_numbers.py",
+    # executable script, exercised end-to-end by the datasets CI job instead of unit tests
     "src/threatmamba/data/verify_datasets.py",
 ]

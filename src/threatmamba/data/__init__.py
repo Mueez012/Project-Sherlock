@@ -1,1 +1,1 @@
-"""Phase 1: raw repo CSVs -> verified Base Truth Matrices and Phase 2 handoff."""
+"""Checks on the committed datasets (datasets/d1_model_ready, datasets/d2_model_ready)."""

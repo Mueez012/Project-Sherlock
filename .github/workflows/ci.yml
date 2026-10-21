@@ -73,35 +73,6 @@ jobs:
             coverage.xml
             junit.xml
 
-  # ------------------------------------------------------------------ Phase 1 on the real public data
-  phase1:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.0
-        with:
-          version: ${{ env.UV_VERSION }}
-          python-version: ${{ env.PYTHON_VERSION }}
-          enable-cache: true
-      - run: uv sync --frozen
-      - uses: actions/cache@v6
-        with:
-          path: raw
-          key: raw-${{ hashFiles('scripts/fetch_raw.sh') }}
-      - name: Fetch pinned raw data and verify SHA-256
-        run: bash scripts/fetch_raw.sh raw
-      - name: Build, verify, package, audit (62 numbers)
-        env:
-          PYTHON: uv run python
-        run: bash scripts/run_phase1.sh raw phase1_out
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: phase1-report
-          path: |
-            phase1_out/*.log
-            phase1_out/handoff/manifest.json
-
   # ------------------------------------------------------------------ SAST: CodeQL
   sast:
     runs-on: ubuntu-latest
@@ -137,7 +108,7 @@ jobs:
 
   # ------------------------------------------------------------------ build, scan and test the container
   image:
-    needs: [lint, test, phase1, sast, trivy-fs]
+    needs: [lint, test, sast, trivy-fs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -258,7 +229,7 @@ jobs:
   # ------------------------------------------------------------------ the one required check
   ci-passed:
     if: always()
-    needs: [lint, test, phase1, sast, trivy-fs, image, deliver, release]
+    needs: [lint, test, sast, trivy-fs, image, deliver, release]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any job failed or was cancelled
