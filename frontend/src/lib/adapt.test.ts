@@ -20,8 +20,8 @@ function response(overrides: Partial<AnalyzeResponse> = {}): AnalyzeResponse {
       { technique_id: "T1003", score: 0.99, sentence_index: 3 },
     ],
     iocs: [
-      { type: "ipv4", value: "10.0.0.1", sentence_index: 4 },
-      { type: "ipv4", value: "10.0.0.1", sentence_index: 1 },
+      { type: "ipv4", value: "10.0.0.1", sentence_indices: [4, 1], context: [], source: "cti report" },
+      { type: "domain", value: "found-by-lookup.example", sentence_indices: [], context: [], source: "lookup" },
     ],
     cskg: null,
     attribution: null,
@@ -82,8 +82,11 @@ describe("toAnalysisResult", () => {
     expect(sentences[2].labels).toEqual([]);
   });
 
-  it("keeps every sentence an indicator appears in", () => {
-    expect(adapt().indicators).toEqual([{ type: "ipv4", value: "10.0.0.1", sentence_indices: [1, 4] }]);
+  it("keeps every sentence an indicator appears in, and puts indicators with no sentence last", () => {
+    expect(adapt().indicators).toEqual([
+      { type: "ipv4", value: "10.0.0.1", sentence_indices: [1, 4] },
+      { type: "domain", value: "found-by-lookup.example", sentence_indices: [] },
+    ]);
   });
 
   it("summarises counts, confidence bands and the strongest predicted tactic", () => {

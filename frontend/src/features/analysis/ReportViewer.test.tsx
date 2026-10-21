@@ -42,7 +42,8 @@ describe("ReportViewer with indicators", () => {
       text: "Nothing here. The beacon went to 10.0.0.1 daily.", incidentName: "Op", processingMs: 1,
       response: {
         mode: "stub", sentences: ["Nothing here.", "The beacon went to 10.0.0.1 daily."], ttps: [],
-        iocs: [{ type: "ipv4", value: "10.0.0.1", sentence_index: 1 }], cskg: null, attribution: null,
+        iocs: [{ type: "ipv4", value: "10.0.0.1", sentence_indices: [1], context: [], source: "regex stub" }],
+        cskg: null, attribution: null,
       },
     });
     const user = userEvent.setup();

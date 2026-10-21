@@ -23,10 +23,12 @@ def test_ioc_extractor_refangs_and_types():
     assert (IOCType.cve, "CVE-2021-44228") in iocs
 
 
-def test_ioc_extractor_prefers_longest_hash_and_dedupes():
+def test_ioc_extractor_prefers_longest_hash_and_keeps_every_sentence():
     h = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
-    iocs = RegexIOCExtractor().extract([f"hash {h}", f"again {h}"])
-    assert [(i.type, i.sentence_index) for i in iocs] == [(IOCType.sha256, 0)]
+    iocs = RegexIOCExtractor().extract([f"hash {h}", "nothing here", f"again {h}"])
+    assert [(i.type, i.sentence_indices) for i in iocs] == [(IOCType.sha256, [0, 2])]
+    assert iocs[0].context == [f"hash {h}", f"again {h}"]
+    assert iocs[0].source == "regex stub"
 
 
 def test_ttp_keyword_extractor_maps_sentences():

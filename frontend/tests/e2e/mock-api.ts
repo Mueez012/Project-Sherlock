@@ -19,7 +19,10 @@ export const HUB_ANSWER = {
     { technique_id: "T1059", score: 0.75, sentence_index: 1 },
     { technique_id: "T1003", score: 1.0, sentence_index: 3 },
   ],
-  iocs: [{ type: "ipv4", value: "10.0.0.1", sentence_index: 2 }],
+  iocs: [{
+    type: "ipv4", value: "10.0.0.1", sentence_indices: [2],
+    context: ["The beacon called 10.0.0[.]1 every hour."], source: "regex stub",
+  }],
   cskg: null,
   attribution: null,
 };

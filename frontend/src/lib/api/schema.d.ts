@@ -105,22 +105,37 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** IOC */
+        /**
+         * IOC
+         * @description One indicator of compromise.
+         *
+         *     sentence_indices are the hub's sentence numbers: every sentence the indicator appears in, sorted. It is empty
+         *     for an indicator found by an online lookup rather than in the text. context and source are the extractor's
+         *     own; for IOC-hunter, context is the sentences of its own splitter where it found the indicator.
+         */
         IOC: {
             type: components["schemas"]["IOCType"];
             /** Value */
             value: string;
+            /** Sentence Indices */
+            sentence_indices?: number[];
+            /** Context */
+            context?: string[];
             /**
-             * Sentence Index
-             * @description sentence where it first appears
+             * Source
+             * @default
              */
-            sentence_index: number;
+            source: string;
         };
         /**
          * IOCType
+         * @description Every type IOC-hunter can produce (ioc_hunter.models.normalize), so nothing it returns is rejected.
+         *
+         *     Its extraction emits ipv4, ipv6, domain, url, md5, sha1, sha256 (plus email and cve with extended types);
+         *     lookups add port, protocol, geo_location, filename and the rest.
          * @enum {string}
          */
-        IOCType: "ipv4" | "domain" | "url" | "md5" | "sha1" | "sha256" | "email" | "cve";
+        IOCType: "ipv4" | "ipv6" | "domain" | "url" | "md5" | "sha1" | "sha256" | "email" | "cve" | "port" | "protocol" | "geo_location" | "filename" | "registry" | "command_api" | "account" | "header" | "fingerprint" | "path" | "time" | "mac" | "technique" | "tactic";
         /** Node */
         Node: {
             /** Id */

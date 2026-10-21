@@ -13,10 +13,10 @@ from fastapi.staticfiles import StaticFiles
 
 from threatmamba import __version__
 from threatmamba.attribution import attribute
-from threatmamba.clients import ServiceError, TTPServiceExtractor
+from threatmamba.clients import IOCServiceExtractor, ServiceError, TTPServiceExtractor
 from threatmamba.contracts import AnalyzeRequest, AnalyzeResponse
 from threatmamba.ioc import IOCExtractor, RegexIOCExtractor
-from threatmamba.settings import Mode, ioc_mode, ttp_mode, ttp_timeout_s, ttp_url
+from threatmamba.settings import Mode, ioc_mode, ioc_timeout_s, ioc_url, ttp_mode, ttp_timeout_s, ttp_url
 from threatmamba.text import split_sentences
 from threatmamba.ttp import KeywordTTPExtractor, TTPExtractor
 
@@ -35,7 +35,7 @@ def _ttp() -> TTPExtractor:
 
 def _ioc() -> IOCExtractor:
     if ioc_mode() is Mode.real:
-        raise ServiceError("ioc", "real mode is not available until the IOC service is integrated")
+        return IOCServiceExtractor(ioc_url(), ioc_timeout_s())
     return _ioc_stub
 
 
@@ -50,7 +50,7 @@ def health() -> dict[str, object]:
         return {"status": "ok", "mode": "stub", "version": __version__}
     services = {
         "ttp": TTPServiceExtractor(ttp_url()).health() if ttp_mode() is Mode.real else "stub",
-        "ioc": "not integrated" if ioc_mode() is Mode.real else "stub",
+        "ioc": IOCServiceExtractor(ioc_url()).health() if ioc_mode() is Mode.real else "stub",
     }
     status = "ok" if all(s in ("ok", "stub") for s in services.values()) else "degraded"
     return {"status": status, "mode": _mode(), "version": __version__, "services": services}
@@ -61,7 +61,7 @@ def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
     sentences = req.sentences if req.sentences is not None else split_sentences(req.text or "")
     try:
         ttps = _ttp().predict(sentences)
-        iocs = _ioc().extract(sentences)
+        iocs = _ioc().extract(sentences, text=req.text)
     except ServiceError as e:
         raise HTTPException(status_code=503, detail=f"{e.service} service unavailable: {e.detail}") from e
     return AnalyzeResponse(

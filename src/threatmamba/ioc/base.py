@@ -10,7 +10,13 @@ from threatmamba.contracts import IOC, IOCEdge
 
 
 class IOCExtractor(Protocol):
-    def extract(self, sentences: list[str]) -> list[IOC]: ...
+    def extract(self, sentences: list[str], text: str | None = None) -> list[IOC]:
+        """Indicators in the report, each with every sentence (index into `sentences`) it appears in.
+
+        `text` is the original report when the hub has it; an extractor with its own pipeline (IOC-hunter filters
+        reference sections by their headings) reads that instead of the split sentences.
+        """
+        ...
 
 
 class HuntingSource(Protocol):

@@ -8,6 +8,7 @@ Flow:  D2Report (datasets/d2_model_ready) -> TTPExtractor -> [TTPHit]
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Annotated
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -24,7 +25,14 @@ class D2Report(BaseModel):
 
 
 class IOCType(StrEnum):
+    """Every type IOC-hunter can produce (ioc_hunter.models.normalize), so nothing it returns is rejected.
+
+    Its extraction emits ipv4, ipv6, domain, url, md5, sha1, sha256 (plus email and cve with extended types);
+    lookups add port, protocol, geo_location, filename and the rest.
+    """
+
     ipv4 = "ipv4"
+    ipv6 = "ipv6"
     domain = "domain"
     url = "url"
     md5 = "md5"
@@ -32,12 +40,35 @@ class IOCType(StrEnum):
     sha256 = "sha256"
     email = "email"
     cve = "cve"
+    port = "port"
+    protocol = "protocol"
+    geo_location = "geo_location"
+    filename = "filename"
+    registry = "registry"
+    command_api = "command_api"
+    account = "account"
+    header = "header"
+    fingerprint = "fingerprint"
+    path = "path"
+    time = "time"
+    mac = "mac"
+    technique = "technique"
+    tactic = "tactic"
 
 
 class IOC(BaseModel):
+    """One indicator of compromise.
+
+    sentence_indices are the hub's sentence numbers: every sentence the indicator appears in, sorted. It is empty
+    for an indicator found by an online lookup rather than in the text. context and source are the extractor's
+    own; for IOC-hunter, context is the sentences of its own splitter where it found the indicator.
+    """
+
     type: IOCType
-    value: str
-    sentence_index: int = Field(ge=0, description="sentence where it first appears")
+    value: str = Field(min_length=1)
+    sentence_indices: list[Annotated[int, Field(ge=0)]] = Field(default_factory=list)
+    context: list[str] = Field(default_factory=list)
+    source: str = ""
 
 
 class IOCEdge(BaseModel):

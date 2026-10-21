@@ -1,0 +1,179 @@
+{
+ "request": {
+  "text": "Operation Example: phishing campaign\nThe actor sent spear-phishing emails from attacker@evil-mail.com with a malicious attachment.\nThe loader beaconed to 185.220.101[.]4 and downloaded a payload from hxxp://update-check[.]net/a.bin. It ran on Adobe Flash Player 11.2.202.228 and later versions.\nIndicators\nevil-mail.com\nd41d8cd98f00b204e9800998ecf8427e\nThe same host 185.220.101.4 was used again for exfiltration.\nReferences\nhttps://www.vendor-blog.com/analysis/2026/report.html\n",
+  "sentences": [
+   "Operation Example: phishing campaign",
+   "The actor sent spear-phishing emails from attacker@evil-mail.com with a malicious attachment.",
+   "The loader beaconed to 185.220.101[.]4 and downloaded a payload from hxxp://update-check[.]net/a.bin.",
+   "It ran on Adobe Flash Player 11.2.202.228 and later versions.",
+   "Indicators",
+   "evil-mail.com",
+   "d41d8cd98f00b204e9800998ecf8427e",
+   "The same host 185.220.101.4 was used again for exfiltration.",
+   "References",
+   "https://www.vendor-blog.com/analysis/2026/report.html"
+  ]
+ },
+ "response": {
+  "source": "cti report",
+  "original_text": "Operation Example: phishing campaign\nThe actor sent spear-phishing emails from attacker@evil-mail.com with a malicious attachment.\nThe loader beaconed to 185.220.101[.]4 and downloaded a payload from hxxp://update-check[.]net/a.bin. It ran on Adobe Flash Player 11.2.202.228 and later versions.\nIndicators\nevil-mail.com\nd41d8cd98f00b204e9800998ecf8427e\nThe same host 185.220.101.4 was used again for exfiltration.\nReferences\nhttps://www.vendor-blog.com/analysis/2026/report.html\n",
+  "retained_text": "Operation Example: phishing campaign\nThe actor sent spear-phishing emails from attacker@evil-mail.com with a malicious attachment.\nThe loader beaconed to 185.220.101[.]4 and downloaded a payload from hxxp://update-check[.]net/a.bin. It ran on Adobe Flash Player 11.2.202.228 and later versions.\nIndicators\nevil-mail.com\nd41d8cd98f00b204e9800998ecf8427e\nThe same host 185.220.101.4 was used again for exfiltration.\n\n\n",
+  "excluded_sections": [
+   {
+    "heading": "References",
+    "start_line": 8,
+    "end_line": 9,
+    "text": "References\nhttps://www.vendor-blog.com/analysis/2026/report.html\n"
+   }
+  ],
+  "sentences": [
+   "Operation Example: phishing campaign\nThe actor sent spear-phishing emails from attacker@evil-mail.com with a malicious attachment.",
+   "The loader beaconed to 185.220.101[.]4 and downloaded a payload from hxxp://update-check[.]net/a.bin.",
+   "It ran on Adobe Flash Player 11.2.202.228 and later versions.",
+   "Indicators",
+   "evil-mail.com",
+   "d41d8cd98f00b204e9800998ecf8427e",
+   "The same host 185.220.101.4 was used again for exfiltration."
+  ],
+  "matches": [
+   [
+    [
+     "domain",
+     "evil-mail.com"
+    ]
+   ],
+   [
+    [
+     "domain",
+     "update-check.net"
+    ],
+    [
+     "ipv4",
+     "185.220.101.4"
+    ],
+    [
+     "url",
+     "http://update-check.net/a.bin."
+    ]
+   ],
+   [],
+   [],
+   [
+    [
+     "domain",
+     "evil-mail.com"
+    ]
+   ],
+   [
+    [
+     "md5",
+     "d41d8cd98f00b204e9800998ecf8427e"
+    ]
+   ],
+   [
+    [
+     "ipv4",
+     "185.220.101.4"
+    ]
+   ]
+  ],
+  "iocs": [
+   {
+    "value": "evil-mail.com",
+    "type": "domain",
+    "context": [
+     "Operation Example: phishing campaign\nThe actor sent spear-phishing emails from attacker@evil-mail.com with a malicious attachment.",
+     "evil-mail.com"
+    ],
+    "source": "cti report"
+   },
+   {
+    "value": "update-check.net",
+    "type": "domain",
+    "context": [
+     "The loader beaconed to 185.220.101[.]4 and downloaded a payload from hxxp://update-check[.]net/a.bin."
+    ],
+    "source": "cti report"
+   },
+   {
+    "value": "185.220.101.4",
+    "type": "ipv4",
+    "context": [
+     "The loader beaconed to 185.220.101[.]4 and downloaded a payload from hxxp://update-check[.]net/a.bin.",
+     "The same host 185.220.101.4 was used again for exfiltration."
+    ],
+    "source": "cti report"
+   },
+   {
+    "value": "http://update-check.net/a.bin.",
+    "type": "url",
+    "context": [
+     "The loader beaconed to 185.220.101[.]4 and downloaded a payload from hxxp://update-check[.]net/a.bin."
+    ],
+    "source": "cti report"
+   },
+   {
+    "value": "d41d8cd98f00b204e9800998ecf8427e",
+    "type": "md5",
+    "context": [
+     "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "source": "cti report"
+   }
+  ],
+  "sentence_matches": [
+   [],
+   [
+    [
+     "domain",
+     "evil-mail.com"
+    ]
+   ],
+   [
+    [
+     "domain",
+     "update-check.net"
+    ],
+    [
+     "ipv4",
+     "185.220.101.4"
+    ],
+    [
+     "url",
+     "http://update-check.net/a.bin."
+    ]
+   ],
+   [],
+   [],
+   [
+    [
+     "domain",
+     "evil-mail.com"
+    ]
+   ],
+   [
+    [
+     "md5",
+     "d41d8cd98f00b204e9800998ecf8427e"
+    ]
+   ],
+   [
+    [
+     "ipv4",
+     "185.220.101.4"
+    ]
+   ],
+   [],
+   [
+    [
+     "domain",
+     "www.vendor-blog.com"
+    ],
+    [
+     "url",
+     "https://www.vendor-blog.com/analysis/2026/report.html"
+    ]
+   ]
+  ]
+ }
+}

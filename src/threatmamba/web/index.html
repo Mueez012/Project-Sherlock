@@ -120,7 +120,7 @@ function render(res) {
   $("annotated").innerHTML = res.sentences.map((s, idx) => {
     const tids = [...new Set(res.ttps.filter((t) => t.sentence_index === idx).map((t) => t.technique_id))];
     let html = esc(s);
-    for (const ioc of res.iocs.filter((i) => i.sentence_index === idx)) {
+    for (const ioc of res.iocs.filter((i) => i.sentence_indices.includes(idx))) {
       const pattern = esc(ioc.value).replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")
         .replace(/\\\./g, "(?:\\.|\\[\\.\\])").replace(/^http/, "h(?:tt|xx)p");
       const raw = esc(s).match(new RegExp(pattern, "i"));

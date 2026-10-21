@@ -1,7 +1,7 @@
 // Turns the hub's answer (POST /api/analyze) into the result screen's view model.
 //
 // The hub returns flat per-sentence hits: { technique_id, score, sentence_index } for techniques (T####) and
-// tactics (TA####), and { type, value, sentence_index } for indicators. The result screen wants techniques
+// tactics (TA####), and { type, value, sentence_indices, context, source } for indicators. The result screen wants techniques
 // with their confidence and evidence, tactics in kill-chain order, sentences with character positions, and
 // indicators with every sentence they appear in. Names, links and technique-to-tactic mapping come from the
 // bundled ATT&CK catalog.
@@ -131,12 +131,16 @@ export function toAnalysisResult({ text, incidentName, response, processingMs, i
   for (const ioc of response.iocs) {
     const key = `${ioc.type}\u0000${ioc.value}`;
     const entry = indicatorMap.get(key) ?? { type: ioc.type, value: ioc.value, sentence_indices: [] };
-    if (!entry.sentence_indices.includes(ioc.sentence_index)) entry.sentence_indices.push(ioc.sentence_index);
+    for (const index of ioc.sentence_indices ?? []) {
+      if (!entry.sentence_indices.includes(index)) entry.sentence_indices.push(index);
+    }
     indicatorMap.set(key, entry);
   }
   const indicators = [...indicatorMap.values()]
     .map((i) => ({ ...i, sentence_indices: [...i.sentence_indices].sort((a, b) => a - b) }))
-    .sort((a, b) => a.sentence_indices[0] - b.sentence_indices[0] || a.type.localeCompare(b.type) || a.value.localeCompare(b.value));
+    // Indicators found by lookup have no sentence; they go last.
+    .sort((a, b) => (a.sentence_indices[0] ?? Infinity) - (b.sentence_indices[0] ?? Infinity)
+      || a.type.localeCompare(b.type) || a.value.localeCompare(b.value));
 
   const bands: Partial<Record<ConfidenceBand, number>> = { high: 0, medium: 0, low: 0 };
   for (const t of techniques) bands[t.band] = (bands[t.band] ?? 0) + 1;

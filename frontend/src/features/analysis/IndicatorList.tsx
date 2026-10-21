@@ -23,7 +23,7 @@ export function IndicatorList({ indicators }: { indicators: Indicator[] }) {
                 <tr key={`${i.type}:${i.value}`}>
                   <td className="mono">{i.type}</td>
                   <td className="mono indicator-value">{i.value}</td>
-                  <td className="tabular">{i.sentence_indices.map((n) => n + 1).join(", ")}</td>
+                  <td className="tabular">{i.sentence_indices.length ? i.sentence_indices.map((n) => n + 1).join(", ") : "not in the text"}</td>
                 </tr>
               ))}
             </tbody>

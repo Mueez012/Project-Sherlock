@@ -34,3 +34,7 @@ def ioc_url() -> str:
 
 def ttp_timeout_s() -> float:
     return float(os.environ.get("TM_TTP_TIMEOUT_S", "600"))
+
+
+def ioc_timeout_s() -> float:
+    return float(os.environ.get("TM_IOC_TIMEOUT_S", "120"))

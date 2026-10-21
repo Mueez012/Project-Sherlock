@@ -21,9 +21,10 @@ def _refang(value: str) -> str:
 
 
 class RegexIOCExtractor:
-    def extract(self, sentences: list[str]) -> list[IOC]:
-        seen: set[tuple[IOCType, str]] = set()
-        out: list[IOC] = []
+    """Every indicator once, with every sentence it appears in (the same shape the IOC-hunter client returns)."""
+
+    def extract(self, sentences: list[str], text: str | None = None) -> list[IOC]:
+        found: dict[tuple[IOCType, str], IOC] = {}
         for i, sentence in enumerate(sentences):
             taken: list[tuple[int, int]] = []  # spans already claimed by a more specific type
             for ioc_type, pattern in _PATTERNS:
@@ -35,7 +36,8 @@ class RegexIOCExtractor:
                     if ioc_type is IOCType.cve:
                         value = value.upper()
                     key = (ioc_type, value.lower())
-                    if key not in seen:
-                        seen.add(key)
-                        out.append(IOC(type=ioc_type, value=value, sentence_index=i))
-        return out
+                    ioc = found.setdefault(key, IOC(type=ioc_type, value=value, source="regex stub"))
+                    if i not in ioc.sentence_indices:
+                        ioc.sentence_indices.append(i)
+                        ioc.context.append(sentence)
+        return list(found.values())

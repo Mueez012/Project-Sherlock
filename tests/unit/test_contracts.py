@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from threatmamba.contracts import CSKG, D2Report, TTPHit
+from threatmamba.contracts import CSKG, IOC, D2Report, TTPHit
 
 RECORD = {
     "report_id": 2,
@@ -36,6 +36,29 @@ def test_ttp_hit_accepts_techniques_and_tactics(label_id):
 def test_ttp_hit_rejects_sub_techniques_and_junk(label_id):
     with pytest.raises(ValidationError):
         TTPHit(technique_id=label_id, score=0.5, sentence_index=0)
+
+
+@pytest.mark.parametrize("ioc_type", ["ipv4", "ipv6", "domain", "geo_location", "filename", "port"])
+def test_ioc_accepts_every_ioc_hunter_type(ioc_type):
+    assert IOC(type=ioc_type, value="x").sentence_indices == []
+
+
+def test_ioc_keeps_every_sentence_and_the_extractor_context():
+    ioc = IOC(type="ipv4", value="10.0.0.1", sentence_indices=[2, 7], context=["a", "b"], source="cti report")
+    assert (ioc.sentence_indices, ioc.context, ioc.source) == ([2, 7], ["a", "b"], "cti report")
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"type": "planet", "value": "x"},
+        {"type": "ipv4", "value": ""},
+        {"type": "ipv4", "value": "x", "sentence_indices": [-1]},
+    ],
+)
+def test_ioc_rejects_unknown_types_empty_values_and_negative_indices(bad):
+    with pytest.raises(ValidationError):
+        IOC.model_validate(bad)
 
 
 def test_cskg_matches_phase2_return_format():

@@ -9,7 +9,7 @@ compromise and, once the classifier is trained, the likely threat actor.
 | Module | Folder | Owner | Status |
 |---|---|---|---|
 | Datasets (cleaned D1 and D2) | `datasets/` | graph lead | committed, checked in CI |
-| IOC extraction + IOCHunter | `src/threatmamba/ioc/` | IOC teammate | regex baseline in place |
+| IOC extraction + IOCHunter | `src/threatmamba/ioc/`, `src/threatmamba/clients/ioc.py` | IOC teammate | regex stub; client for the IOC-hunter service ready |
 | TTP Extractor | `src/threatmamba/ttp/` | TTP teammate | keyword baseline in place |
 | CSKG construction | `src/threatmamba/cskg/` | graph lead | next |
 | Attribution (GAT + MAMBA) | `src/threatmamba/attribution/` | team | after CSKG |
