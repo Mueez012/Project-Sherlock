@@ -8,6 +8,13 @@ def test_split_sentences_on_punctuation_and_newlines():
     assert split_sentences("First one. Second one!\nThird") == ["First one.", "Second one!", "Third"]
 
 
+def test_split_sentences_follows_the_d2_rules():
+    # no minimum length: a one-letter piece is kept, as in the D2 dataset
+    assert split_sentences("Now, see what happened. J\nWe got it.") == ["Now, see what happened.", "J", "We got it."]
+    # a full stop followed by a lowercase word or a digit straight after does not end a sentence
+    assert split_sentences("Version 2.0 shipped. then it broke.") == ["Version 2.0 shipped. then it broke."]
+
+
 def test_ioc_extractor_refangs_and_types():
     sents = ["C2 at 185.12.45[.]201 and hxxp://evil[.]info/a.ps1 plus CVE-2021-44228."]
     iocs = {(i.type, i.value) for i in RegexIOCExtractor().extract(sents)}

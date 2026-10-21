@@ -28,7 +28,16 @@ def test_analyze_returns_contract_shape():
     assert body["attribution"] is None
 
 
-@pytest.mark.parametrize("payload", [{"text": ""}, {}])
+def test_analyze_uses_given_sentences_unchanged():
+    sents = ["J", "Spear-phishing email arrived"]
+    r = client.post("/api/analyze", json={"sentences": sents})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["sentences"] == sents
+    assert {(t["technique_id"], t["sentence_index"]) for t in body["ttps"]} == {("T1566", 1)}
+
+
+@pytest.mark.parametrize("payload", [{"text": ""}, {"sentences": []}, {}])
 def test_analyze_rejects_empty_input(payload):
     assert client.post("/api/analyze", json=payload).status_code == 422
 
