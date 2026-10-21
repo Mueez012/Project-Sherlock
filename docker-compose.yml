@@ -1,11 +1,26 @@
-# Local:    docker compose up --build            -> http://localhost:8000
-# Release:  TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d
+# Local:    docker compose up -d --build     -> website http://localhost:3000, hub http://localhost:8000
+# Release:  TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d app
+# Ports:    TM_PORT and WEB_PORT change the host ports (e.g. TM_PORT=8080 where Splunk already uses 8000).
 services:
-  app:
+  app:            # the hub
     image: ${TM_IMAGE:-threatmamba:local}
     build: .
     ports:
-      - "8000:8000"
+      - "${TM_PORT:-8000}:8000"
     environment:
       TM_MODEL_MODE: ${TM_MODEL_MODE:-stub}
+      TM_TTP_MODE: ${TM_TTP_MODE:-}
+      TM_IOC_MODE: ${TM_IOC_MODE:-}
+    restart: unless-stopped
+
+  web:            # the website; talks only to the hub, over the compose network
+    image: ${WEB_IMAGE:-threatmamba-web:local}
+    build:
+      context: ./frontend
+      args:
+        API_ORIGIN: http://app:8000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      - app
     restart: unless-stopped

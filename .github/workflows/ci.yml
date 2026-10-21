@@ -87,6 +87,31 @@ jobs:
       - name: Checksums, shapes, labels, splits, sentence splitting
         run: uv run python -m threatmamba.data.verify_datasets datasets
 
+  # ------------------------------------------------------------------ the website (frontend/)
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Lint (ESLint, Stylelint)
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Colour contrast
+        run: npm run contrast
+      - name: Production build (also type-checks)
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
   # ------------------------------------------------------------------ SAST: CodeQL
   sast:
     runs-on: ubuntu-latest
@@ -122,7 +147,7 @@ jobs:
 
   # ------------------------------------------------------------------ build, scan and test the container
   image:
-    needs: [lint, test, datasets, sast, trivy-fs]
+    needs: [lint, test, datasets, web, sast, trivy-fs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -147,7 +172,7 @@ jobs:
       - name: Start the stack (waits for the health check)
         env:
           TM_IMAGE: threatmamba:ci
-        run: docker compose up -d --no-build --wait --wait-timeout 120
+        run: docker compose up -d --no-build --wait --wait-timeout 120 app
       - uses: astral-sh/setup-uv@v10.3.0
         with:
           version: ${{ env.UV_VERSION }}
@@ -234,7 +259,7 @@ jobs:
           {
             echo "Run it:"
             echo '```'
-            echo "TM_IMAGE=$IMG:v$VERSION docker compose up -d"
+            echo "TM_IMAGE=$IMG:v$VERSION docker compose up -d app"
             echo '```'
           } > notes.md
           gh release create "v$VERSION" --target "$GITHUB_SHA" --title "ThreatMAMBA v$VERSION" \
@@ -243,7 +268,7 @@ jobs:
   # ------------------------------------------------------------------ the one required check
   ci-passed:
     if: always()
-    needs: [lint, test, datasets, sast, trivy-fs, image, deliver, release]
+    needs: [lint, test, datasets, web, sast, trivy-fs, image, deliver, release]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any job failed or was cancelled

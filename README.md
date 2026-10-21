@@ -13,7 +13,8 @@ compromise and, once the classifier is trained, the likely threat actor.
 | TTP Extractor | `src/threatmamba/ttp/` | TTP teammate | keyword baseline in place |
 | CSKG construction | `src/threatmamba/cskg/` | graph lead | next |
 | Attribution (GAT + MAMBA) | `src/threatmamba/attribution/` | team | after CSKG |
-| API + live interface | `src/threatmamba/api/`, `src/threatmamba/web/` | team | working |
+| API (the hub) + test page | `src/threatmamba/api/`, `src/threatmamba/web/` | team | working |
+| Website | `frontend/` | graph lead | working: one call to the hub, results and indicators |
 
 Modules talk to each other only through the models in `src/threatmamba/contracts.py`.
 
@@ -26,6 +27,17 @@ uv sync                                            # .venv with every dependency
 uv run pre-commit install                          # local checks on commit and push
 uv run uvicorn threatmamba.api.main:app --reload   # http://localhost:8000
 uv run pytest                                      # unit tests
+```
+
+The website (Node 22) talks only to the hub. Its hub address is `API_ORIGIN` (default `http://127.0.0.1:8000`);
+on a machine where port 8000 is taken, run the hub with `--port 8080` and put `API_ORIGIN=http://127.0.0.1:8080`
+in `frontend/.env.local`.
+
+```bash
+cd frontend
+npm ci                                             # dependencies from package-lock.json
+npm run dev                                        # http://localhost:3000
+npm run lint && npm test && npm run contrast       # what the CI web job runs, plus npm run build
 ```
 
 ### The datasets
@@ -51,13 +63,15 @@ To change a dataset on purpose, commit the new files and `SHA256SUMS` together:
 
 ### The container
 
-There is one container: the FastAPI service, which also serves the web page. The `Dockerfile` builds it in two
-stages. The first installs the locked dependencies with uv; the second copies only the result into a slim Python
-image that runs as a non-root user and reports its health at `/health`. `docker-compose.yml` runs it.
+There are two containers. `app` is the hub: the root `Dockerfile` builds it in two stages, the first installing
+the locked dependencies with uv, the second copying only the result into a slim Python image that runs as a non-root
+user and reports its health at `/health`. `web` is the website: `frontend/Dockerfile` builds the Next.js app in
+standalone mode on `node:22-slim`, with the hub's address (`http://app:8000`) fixed at build time.
 
 ```bash
-docker compose up --build                                          # build and run on http://localhost:8000
-TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d   # run a published release
+docker compose up -d --build                                           # website http://localhost:3000, hub :8000
+TM_PORT=8080 docker compose up -d --build                              # if port 8000 is taken on this machine
+TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d app   # run a published hub release
 docker compose down
 ```
 
