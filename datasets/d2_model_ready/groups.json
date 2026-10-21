@@ -1,0 +1,127 @@
+[
+ {
+  "label": 0,
+  "group": "FIN7",
+  "reports": 576
+ },
+ {
+  "label": 1,
+  "group": "Waterbug",
+  "reports": 498
+ },
+ {
+  "label": 2,
+  "group": "SEA",
+  "reports": 353
+ },
+ {
+  "label": 3,
+  "group": "APT28",
+  "reports": 248
+ },
+ {
+  "label": 4,
+  "group": "Hidden Cobra",
+  "reports": 187
+ },
+ {
+  "label": 5,
+  "group": "Silence",
+  "reports": 182
+ },
+ {
+  "label": 6,
+  "group": "MageCart",
+  "reports": 177
+ },
+ {
+  "label": 7,
+  "group": "Rocke",
+  "reports": 149
+ },
+ {
+  "label": 8,
+  "group": "Patchwork",
+  "reports": 123
+ },
+ {
+  "label": 9,
+  "group": "TwoForOne",
+  "reports": 126
+ },
+ {
+  "label": 10,
+  "group": "Tick",
+  "reports": 110
+ },
+ {
+  "label": 11,
+  "group": "Quedagh",
+  "reports": 102
+ },
+ {
+  "label": 12,
+  "group": "Scarab",
+  "reports": 59
+ },
+ {
+  "label": 13,
+  "group": "MuddyWater",
+  "reports": 49
+ },
+ {
+  "label": 14,
+  "group": "APT29",
+  "reports": 45
+ },
+ {
+  "label": 15,
+  "group": "Energetic Bear",
+  "reports": 39
+ },
+ {
+  "label": 16,
+  "group": "Nitro",
+  "reports": 37
+ },
+ {
+  "label": 17,
+  "group": "TA505",
+  "reports": 36
+ },
+ {
+  "label": 18,
+  "group": "APT1",
+  "reports": 34
+ },
+ {
+  "label": 19,
+  "group": "Darkhotel",
+  "reports": 32
+ },
+ {
+  "label": 20,
+  "group": "Winnti Group",
+  "reports": 28
+ },
+ {
+  "label": 21,
+  "group": "蔓灵花",
+  "reports": 28
+ },
+ {
+  "label": 22,
+  "group": "Molerats",
+  "reports": 24
+ },
+ {
+  "label": 23,
+  "group": "APT10",
+  "reports": 22
+ },
+ {
+  "label": 24,
+  "group": "Lamberts",
+  "reports": 21
+ }
+]

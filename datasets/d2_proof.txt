@@ -1,0 +1,88 @@
+[1] File is GB18030 (Chinese). Undecodable byte 0x80 = euro sign, found 38 times.
+    line 7420: ...t in 2013 reached $1 billion (€0.73bn) in gro...
+    line 22947: ...n ransom (roughly $220,000 or €220,000) to re...
+    line 35683: ... also sought in Russia from a €9,500 fraud ch...
+    line 36104: ...c ￡99,200,396 ($123,705,869 / €110,385,736) f...
+    line 36115: ...83.39 million ($228,706,585 / €204,084,034) u...
+    all lines: [7420, 7420, 7420, 22947, 35683, 36104, 36115, 36120, 36121, 36470, 36471, 36674, 37239, 38126, 39910, 39948, 41730, 42271, 49905, 49906, 49907, 49908, 51531, 51531, 55018, 59916, 71634, 71634, 88586, 90603, 96236, 96236, 96236, 105087, 105087, 109043, 109043, 110253]
+
+[2] Header (line 1): group,group_name,cti_content,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,...  (3 real columns + ~58 empty ones)
+
+[3] Reports rebuilt: 3591   empty rows skipped: 3919
+    Reports whose id field is a broken list (Ctrl+F  ']",  ) : 31
+    their lines: [2944, 9359, 11766, 12366, 13186, 15053, 15532, 17220, 65185, 68595, 72716, 93704, 95285, 96474, 97616, 98514, 99659, 100436, 101619, 102927, 103175, 105723, 106114, 107235, 107764, 108286, 108574, 109653, 112512, 113382, 116565]
+
+[4] Cells exactly 32,767 characters long (cut by Excel; text after it is lost):
+    SEA             lines 2792-2924   ends with: ...'rs, industry, government and private com'
+    Icefog          lines 9063-9204   ends with: ...'stem is a very complex task, due to the '
+    APT40           lines 11610-11751   ends with: ...'ttp://securityaffairs.co/wordpress/20019'
+    Waterbug        lines 11842-12012   ends with: ...'le to coordinate communication projects '
+    Tick            lines 12620-12793   ends with: ...'indow that appears type the following:\nP'
+    Energetic Bear  lines 14819-15041   ends with: ...'when needed.\nThe syntax of this file is '
+    Rocke           lines 15136-15329   ends with: ...'g crimes“\n(The Economic Times, 2010, par'
+    Tick            lines 16901-17006   ends with: ...'s significantly harder — they are used t'
+    Rocke           lines 65051-65124   ends with: ...' is what HP’s doing really, really well,'
+    Tick            lines 68432-68509   ends with: ...' who’ve gotten it to this point. It’s in'
+    SEA             lines 72305-72410   ends with: ...'e getting a bad taste in their mouth as '
+    Waterbug        lines 93465-93564   ends with: ...'l machine without lateral movement, thou'
+    Tick            lines 94935-95083   ends with: ...'00-774-1799 (02)80164703 1-800-813-1316 '
+    APT37           lines 95935-96130   ends with: ...'were again filled by Asian countries, wh'
+    Hidden Cobra    lines 97166-97401   ends with: ...'s where users faced the highest risk of '
+    Silence         lines 98259-98381   ends with: ...' malware rankings omit potentially unwan'
+    Quedagh         lines 99014-99114   ends with: ...'ntified BlackEnergy2 targets and victims'
+    APT1            lines 100069-100236   ends with: ...' place was taken by Trojan.Win32.Generic'
+    Silence         lines 100838-100932   ends with: ...'uqu Trojan in February 2012 after 4 mont'
+    Hidden Cobra    lines 101114-101352   ends with: ...'lware class; it does not include File An'
+    Silence         lines 102708-102854   ends with: ...' free Internet access. Others are presen'
+    Icefog          lines 102996-103127   ends with: ...'dent studies, the malicious program that'
+    Waterbug        lines 104736-104878   ends with: ...'rs grew slightly: mobile  cybercriminals'
+    TwoForOne       lines 105940-106064   ends with: ...'heir own bank accounts, to which the sto'
+    Waterbug        lines 106468-106694   ends with: ...'them to binary form (two DWORDs) and rev'
+    Icefog          lines 107396-107475   ends with: ...'were joined by others – mostly ordinary '
+    Hidden Cobra    lines 108049-108250   ends with: ...'w.fabioluciani[.]com/ae/include/constant'
+    FIN6            lines 108414-108565   ends with: ...'e Protocol Description Scripts are manua'
+    Machete         lines 109340-109575   ends with: ...'E1335D23FAC3963EA73626 ESET detection na'
+    Buhtrap         lines 112179-112424   ends with: ...', MIP1023.pdf\nCore component: winchk32.e'
+    Energetic Bear  lines 112842-112974   ends with: ...' Dell Advisory/Announcement  Meltdown an'
+    Rocke           lines 115512-115950   ends with: ...']com\nsearch-awesome[.]net\nsearch-ology[.'
+
+[5] Groups: 77. Reports per group (the 25 biggest are kept):
+     1. FIN7             576
+     2. Waterbug         498
+     3. SEA              353
+     4. APT28            248
+     5. Hidden Cobra     187
+     6. Silence          182
+     7. MageCart         177
+     8. Rocke            149
+     9. Patchwork        126
+    10. TwoForOne        126
+    11. Tick             110
+    12. Quedagh          102
+    13. Scarab           59
+    14. MuddyWater       49
+    15. APT29            45
+    16. Energetic Bear   39
+    17. Nitro            38
+    18. TA505            36
+    19. APT1             34
+    20. Darkhotel        32
+    21. Winnti Group     28
+    22. 蔓灵花              28
+    23. Molerats         24
+    24. APT10            22
+    25. Lamberts         21   <- 25th
+    26. APT41            19   <- not kept
+    27. APT40            19   <- not kept
+    duplicate dropped: line 76889 (Patchwork) = line 74224 
+    duplicate dropped: line 87812 (Patchwork) = line 85722 
+    duplicate dropped: line 88649 (Patchwork) = line 84418 
+    duplicate dropped: line 91202 (Nitro) = line 84175 
+
+[6] Reports in the 25 groups: 3289   after dropping duplicates: 3285
+    Paper Table II says 3,338 (and its own train 3,015 + test 336 = 3351).
+    Even keeping duplicates, the 25 biggest groups only hold 3289: no choice of 25 groups reaches 3,338.
+
+[7] Wrote d2_model_ready/: train.jsonl 2660, valid.jsonl 296, test.jsonl 329 reports; groups.json (25 groups, label 0-24)
+    One report per line: report_id (line in CTI2Attacker.csv), group, label, cut_by_excel, text, sentences.
+    24 reports contain a cell cut by Excel (cut_by_excel = true).
