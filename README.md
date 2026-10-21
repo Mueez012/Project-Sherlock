@@ -80,6 +80,9 @@ the locked dependencies with uv, the second copying only the result into a slim 
 user and reports its health at `/health`. `web` is the website: `frontend/Dockerfile` builds the Next.js app in
 standalone mode on `node:22-slim`, with the hub's address (`http://app:8000`) fixed at build time.
 
+Settings (modes, ports, the emails-and-CVEs switch) live in `.env`: copy `.env.example` to `.env` and edit it;
+compose reads it automatically and git ignores it.
+
 ```bash
 docker compose up -d --build                                           # website http://localhost:3000, hub :8000
 TM_PORT=8080 docker compose up -d --build                              # if port 8000 is taken on this machine

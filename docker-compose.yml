@@ -11,6 +11,7 @@ services:
       TM_MODEL_MODE: ${TM_MODEL_MODE:-stub}
       TM_TTP_MODE: ${TM_TTP_MODE:-}
       TM_IOC_MODE: ${TM_IOC_MODE:-}
+      TM_IOC_EXTENDED_TYPES: ${TM_IOC_EXTENDED_TYPES:-false}
     restart: unless-stopped
 
   web:            # the website; talks only to the hub, over the compose network

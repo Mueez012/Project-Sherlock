@@ -2,7 +2,7 @@
 protocol, so the hub uses it exactly like the regex stub.
 
     POST {TM_IOC_URL}/v1/extract
-    request   {"text": "<the report>", "sentences": ["<hub sentence 0>", ...]}
+    request   {"text": "<the report>", "sentences": ["<hub sentence 0>", ...], "extended_types": false}
     response  IOC-hunter's extract_report() result unchanged ("iocs", "sentences", "excluded_sections", ...), plus
               "sentence_matches": one list of [type, value] pairs per hub sentence, from IOC-hunter's own matcher
 
@@ -41,9 +41,17 @@ class _ExtractResponse(BaseModel):
 
 
 class IOCServiceExtractor:
-    def __init__(self, base_url: str, timeout_s: float = 120.0, transport: httpx.BaseTransport | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        timeout_s: float = 120.0,
+        transport: httpx.BaseTransport | None = None,
+        *,
+        extended_types: bool = False,
+    ) -> None:
         self._base_url = base_url.rstrip("/")
         self._timeout_s = timeout_s
+        self._extended_types = extended_types  # IOC-hunter's switch for emails and CVEs
         self._transport = transport  # tests pass httpx.MockTransport; production uses the network
 
     def _client(self, timeout_s: float) -> httpx.Client:
@@ -52,7 +60,11 @@ class IOCServiceExtractor:
     def extract(self, sentences: list[str], text: str | None = None) -> list[IOC]:
         # Pre-split input (a D2 report sent as sentences) has no original text; one sentence per line keeps every
         # heading on its own line, which is what IOC-hunter's section filter reads.
-        payload = {"text": text if text is not None else "\n".join(sentences), "sentences": sentences}
+        payload = {
+            "text": text if text is not None else "\n".join(sentences),
+            "sentences": sentences,
+            "extended_types": self._extended_types,
+        }
         try:
             with self._client(self._timeout_s) as client:
                 response = client.post(EXTRACT_PATH, json=payload)

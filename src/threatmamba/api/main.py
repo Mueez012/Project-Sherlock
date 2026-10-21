@@ -16,7 +16,16 @@ from threatmamba.attribution import attribute
 from threatmamba.clients import IOCServiceExtractor, ServiceError, TTPServiceExtractor
 from threatmamba.contracts import AnalyzeRequest, AnalyzeResponse
 from threatmamba.ioc import IOCExtractor, RegexIOCExtractor
-from threatmamba.settings import Mode, ioc_mode, ioc_timeout_s, ioc_url, ttp_mode, ttp_timeout_s, ttp_url
+from threatmamba.settings import (
+    Mode,
+    ioc_extended_types,
+    ioc_mode,
+    ioc_timeout_s,
+    ioc_url,
+    ttp_mode,
+    ttp_timeout_s,
+    ttp_url,
+)
 from threatmamba.text import split_sentences
 from threatmamba.ttp import KeywordTTPExtractor, TTPExtractor
 
@@ -35,7 +44,7 @@ def _ttp() -> TTPExtractor:
 
 def _ioc() -> IOCExtractor:
     if ioc_mode() is Mode.real:
-        return IOCServiceExtractor(ioc_url(), ioc_timeout_s())
+        return IOCServiceExtractor(ioc_url(), ioc_timeout_s(), extended_types=ioc_extended_types())
     return _ioc_stub
 
 

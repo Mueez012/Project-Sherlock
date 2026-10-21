@@ -58,13 +58,15 @@ def test_real_ioc_with_stub_ttp_sends_the_original_text(monkeypatch):
         return httpx.Response(200, json=IOC_FIXTURE["response"])
 
     transport = httpx.MockTransport(handler)
-    monkeypatch.setattr(main, "IOCServiceExtractor", lambda url, timeout: IOCServiceExtractor(url, timeout, transport))
+    monkeypatch.setattr(
+        main, "IOCServiceExtractor", lambda url, timeout, **kw: IOCServiceExtractor(url, timeout, transport, **kw)
+    )
     text = IOC_FIXTURE["request"]["text"]
     r = client.post("/api/analyze", json={"text": text})
     assert r.status_code == 200
     body = r.json()
     assert body["mode"] == "mixed"
-    assert seen["body"] == {"text": text, "sentences": body["sentences"]}
+    assert seen["body"] == {"text": text, "sentences": body["sentences"], "extended_types": False}
     assert {i["value"]: i["sentence_indices"] for i in body["iocs"]}["185.220.101.4"] == [2, 7]
 
 

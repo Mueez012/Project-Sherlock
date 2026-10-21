@@ -66,7 +66,7 @@ def test_sends_the_original_text_and_the_hub_sentences():
         return httpx.Response(200, json=ANSWER)
 
     _client(handler).extract(SENTENCES, text=TEXT)
-    assert seen == {"path": "/v1/extract", "body": {"text": TEXT, "sentences": SENTENCES}}
+    assert seen == {"path": "/v1/extract", "body": {"text": TEXT, "sentences": SENTENCES, "extended_types": False}}
 
 
 def test_pre_split_input_is_sent_one_sentence_per_line():
@@ -77,7 +77,18 @@ def test_pre_split_input_is_sent_one_sentence_per_line():
         return httpx.Response(200, json={"iocs": [], "sentence_matches": [[], []]})
 
     assert _client(handler).extract(["A.", "B."]) == []
-    assert seen["body"] == {"text": "A.\nB.", "sentences": ["A.", "B."]}
+    assert seen["body"] == {"text": "A.\nB.", "sentences": ["A.", "B."], "extended_types": False}
+
+
+def test_the_extended_types_switch_is_passed_to_ioc_hunter(monkeypatch):
+    seen = {}
+
+    def handler(request):
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"iocs": [], "sentence_matches": [[]]})
+
+    IOCServiceExtractor("http://ioc:8002", transport=httpx.MockTransport(handler), extended_types=True).extract(["x"])
+    assert seen["body"]["extended_types"] is True
 
 
 def test_an_indicator_found_in_no_hub_sentence_is_kept_with_no_index():

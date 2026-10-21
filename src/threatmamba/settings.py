@@ -38,3 +38,8 @@ def ttp_timeout_s() -> float:
 
 def ioc_timeout_s() -> float:
     return float(os.environ.get("TM_IOC_TIMEOUT_S", "120"))
+
+
+def ioc_extended_types() -> bool:
+    """TM_IOC_EXTENDED_TYPES: IOC-hunter also extracts emails and CVEs. Off by default, as in IOC-hunter."""
+    return os.environ.get("TM_IOC_EXTENDED_TYPES", "false").strip().lower() in {"1", "true", "yes", "on"}
