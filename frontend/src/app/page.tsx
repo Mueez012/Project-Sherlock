@@ -11,9 +11,8 @@ import { useRef, useState } from "react";
 
 import { ConfidenceBadge } from "@/components/ConfidenceBadge";
 import { Logo, SiteHeader } from "@/components/SiteHeader";
-import { UploadDialog } from "@/features/analysis/UploadDialog";
+import { AnalyzeDialog } from "@/features/analysis/AnalyzeDialog";
 import { DEMO_ACTORS } from "@/features/landing/demoData";
-import { RecentAnalyses } from "@/features/landing/RecentAnalyses";
 import { TACTIC_NAME } from "@/lib/attack";
 import sample from "@/mocks/analysis-result.json";
 import type { AnalysisResult } from "@/types/analysis";
@@ -21,13 +20,13 @@ import type { AnalysisResult } from "@/types/analysis";
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const SAMPLE = sample as AnalysisResult;
-const FORMATS = ["PDF", "DOCX", "HTML", "TXT / Markdown", "STIX 2.1 JSON", "MITRE ATT&CK v14"];
+const FORMATS = ["Pasted report text", "MITRE ATT&CK v14", "14 tactics", "189 techniques", "Indicators of compromise"];
 
 const STEPS = [
-  { icon: FileText, title: "Read the report", copy: "Text is pulled from the PDF, DOCX, HTML, text or STIX bundle. Page numbers are kept." },
-  { icon: Scissors, title: "Split into sentences", copy: "Each sentence keeps its exact position. Lines that are only hashes, IPs or URLs are skipped." },
-  { icon: Brain, title: "Classify every sentence", copy: "SecureBERT reads the sentence; the ThreatMAMBA head scores 14 tactics and 189 techniques." },
-  { icon: ListChecks, title: "Combine with evidence", copy: "Sentence scores become one list of techniques, each with its confidence and supporting sentences." },
+  { icon: FileText, title: "Paste the report", copy: "The text goes to the hub, which runs every module on it and combines their answers." },
+  { icon: Scissors, title: "Split into sentences", copy: "The hub splits the text once, the same way the training data was split, so every module numbers sentences alike." },
+  { icon: Brain, title: "Classify every sentence", copy: "SecureBERT reads each sentence; the ThreatMAMBA head scores 14 tactics and 189 techniques. Indicators are extracted too." },
+  { icon: ListChecks, title: "Combine with evidence", copy: "Sentence scores become one list of techniques and indicators, each with the sentences that support it." },
 ];
 
 function DemoBadge() {
@@ -42,8 +41,8 @@ function Hero({ onCreate }: { onCreate: () => void }) {
         <p className="eyebrow">CTI report → MITRE ATT&amp;CK</p>
         <h1>Turn threat reports into ATT&amp;CK techniques, with the evidence attached.</h1>
         <p className="lead">
-          Upload a CTI report. Sherklock Honed reads it sentence by sentence, finds the tactics and techniques it
-          describes, and shows the exact sentences behind every result.
+          Paste a CTI report. Sherklock Honed reads it sentence by sentence, finds the tactics, techniques and
+          indicators it describes, and shows the exact sentences behind every result.
         </p>
         <div className="hero-actions">
           <button type="button" className="button primary large" onClick={onCreate}>
@@ -108,18 +107,6 @@ function HowItWorks({ onCreate }: { onCreate: () => void }) {
         </p>
         <button type="button" className="button primary" onClick={onCreate}>Start an analysis <ArrowRight aria-hidden="true" /></button>
       </div>
-    </section>
-  );
-}
-
-function Recent() {
-  return (
-    <section className="section" id="recent" aria-labelledby="recent-title">
-      <div className="section-intro">
-        <p className="eyebrow">Your work</p>
-        <h2 id="recent-title">Recent analyses</h2>
-      </div>
-      <div className="card"><RecentAnalyses /></div>
     </section>
   );
 }
@@ -218,7 +205,6 @@ export default function Home() {
         <Hero onCreate={open} />
         <FormatStrip />
         <HowItWorks onCreate={open} />
-        <Recent />
         <AttributionPreview />
         <Statement />
         <Closing onCreate={open} />
@@ -228,7 +214,7 @@ export default function Home() {
         <p className="muted">ThreatMAMBA TTP extraction · FYP proof of concept, FAST-NUCES</p>
         <span className="mono muted">2026</span>
       </footer>
-      <UploadDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
+      <AnalyzeDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
     </>
   );
 }

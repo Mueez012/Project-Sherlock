@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { TACTIC_NAME } from "@/lib/attack";
 import { percent } from "@/lib/confidence";
 import { segmentText } from "@/lib/highlight";
-import type { AnalysisResult, Sentence } from "@/types/analysis";
+import type { AnalysisResult, Indicator, Sentence } from "@/types/analysis";
 
 interface Props {
   result: AnalysisResult;
@@ -27,6 +27,11 @@ export function ReportViewer({ result, focusTechnique, focusNonce }: Props) {
   const names = useMemo(() => {
     const map: Record<string, string> = { ...TACTIC_NAME };
     result.techniques.forEach((t) => { map[t.id] = t.name; });
+    return map;
+  }, [result]);
+  const indicatorsIn = useMemo(() => {
+    const map = new Map<number, Indicator[]>();
+    (result.indicators ?? []).forEach((i) => i.sentence_indices.forEach((n) => map.set(n, [...(map.get(n) ?? []), i])));
     return map;
   }, [result]);
   const focusSet = useMemo(() => {
@@ -59,14 +64,14 @@ export function ReportViewer({ result, focusTechnique, focusNonce }: Props) {
     <section className="card report-card" aria-labelledby="report-title">
       <div className="card-head">
         <h2 id="report-title">Report text</h2>
-        <p className="muted">Highlighted sentences triggered at least one label. Select one to see its labels.</p>
+        <p className="muted">Highlighted sentences triggered at least one label or contain an indicator. Select one to see them.</p>
       </div>
       <div className="report-layout">
         <div className="report-text" ref={container}>
           {segments.map((seg) => {
             if (seg.kind === "text") return <span key={`t${seg.start}`}>{seg.text}</span>;
             const s = seg.sentence;
-            const hit = s.labels.some((l) => l.passed);
+            const hit = s.labels.some((l) => l.passed) || indicatorsIn.has(s.index);
             if (!hit) return <span key={`s${s.index}`} className={s.skipped ? "sentence skipped" : "sentence"}>{unwrap(seg.text)}</span>;
             const classes = ["sentence", "hit", focusSet.has(s.index) ? "focus" : "", active?.index === s.index ? "active" : ""];
             return (
@@ -95,6 +100,19 @@ export function ReportViewer({ result, focusTechnique, focusNonce }: Props) {
                   </li>
                 ))}
               </ul>
+              {(indicatorsIn.get(active.index) ?? []).length > 0 && (
+                <>
+                  <h4 className="small muted">Indicators in this sentence</h4>
+                  <ul className="label-list">
+                    {(indicatorsIn.get(active.index) ?? []).map((i) => (
+                      <li key={`${i.type}:${i.value}`} className="passed">
+                        <span className="mono">{i.type}</span>
+                        <span className="label-name mono indicator-value">{i.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </>
           ) : (
             <p className="muted">No sentence selected.</p>

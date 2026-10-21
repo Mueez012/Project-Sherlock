@@ -1,5 +1,5 @@
 import { TACTIC_NAME } from "@/lib/attack";
-import { formatBytes } from "@/lib/upload";
+import { formatBytes } from "@/lib/format";
 import { STAGES, type AnalysisResult } from "@/types/analysis";
 
 const STAGE_LABEL: Record<string, string> = Object.fromEntries(STAGES.map((s) => [s.id, s.label]));

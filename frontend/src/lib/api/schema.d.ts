@@ -4,15 +4,15 @@
  */
 
 export interface paths {
-    "/api/v1/health": {
+    "/health": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Liveness, and whether the model is loaded */
-        get: operations["health_api_v1_health_get"];
+        /** Health */
+        get: operations["health_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -21,59 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/model": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Model card: version, run, label space, thresholds, validation metrics */
-        get: operations["model_card_api_v1_model_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/attack/techniques": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** ATT&CK v14 tactics and the techniques this model can predict */
-        get: operations["attack_techniques_api_v1_attack_techniques_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/analyses": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Recent analyses (newest first) */
-        get: operations["list_analyses_api_v1_analyses_get"];
-        put?: never;
-        /** Upload a CTI report (PDF, TXT, MD, HTML, DOCX or STIX 2.1 JSON) and start an analysis */
-        post: operations["create_analysis_api_v1_analyses_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/analyses/text": {
+    "/api/analyze": {
         parameters: {
             query?: never;
             header?: never;
@@ -82,77 +30,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Analyse pasted text */
-        post: operations["create_text_analysis_api_v1_analyses_text_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/analyses/{job_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Job status and progress */
-        get: operations["get_status_api_v1_analyses__job_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete an analysis and its result */
-        delete: operations["delete_api_v1_analyses__job_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/analyses/{job_id}/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Server-sent events stream of the job status */
-        get: operations["events_api_v1_analyses__job_id__events_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/analyses/{job_id}/result": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** The full analysis result */
-        get: operations["get_result_api_v1_analyses__job_id__result_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/analyses/{job_id}/export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Download the result: json, csv, navigator (ATT&CK Navigator layer) or stix */
-        get: operations["export_api_v1_analyses__job_id__export_get"];
-        put?: never;
-        post?: never;
+        /** Analyze */
+        post: operations["analyze_api_analyze_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -163,419 +42,114 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActorScore */
+        ActorScore: {
+            /** Actor */
+            actor: string;
+            /** Score */
+            score: number;
+        };
         /**
-         * AnalysisOptions
-         * @example {
-         *       "apply_hierarchy": true,
-         *       "fixed_threshold": 0.5,
-         *       "include_sentences": true,
-         *       "min_evidence_sentences": 1,
-         *       "strong_threshold": 0.8,
-         *       "threshold_mode": "fixed"
-         *     }
+         * AnalyzeRequest
+         * @description Raw text, which the hub splits, or sentences already split (e.g. a D2 report), which are used unchanged.
          */
-        AnalysisOptions: {
-            /**
-             * Threshold Mode
-             * @description default: the mode the bundle was validated with
-             */
-            threshold_mode?: ("fixed" | "per_slice" | "per_label" | "report_tuned") | null;
-            /**
-             * Fixed Threshold
-             * @description used when threshold_mode is 'fixed'
-             */
-            fixed_threshold?: number | null;
-            /**
-             * Min Evidence Sentences
-             * @default 1
-             */
-            min_evidence_sentences: number;
-            /**
-             * Strong Threshold
-             * @default 0.8
-             */
-            strong_threshold: number;
-            /**
-             * Include Sentences
-             * @default true
-             */
-            include_sentences: boolean;
-            /**
-             * Apply Hierarchy
-             * @default true
-             */
-            apply_hierarchy: boolean;
-        };
-        /** AnalysisResult */
-        AnalysisResult: {
-            /** Id */
-            id: string;
-            /**
-             * Status
-             * @constant
-             */
-            status: "completed";
-            /** Incident Name */
-            incident_name: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Completed At
-             * Format: date-time
-             */
-            completed_at: string;
-            /** Processing Ms */
-            processing_ms: number;
-            /**
-             * Timings Ms
-             * @description milliseconds spent in each stage, in order
-             */
-            timings_ms?: {
-                [key: string]: number;
-            };
-            options: components["schemas"]["AnalysisOptions"];
-            document: components["schemas"]["DocumentInfo"];
-            model: components["schemas"]["ModelInfo"];
-            summary: components["schemas"]["Summary"];
-            /** Tactics */
-            tactics: components["schemas"]["Tactic"][];
-            /** Techniques */
-            techniques: components["schemas"]["Technique"][];
-            /** Sentences */
-            sentences: components["schemas"]["Sentence"][];
-            /** Warnings */
-            warnings: string[];
-        };
-        /** AttackCatalog */
-        AttackCatalog: {
-            /** Attack Version */
-            attack_version: string;
-            /** Tactics */
-            tactics: components["schemas"]["AttackTactic"][];
-            /** Techniques */
-            techniques: components["schemas"]["AttackTechnique"][];
-        };
-        /** AttackTactic */
-        AttackTactic: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Shortname */
-            shortname: string;
-            /** Order */
-            order: number;
-            /** Url */
-            url: string | null;
-        };
-        /** AttackTechnique */
-        AttackTechnique: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Tactic Ids */
-            tactic_ids: string[];
-            /** Url */
-            url: string | null;
-        };
-        /** Body_create_analysis_api_v1_analyses_post */
-        Body_create_analysis_api_v1_analyses_post: {
-            /**
-             * File
-             * Format: binary
-             * @description the report
-             */
-            file: string;
-            /**
-             * Incident Name
-             * @default Untitled analysis
-             */
-            incident_name: string;
-            /**
-             * Options
-             * @description AnalysisOptions as a JSON string
-             */
-            options?: string | null;
-        };
-        /** DocumentInfo */
-        DocumentInfo: {
-            /** Filename */
-            filename: string | null;
-            /** Media Type */
-            media_type: string;
-            /** Size Bytes */
-            size_bytes: number;
-            /** Sha256 */
-            sha256: string;
-            /** Pages */
-            pages: number | null;
-            /** N Characters */
-            n_characters: number;
-            /** N Sentences */
-            n_sentences: number;
-            /** N Sentences Analyzed */
-            n_sentences_analyzed: number;
-            /**
-             * Language
-             * @default en
-             */
-            language: string;
-            /**
-             * Text
-             * @description the cleaned text the offsets refer to
-             */
-            text: string;
-            /**
-             * Declared Ttps
-             * @description ATT&CK ids already present in a STIX upload
-             */
-            declared_ttps?: string[];
-        };
-        /** Evidence */
-        Evidence: {
-            /** Sentence Index */
-            sentence_index: number;
+        AnalyzeRequest: {
             /** Text */
-            text: string;
-            /** Probability */
-            probability: number;
-            /** Char Start */
-            char_start: number;
-            /** Char End */
-            char_end: number;
-            /** Page */
-            page?: number | null;
+            text?: string | null;
+            /** Sentences */
+            sentences?: string[] | null;
+        };
+        /** AnalyzeResponse */
+        AnalyzeResponse: {
+            /** Mode */
+            mode: string;
+            /** Sentences */
+            sentences: string[];
+            /** Ttps */
+            ttps: components["schemas"]["TTPHit"][];
+            /** Iocs */
+            iocs: components["schemas"]["IOC"][];
+            cskg?: components["schemas"]["CSKG"] | null;
+            attribution?: components["schemas"]["Attribution"] | null;
+        };
+        /** Attribution */
+        Attribution: {
+            /** Ranked */
+            ranked: components["schemas"]["ActorScore"][];
+            /** Model */
+            model: string;
+        };
+        /**
+         * CSKG
+         * @description Phase 2 output: graphs/<doc_id>.json
+         */
+        CSKG: {
+            /** Doc Id */
+            doc_id: string;
+            /** Nodes */
+            nodes: components["schemas"]["Node"][];
+            /** Edges */
+            edges: components["schemas"]["Edge"][];
+        };
+        /** Edge */
+        Edge: {
+            /** Src */
+            src: string;
+            /** Dst */
+            dst: string;
+            /** Rel */
+            rel: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** Health */
-        Health: {
+        /** IOC */
+        IOC: {
+            type: components["schemas"]["IOCType"];
+            /** Value */
+            value: string;
             /**
-             * Status
-             * @enum {string}
+             * Sentence Index
+             * @description sentence where it first appears
              */
-            status: "ok" | "loading" | "error";
-            /** Model Loaded */
-            model_loaded: boolean;
-            /** Detail */
-            detail?: string | null;
-        };
-        /** JobCreated */
-        JobCreated: {
-            /** Id */
-            id: string;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "queued" | "extracting_text" | "splitting" | "encoding" | "classifying" | "aggregating" | "completed" | "failed";
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            links: components["schemas"]["Links"];
-        };
-        /** JobError */
-        JobError: {
-            /**
-             * Code
-             * @enum {string}
-             */
-            code: "unsupported_file" | "no_text_layer" | "no_text" | "too_many_sentences" | "model_error" | "timeout" | "cancelled";
-            /** Message */
-            message: string;
-        };
-        /** JobList */
-        JobList: {
-            /** Items */
-            items: components["schemas"]["JobStatusOut"][];
-        };
-        /** JobStatusOut */
-        JobStatusOut: {
-            /** Id */
-            id: string;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "queued" | "extracting_text" | "splitting" | "encoding" | "classifying" | "aggregating" | "completed" | "failed";
-            /**
-             * Stage
-             * @enum {string}
-             */
-            stage: "queued" | "extracting_text" | "splitting" | "encoding" | "classifying" | "aggregating" | "completed" | "failed";
-            /** Progress */
-            progress: number;
-            /** Message */
-            message: string;
-            /** Incident Name */
-            incident_name: string;
-            /** Filename */
-            filename?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-            error?: components["schemas"]["JobError"] | null;
-        };
-        /** Links */
-        Links: {
-            /** Self */
-            self: string;
-            /** Result */
-            result: string;
-            /** Events */
-            events: string;
-        };
-        /** ModelInfo */
-        ModelInfo: {
-            /** Name */
-            name: string;
-            /** Version */
-            version: string;
-            /** Run Id */
-            run_id: string;
-            /** Model Type */
-            model_type: string;
-            /** Encoder */
-            encoder: string;
-            /** Threshold Mode */
-            threshold_mode: string;
-            /** Label Space */
-            label_space: {
-                [key: string]: number;
-            };
-        };
-        /** Sentence */
-        Sentence: {
-            /** Index */
-            index: number;
-            /** Text */
-            text: string;
-            /** Char Start */
-            char_start: number;
-            /** Char End */
-            char_end: number;
-            /** Page */
-            page?: number | null;
-            /** Skipped */
-            skipped?: ("short" | "ioc_list" | "heading") | null;
-            /** Labels */
-            labels: components["schemas"]["SentenceLabel"][];
-        };
-        /** SentenceLabel */
-        SentenceLabel: {
-            /** Id */
-            id: string;
-            /** P */
-            p: number;
-            /** Passed */
-            passed: boolean;
-        };
-        /** Summary */
-        Summary: {
-            /** N Tactics */
-            n_tactics: number;
-            /** N Techniques */
-            n_techniques: number;
-            /** Top Tactic */
-            top_tactic: string | null;
-            /** Confidence Bands */
-            confidence_bands: {
-                [key: string]: number;
-            };
-        };
-        /** Tactic */
-        Tactic: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Order */
-            order: number;
-            /** Url */
-            url?: string | null;
-            /** Confidence */
-            confidence: number;
-            /**
-             * Source
-             * @enum {string}
-             */
-            source: "model" | "implied_by_technique";
-            /** Sentence Count */
-            sentence_count: number;
-            /** Technique Ids */
-            technique_ids: string[];
-            /** Evidence */
-            evidence: components["schemas"]["Evidence"][];
-        };
-        /** Technique */
-        Technique: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Tactic Ids */
-            tactic_ids: string[];
-            /** Url */
-            url: string;
-            /** Confidence */
-            confidence: number;
-            /**
-             * Band
-             * @enum {string}
-             */
-            band: "high" | "medium" | "low";
-            /** Mean Confidence */
-            mean_confidence: number;
-            /** Sentence Count */
-            sentence_count: number;
-            /** Threshold */
-            threshold: number;
-            /** Evidence */
-            evidence: components["schemas"]["Evidence"][];
+            sentence_index: number;
         };
         /**
-         * TextAnalysisRequest
-         * @example {
-         *       "incident_name": "Demo incident",
-         *       "options": {
-         *         "threshold_mode": "fixed"
-         *       },
-         *       "text": "The actor sent spearphishing emails with a malicious Word attachment. When opened, a macro launched PowerShell to download a backdoor."
-         *     }
+         * IOCType
+         * @enum {string}
          */
-        TextAnalysisRequest: {
-            /** Text */
-            text: string;
+        IOCType: "ipv4" | "domain" | "url" | "md5" | "sha1" | "sha256" | "email" | "cve";
+        /** Node */
+        Node: {
+            /** Id */
+            id: string;
+            type: components["schemas"]["NodeType"];
             /**
-             * Incident Name
-             * @default Untitled analysis
+             * Attrs
+             * @default {}
              */
-            incident_name: string;
-            /**
-             * @default {
-             *       "min_evidence_sentences": 1,
-             *       "strong_threshold": 0.8,
-             *       "include_sentences": true,
-             *       "apply_hierarchy": true
-             *     }
-             */
-            options: components["schemas"]["AnalysisOptions"];
+            attrs: {
+                [key: string]: string | number;
+            };
+        };
+        /**
+         * NodeType
+         * @enum {string}
+         */
+        NodeType: "IOC" | "TTP" | "SEQ";
+        /**
+         * TTPHit
+         * @description One ATT&CK label found in one sentence: a technique (T1566) or a tactic (TA0001), never a sub-technique.
+         */
+        TTPHit: {
+            /** Technique Id */
+            technique_id: string;
+            /** Score */
+            score: number;
+            /** Sentence Index */
+            sentence_index: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -585,6 +159,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -595,7 +173,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    health_api_v1_health_get: {
+    health_health_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -610,92 +188,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Health"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Health"];
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };
     };
-    model_card_api_v1_model_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    attack_techniques_api_v1_attack_techniques_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AttackCatalog"];
-                };
-            };
-        };
-    };
-    list_analyses_api_v1_analyses_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobList"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_analysis_api_v1_analyses_post: {
+    analyze_api_analyze_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -704,118 +204,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_create_analysis_api_v1_analyses_post"];
+                "application/json": components["schemas"]["AnalyzeRequest"];
             };
         };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobCreated"];
-                };
-            };
-            /** @description bad options */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description file too large */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description unsupported file type */
-            415: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description empty file / no text */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description queue full */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description model still loading */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_text_analysis_api_v1_analyses_text_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TextAnalysisRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobCreated"];
-                };
-            };
-            /** @description text too long */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description empty text */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description queue full */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_status_api_v1_analyses__job_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -823,187 +214,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["JobStatusOut"];
+                    "application/json": components["schemas"]["AnalyzeResponse"];
                 };
-            };
-            /** @description unknown id */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_api_v1_analyses__job_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description unknown id */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    events_api_v1_analyses__job_id__events_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description unknown id */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_result_api_v1_analyses__job_id__result_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AnalysisResult"];
-                };
-            };
-            /** @description unknown id */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description not finished or failed */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    export_api_v1_analyses__job_id__export_get: {
-        parameters: {
-            query: {
-                format: "json" | "csv" | "navigator" | "stix";
-            };
-            header?: never;
-            path: {
-                job_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                    "text/csv": unknown;
-                };
-            };
-            /** @description unknown format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description unknown id */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description not finished */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {

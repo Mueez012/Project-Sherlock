@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+test-results
+playwright-report
+coverage
+*.tsbuildinfo
+.env*
+docs
+tests
+scripts
+*.png
+Dockerfile
+.dockerignore

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // Uses the dev server on :3000 (started automatically if it is not running).
-// Mocked specs need no backend; the @real spec needs the FastAPI server on :8001.
+// Mocked specs need no backend; the @real spec needs the hub at API_ORIGIN (see next.config.ts).
 export default defineConfig({
   testDir: "tests/e2e",
   timeout: 60_000,

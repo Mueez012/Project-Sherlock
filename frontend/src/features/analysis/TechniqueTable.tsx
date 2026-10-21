@@ -125,7 +125,7 @@ export function TechniqueTable({ techniques, selected, onShowInReport }: Props) 
                       <td colSpan={6}>
                         <p className="muted small">
                           Strongest {t.evidence.length} of {t.sentence_count} supporting sentence{t.sentence_count === 1 ? "" : "s"} ·
-                          mean confidence {percent(t.mean_confidence)} · threshold {percent(t.threshold)}
+                          mean confidence {percent(t.mean_confidence)}{t.threshold != null ? ` · threshold ${percent(t.threshold)}` : ""}
                         </p>
                         <ol className="evidence-list">
                           {t.evidence.map((e) => (

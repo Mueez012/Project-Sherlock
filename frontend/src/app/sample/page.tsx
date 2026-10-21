@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { ResultView } from "@/features/analysis/AnalysisView";
-import { UploadDialog } from "@/features/analysis/UploadDialog";
+import { AnalyzeDialog } from "@/features/analysis/AnalyzeDialog";
 import sample from "@/mocks/analysis-result.json";
 import type { AnalysisResult } from "@/types/analysis";
 
@@ -17,10 +17,10 @@ export default function SamplePage() {
     <>
       <SiteHeader onNewAnalysis={() => setUploadOpen(true)} links={false} />
       <main className="app-main" id="main">
-        <p className="notice"><Flask aria-hidden="true" weight="fill" /> Sample result: the report is synthetic and was written for testing. Export links need the backend.</p>
+        <p className="notice"><Flask aria-hidden="true" weight="fill" /> Sample result: the report is synthetic and was written for testing. It was produced by the earlier TTP-only interface, so it has no indicators.</p>
         <ResultView result={sample as AnalysisResult} onNewAnalysis={() => setUploadOpen(true)} />
       </main>
-      <UploadDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
+      <AnalyzeDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
     </>
   );
 }

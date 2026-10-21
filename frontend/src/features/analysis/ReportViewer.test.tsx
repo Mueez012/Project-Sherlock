@@ -34,3 +34,21 @@ describe("ReportViewer", () => {
     expect(screen.getAllByText("T1003").length).toBeGreaterThan(0);
   });
 });
+
+describe("ReportViewer with indicators", () => {
+  it("highlights a sentence that only has an indicator and lists it when selected", async () => {
+    const { toAnalysisResult } = await import("@/lib/adapt");
+    const adapted = toAnalysisResult({
+      text: "Nothing here. The beacon went to 10.0.0.1 daily.", incidentName: "Op", processingMs: 1,
+      response: {
+        mode: "stub", sentences: ["Nothing here.", "The beacon went to 10.0.0.1 daily."], ttps: [],
+        iocs: [{ type: "ipv4", value: "10.0.0.1", sentence_index: 1 }], cskg: null, attribution: null,
+      },
+    });
+    const user = userEvent.setup();
+    render(<ReportViewer result={adapted} focusTechnique={null} focusNonce={0} />);
+    await user.click(screen.getByText(/beacon went to/));
+    expect(screen.getByRole("heading", { name: "Indicators in this sentence" })).toBeInTheDocument();
+    expect(screen.getByText("10.0.0.1", { selector: ".label-name" })).toBeInTheDocument();
+  });
+});

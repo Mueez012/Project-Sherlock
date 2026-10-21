@@ -22,7 +22,6 @@ export function SiteHeader({ onNewAnalysis, links = true }: { onNewAnalysis: () 
         {links && (
           <div className="nav-links">
             <Link href="/#how">How it works</Link>
-            <Link href="/#recent">Recent analyses</Link>
             <Link href="/#roadmap">Attribution (preview)</Link>
           </div>
         )}
