@@ -61,6 +61,18 @@ uv run python -m threatmamba.data.verify_datasets datasets
 To change a dataset on purpose, commit the new files and `SHA256SUMS` together:
 `cd datasets && sha256sum d1_model_ready/* d2_model_ready/* > SHA256SUMS`.
 
+### Model files
+
+Trained models are too big for git, so they are attached to a GitHub Release and listed in `models/manifest.json`
+(name, download URL, SHA-256). Download them into `models/` with:
+
+```bash
+uv run python scripts/fetch_models.py
+```
+
+It skips files that are already present and correct, and stops with an error if a download's SHA-256 does not
+match the manifest. Add an entry to the manifest whenever a new model is released.
+
 ### The container
 
 There are two containers. `app` is the hub: the root `Dockerfile` builds it in two stages, the first installing

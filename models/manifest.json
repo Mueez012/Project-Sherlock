@@ -1,0 +1,4 @@
+{
+  "about": "Model files are too big for git. They are attached to a GitHub Release and downloaded by scripts/fetch_models.py into this folder. Add one entry per file when a release is made.",
+  "files": []
+}
