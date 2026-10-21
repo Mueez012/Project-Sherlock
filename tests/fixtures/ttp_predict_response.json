@@ -1,0 +1,7 @@
+{
+  "model": {"bundle": "ttp-v2"},
+  "sentences": [
+    {"index": 0, "labels": [{"id": "T1566", "p": 0.93, "passed": true}, {"id": "TA0001", "p": 0.88, "passed": true}, {"id": "T1059", "p": 0.12, "passed": false}]},
+    {"index": 1, "labels": []}
+  ]
+}
