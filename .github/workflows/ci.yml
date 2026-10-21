@@ -73,6 +73,20 @@ jobs:
             coverage.xml
             junit.xml
 
+  # ------------------------------------------------------------------ the committed datasets (never rebuilt)
+  datasets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Checksums, shapes, labels, splits, sentence splitting
+        run: uv run python -m threatmamba.data.verify_datasets datasets
+
   # ------------------------------------------------------------------ SAST: CodeQL
   sast:
     runs-on: ubuntu-latest
@@ -108,7 +122,7 @@ jobs:
 
   # ------------------------------------------------------------------ build, scan and test the container
   image:
-    needs: [lint, test, sast, trivy-fs]
+    needs: [lint, test, datasets, sast, trivy-fs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -229,7 +243,7 @@ jobs:
   # ------------------------------------------------------------------ the one required check
   ci-passed:
     if: always()
-    needs: [lint, test, sast, trivy-fs, image, deliver, release]
+    needs: [lint, test, datasets, sast, trivy-fs, image, deliver, release]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any job failed or was cancelled
