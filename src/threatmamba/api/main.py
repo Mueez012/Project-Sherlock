@@ -31,7 +31,7 @@ def health() -> dict[str, str]:
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)
 def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
-    sentences = split_sentences(req.text)
+    sentences = req.sentences if req.sentences is not None else split_sentences(req.text or "")
     return AnalyzeResponse(
         mode=mode().value,
         sentences=sentences,

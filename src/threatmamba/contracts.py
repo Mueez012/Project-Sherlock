@@ -1,40 +1,26 @@
 """Shared data contracts between modules. Change these only by PR reviewed by every module owner.
 
-Flow:  HandoffReport (Phase 1) -> TTPExtractor -> [TTPHit]
-                               -> IOCExtractor/IOCHunter -> [IOC], [IOCEdge]
-                               -> CSKG builder -> CSKG  -> attribution -> Attribution
+Flow:  D2Report (datasets/d2_model_ready) -> TTPExtractor -> [TTPHit]
+                                          -> IOCExtractor/IOCHunter -> [IOC], [IOCEdge]
+                                          -> CSKG builder -> CSKG  -> attribution -> Attribution
 """
 
 from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
-class Split(StrEnum):
-    train = "train"
-    valid = "valid"
-    test = "test"
+class D2Report(BaseModel):
+    """One line of datasets/d2_model_ready/{train,valid,test}.jsonl (written by datasets/scripts/clean_d2.py)."""
 
-
-class HandoffMeta(BaseModel):
-    group_id: str
-    n_chars: int
-    truncated_at_excel_limit: bool
-    source: str
-
-
-class HandoffReport(BaseModel):
-    """One line of handoff/d2/shard_*.jsonl (Phase 1 output)."""
-
-    doc_id: str = Field(pattern=r"^d2_[0-9a-f]{12}$")
-    split: Split
+    report_id: int = Field(ge=1, description="line number of the report in the raw CTI2Attacker.csv")
+    group: str = Field(min_length=1)
     label: int = Field(ge=0, le=24)
-    group_name: str
-    group_alias: str
-    text: str
-    meta: HandoffMeta
+    cut_by_excel: bool
+    text: str = Field(min_length=1)
+    sentences: list[str] = Field(min_length=1, description="the report split by threatmamba.text.split_sentences")
 
 
 class IOCType(StrEnum):
@@ -63,7 +49,9 @@ class IOCEdge(BaseModel):
 
 
 class TTPHit(BaseModel):
-    technique_id: str = Field(pattern=r"^T\d{4}$")
+    """One ATT&CK label found in one sentence: a technique (T1566) or a tactic (TA0001), never a sub-technique."""
+
+    technique_id: str = Field(pattern=r"^TA?\d{4}$")
     score: float = Field(ge=0.0, le=1.0)
     sentence_index: int = Field(ge=0)
 
@@ -105,7 +93,16 @@ class Attribution(BaseModel):
 
 
 class AnalyzeRequest(BaseModel):
-    text: str = Field(min_length=1, max_length=200_000)
+    """Raw text, which the hub splits, or sentences already split (e.g. a D2 report), which are used unchanged."""
+
+    text: str | None = Field(default=None, min_length=1, max_length=200_000)
+    sentences: list[str] | None = Field(default=None, min_length=1, max_length=20_000)
+
+    @model_validator(mode="after")
+    def _text_or_sentences(self) -> AnalyzeRequest:
+        if self.text is None and self.sentences is None:
+            raise ValueError("send text or sentences")
+        return self
 
 
 class AnalyzeResponse(BaseModel):
