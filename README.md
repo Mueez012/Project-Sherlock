@@ -8,7 +8,7 @@ compromise and, once the classifier is trained, the likely threat actor.
 
 | Module | Folder | Owner | Status |
 |---|---|---|---|
-| Phase 1 data preparation | `src/threatmamba/data/` | graph lead | done, verified in CI on the real data |
+| Datasets (cleaned D1 and D2) | `datasets/` | graph lead | committed, checked in CI |
 | IOC extraction + IOCHunter | `src/threatmamba/ioc/` | IOC teammate | regex baseline in place |
 | TTP Extractor | `src/threatmamba/ttp/` | TTP teammate | keyword baseline in place |
 | CSKG construction | `src/threatmamba/cskg/` | graph lead | next |
@@ -28,12 +28,26 @@ uv run uvicorn threatmamba.api.main:app --reload   # http://localhost:8000
 uv run pytest                                      # unit tests
 ```
 
-Phase 1 on the real data (downloads the public raw files at a pinned commit and checks their hashes):
+### The datasets
+
+The cleaned datasets are committed and are the source of truth; nothing rebuilds them.
+
+```
+datasets/
+├── d1_model_ready/   train.csv, valid.csv, test.csv, labels.json   (sentences, 14 tactics + 189 techniques)
+├── d2_model_ready/   train.jsonl, valid.jsonl, test.jsonl, groups.json   (reports, 25 groups)
+├── scripts/          clean_d1.py, clean_d2.py: how they were made from the paper's raw CSVs
+└── SHA256SUMS        checksums of every file above
+```
+
+Check them (CI runs the same command):
 
 ```bash
-bash scripts/fetch_raw.sh raw
-PYTHON="uv run python" bash scripts/run_phase1.sh raw phase1_out
+uv run python -m threatmamba.data.verify_datasets datasets
 ```
+
+To change a dataset on purpose, commit the new files and `SHA256SUMS` together:
+`cd datasets && sha256sum d1_model_ready/* d2_model_ready/* > SHA256SUMS`.
 
 ### The container
 
@@ -84,8 +98,8 @@ To release, bump `VERSION` on `develop` before promoting to `main`.
 | Stage | develop | QA | main |
 |---|---|---|---|
 | Lint: ruff, ruff security rules (Bandit), formatting, hadolint, actionlint | yes | yes | yes |
-| Unit and contract tests, 60% coverage gate | fast | fast + slow | fast + slow |
-| Phase 1 on the real data: build, 18 checks, checksums, 62-number audit | yes | yes | yes |
+| Unit and contract tests, 40% coverage gate | fast | fast + slow | fast + slow |
+| Datasets: checksums, shapes, labels, splits, sentence splitting | yes | yes | yes |
 | SAST: CodeQL | yes | yes | yes |
 | Trivy: dependencies, secrets, Dockerfile misconfiguration | yes | yes | yes |
 | Container: build, Trivy image scan, start with health check, system tests | yes | yes | yes |
@@ -105,4 +119,5 @@ baseline as the stub-mode fallback, and add tests under `tests/unit/`. To keep C
   on QA and main only).
 - When torch is needed, use the CPU-only index commented in `pyproject.toml`, and keep a pure-PyTorch path for
   Mamba (the official kernels need CUDA).
-- Never commit data, checkpoints or keys. Checkpoints go in GitHub Release assets, listed in `models/manifest.json`.
+- Never commit raw data, checkpoints or keys. Checkpoints go in GitHub Release assets, listed in `models/manifest.json`.
+  The cleaned datasets in `datasets/` are the one exception; change them only together with `datasets/SHA256SUMS`.
