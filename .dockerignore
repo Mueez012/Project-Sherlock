@@ -9,4 +9,7 @@ models
 tests
 infra
 scripts
+datasets
+services
+frontend
 **/__pycache__

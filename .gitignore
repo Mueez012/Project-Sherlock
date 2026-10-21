@@ -1,8 +1,10 @@
-# data and generated outputs are never committed (fetch with scripts/fetch_raw.sh)
+# raw data and generated outputs are never committed; the cleaned datasets in datasets/ are the one exception
 /raw/
+/ThreatMAMBA/
 /phase1_out/
 /data/
 /artifacts/
+enterprise-attack-*.json
 /models/*
 !/models/manifest.json
 *.pt
@@ -17,6 +19,11 @@ coverage.xml
 junit.xml
 node_modules/
 .env
+# service and frontend outputs (checkpoints come from GitHub Release assets)
+services/ttp/runs/
+services/ttp/reports/
+services/ioc/data/
+frontend/.next/
 # infra state can hold secrets
 infra/**/.terraform/
 infra/**/*.tfstate*

@@ -7,3 +7,8 @@
 /src/threatmamba/ioc/      @M-Huzaifa-Bin-Amir
 /src/threatmamba/ttp/      @Khalid-Umar1
 /src/threatmamba/contracts.py  @Mueez012 @M-Huzaifa-Bin-Amir @Khalid-Umar1
+/src/threatmamba/clients/  @Mueez012 @M-Huzaifa-Bin-Amir @Khalid-Umar1
+/datasets/                 @Mueez012
+/services/ttp/             @Khalid-Umar1
+/services/ioc/             @M-Huzaifa-Bin-Amir
+/frontend/                 @Mueez012

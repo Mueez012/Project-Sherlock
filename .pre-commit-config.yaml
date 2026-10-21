@@ -1,5 +1,7 @@
 # Install once per clone:  uv run pre-commit install
 default_install_hook_types: [pre-commit, commit-msg, pre-push]
+# datasets/ must stay byte-exact; services/ and frontend/ are checked by their own tooling
+exclude: ^(datasets|services|frontend)/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

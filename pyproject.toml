@@ -43,6 +43,7 @@ packages = ["src/threatmamba"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+extend-exclude = ["datasets", "services", "frontend"]
 
 [tool.ruff.lint]
 # S = flake8-bandit security rules: the "SAST in every commit" checkmark, no account needed
@@ -67,4 +68,5 @@ omit = [
     "src/threatmamba/data/verify_base.py",
     "src/threatmamba/data/make_handoff.py",
     "src/threatmamba/data/audit_numbers.py",
+    "src/threatmamba/data/verify_datasets.py",
 ]

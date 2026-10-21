@@ -1,3 +1,5 @@
 * text=auto eol=lf
 *.pt binary
 *.png binary
+# cleaned datasets are the source of truth: never convert their line endings
+datasets/** -text

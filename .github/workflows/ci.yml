@@ -133,7 +133,7 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
-          skip-dirs: tests,.venv
+          skip-dirs: tests,.venv,datasets
 
   # ------------------------------------------------------------------ build, scan and test the container
   image:
