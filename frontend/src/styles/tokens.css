@@ -1,0 +1,138 @@
+/*
+ * Slate Analyst design tokens: the ONLY file allowed to contain colour values
+ * (enforced by stylelint). Contrast ratios are checked by `npm run contrast`.
+ * Dark is the default; [data-theme="light"] switches, and "system" follows the OS.
+ */
+
+:root {
+  /* type */
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, "Cascadia Mono", monospace;
+  --text-xs: 0.75rem;     /* 12 — minimum anywhere */
+  --text-sm: 0.8125rem;   /* 13 */
+  --text-md: 0.875rem;    /* 14 */
+  --text-base: 1rem;      /* 16 — body */
+  --text-lg: 1.125rem;    /* 18 */
+  --text-xl: 1.25rem;     /* 20 */
+  --text-2xl: 1.5rem;     /* 24 */
+  --text-3xl: 2rem;       /* 32 */
+  --text-4xl: 2.5rem;     /* 40 */
+  --text-hero: 3.5rem;    /* 56 — hero only */
+  --leading-body: 1.6;
+  --leading-ui: 1.45;
+  --leading-heading: 1.12;
+  --tracking-heading: -0.025em;
+  --tracking-eyebrow: 0.06em;
+  --measure: 68ch;
+
+  /* spacing (4 px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* radii */
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-dialog: 14px;
+  --radius-pill: 999px;
+
+  /* sizes and motion */
+  --control-height: 40px;
+  --row-height: 44px;
+  --page-width: 1280px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --duration: 200ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+
+  color-scheme: dark;
+
+  /* colours: dark (default) */
+  --bg: #0b0f14;
+  --surface: #121821;
+  --surface-raised: #19212c;
+  --border: #2a3442;
+  --border-control: #647186;
+  --text: #e6ebf1;
+  --text-secondary: #a7b2c0;
+  --text-muted: #8492a3;
+  --accent: #5b9bff;
+  --accent-text: #8ab8ff;
+  --on-accent: #0b0f14;
+  --success: #3dbe8b;
+  --warning: #e6a23c;
+  --danger: #f06a62;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 22%);
+  --overlay: rgb(3 6 10 / 72%);
+  --highlight: rgb(91 155 255 / 18%);
+  --highlight-strong: rgb(91 155 255 / 32%);
+
+  /* confidence scale: one hue (accent) at three strengths */
+  --conf-high-bg: var(--accent);
+  --conf-high-text: var(--on-accent);
+  --conf-medium-bg: color-mix(in srgb, var(--accent) 60%, var(--surface));
+  --conf-medium-text: var(--text);
+  --conf-low-bg: color-mix(in srgb, var(--accent) 30%, var(--surface));
+  --conf-low-text: var(--text);
+}
+
+/* Light theme: explicit choice, or the OS preference when no choice is saved. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f6f8fb;
+  --surface: #fff;
+  --surface-raised: #eef2f7;
+  --border: #d5dce5;
+  --border-control: #7c8a9c;
+  --text: #0f1722;
+  --text-secondary: #465264;
+  --text-muted: #5d6b7d;
+  --accent: #1f5fd1;
+  --accent-text: #1f5fd1;
+  --on-accent: #fff;
+  --success: #167a55;
+  --warning: #9a5b00;
+  --danger: #c2352d;
+  --shadow: 0 1px 2px rgb(15 23 34 / 6%), 0 8px 24px rgb(15 23 34 / 8%);
+  --overlay: rgb(15 23 34 / 45%);
+  --highlight: rgb(31 95 209 / 12%);
+  --highlight-strong: rgb(31 95 209 / 24%);
+  --conf-medium-bg: color-mix(in srgb, var(--accent) 60%, var(--surface));
+  --conf-medium-text: var(--text);       /* white on the 60% tint would be < 4.5:1 */
+  --conf-low-bg: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  --conf-low-text: var(--text);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+
+    --bg: #f6f8fb;
+    --surface: #fff;
+    --surface-raised: #eef2f7;
+    --border: #d5dce5;
+    --border-control: #7c8a9c;
+    --text: #0f1722;
+    --text-secondary: #465264;
+    --text-muted: #5d6b7d;
+    --accent: #1f5fd1;
+    --accent-text: #1f5fd1;
+    --on-accent: #fff;
+    --success: #167a55;
+    --warning: #9a5b00;
+    --danger: #c2352d;
+    --shadow: 0 1px 2px rgb(15 23 34 / 6%), 0 8px 24px rgb(15 23 34 / 8%);
+    --overlay: rgb(15 23 34 / 45%);
+    --highlight: rgb(31 95 209 / 12%);
+    --highlight-strong: rgb(31 95 209 / 24%);
+    --conf-medium-text: var(--text);
+    --conf-low-bg: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  }
+}

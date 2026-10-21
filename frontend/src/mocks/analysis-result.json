@@ -1,0 +1,1170 @@
+{
+ "id": "an_mock_synthetic",
+ "status": "completed",
+ "incident_name": "Operation Silent Current",
+ "created_at": "2026-10-13T16:49:27.247369Z",
+ "completed_at": "2026-10-13T16:49:27.610426Z",
+ "processing_ms": 349,
+ "timings_ms": {
+  "extracting_text": 5,
+  "splitting": 40,
+  "encoding": 294,
+  "classifying": 3,
+  "aggregating": 1
+ },
+ "options": {
+  "threshold_mode": "report_tuned",
+  "fixed_threshold": null,
+  "min_evidence_sentences": 1,
+  "strong_threshold": 0.8,
+  "include_sentences": true,
+  "apply_hierarchy": true
+ },
+ "document": {
+  "filename": "synthetic_report.txt",
+  "media_type": "text/plain",
+  "size_bytes": 1633,
+  "sha256": "4bee5ff7cfc4dbc81f95875fefbbc390a09b9b8988008218733e51ae167f943d",
+  "pages": null,
+  "n_characters": 1632,
+  "n_sentences": 17,
+  "n_sentences_analyzed": 13,
+  "language": "en",
+  "text": "Operation Silent Current: synthetic test report (not real threat intelligence)\n\nThe intrusion began when the operators sent spearphishing emails with a malicious Microsoft Word attachment to staff in the finance department. When a user opened the document and enabled macros, the macro launched PowerShell with an encoded command.\n\nThe PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder. To survive reboots, the loader created a scheduled task named OneDriveUpdate that ran every hour. It also added a Run key to the registry.\n\nOnce on the host, the actors ran whoami, ipconfig and net group \"domain admins\" /domain to learn about the user and the network. They used a renamed copy of Mimikatz to dump credentials from LSASS memory.\n\nWith the stolen administrator password, the operators moved laterally to the file server over RDP and used PsExec to run commands on several workstations. The malware disabled Windows Defender real-time protection and cleared the Security event log to hide its activity.\n\nFiles from the finance share were collected, compressed into a password-protected RAR archive and staged in a temporary folder. The archive was exfiltrated over HTTPS to a cloud storage account controlled by the attackers. The backdoor communicated with its command and control server over HTTPS using a custom user agent.\n\nIndicators of compromise:\n\n44d88612fea8a8f36de82e1278abb02f 185.220.101.4 hxxps://update-cdn[.]com/load.bin\n\nIn the final stage the actors encrypted files on the file server and left a ransom note demanding payment in Bitcoin.",
+  "declared_ttps": []
+ },
+ "model": {
+  "name": "ThreatMAMBA-TTP",
+  "version": "ttp-v2",
+  "run_id": "finetune_v2_seed_0+finetune_v2b_seed_0",
+  "model_type": "finetuned_e2e",
+  "encoder": "ehsanaghaei/SecureBERT",
+  "threshold_mode": "report_tuned",
+  "label_space": {
+   "tactics": 14,
+   "techniques": 189
+  }
+ },
+ "summary": {
+  "n_tactics": 13,
+  "n_techniques": 15,
+  "top_tactic": "TA0007",
+  "confidence_bands": {
+   "high": 12,
+   "medium": 3,
+   "low": 0
+  }
+ },
+ "tactics": [
+  {
+   "id": "TA0042",
+   "name": "Resource Development",
+   "order": 2,
+   "url": "https://attack.mitre.org/tactics/TA0042",
+   "confidence": 0.948,
+   "source": "model",
+   "sentence_count": 1,
+   "technique_ids": [],
+   "evidence": [
+    {
+     "sentence_index": 3,
+     "text": "The PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder.",
+     "probability": 0.948,
+     "char_start": 332,
+     "char_end": 463,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0001",
+   "name": "Initial Access",
+   "order": 3,
+   "url": "https://attack.mitre.org/tactics/TA0001",
+   "confidence": 0.9388,
+   "source": "model",
+   "sentence_count": 2,
+   "technique_ids": [
+    "T1566"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 1,
+     "text": "The intrusion began when the operators sent spearphishing emails with a malicious Microsoft Word attachment to staff in the finance department.",
+     "probability": 0.9388,
+     "char_start": 80,
+     "char_end": 223,
+     "page": null
+    },
+    {
+     "sentence_index": 3,
+     "text": "The PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder.",
+     "probability": 0.7975,
+     "char_start": 332,
+     "char_end": 463,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0002",
+   "name": "Execution",
+   "order": 4,
+   "url": "https://attack.mitre.org/tactics/TA0002",
+   "confidence": 0.9998,
+   "source": "model",
+   "sentence_count": 3,
+   "technique_ids": [
+    "T1053",
+    "T1059"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 2,
+     "text": "When a user opened the document and enabled macros, the macro launched PowerShell with an encoded command.",
+     "probability": 0.9998,
+     "char_start": 224,
+     "char_end": 330,
+     "page": null
+    },
+    {
+     "sentence_index": 4,
+     "text": "To survive reboots, the loader created a scheduled task named OneDriveUpdate that ran every hour.",
+     "probability": 0.9927,
+     "char_start": 464,
+     "char_end": 561,
+     "page": null
+    },
+    {
+     "sentence_index": 1,
+     "text": "The intrusion began when the operators sent spearphishing emails with a malicious Microsoft Word attachment to staff in the finance department.",
+     "probability": 0.9578,
+     "char_start": 80,
+     "char_end": 223,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0003",
+   "name": "Persistence",
+   "order": 5,
+   "url": "https://attack.mitre.org/tactics/TA0003",
+   "confidence": 0.9863,
+   "source": "model",
+   "sentence_count": 2,
+   "technique_ids": [
+    "T1053",
+    "T1547"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 4,
+     "text": "To survive reboots, the loader created a scheduled task named OneDriveUpdate that ran every hour.",
+     "probability": 0.9863,
+     "char_start": 464,
+     "char_end": 561,
+     "page": null
+    },
+    {
+     "sentence_index": 5,
+     "text": "It also added a Run key to the registry.",
+     "probability": 0.8976,
+     "char_start": 562,
+     "char_end": 602,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0004",
+   "name": "Privilege Escalation",
+   "order": 6,
+   "url": "https://attack.mitre.org/tactics/TA0004",
+   "confidence": 0.9938,
+   "source": "model",
+   "sentence_count": 2,
+   "technique_ids": [
+    "T1053",
+    "T1547"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 4,
+     "text": "To survive reboots, the loader created a scheduled task named OneDriveUpdate that ran every hour.",
+     "probability": 0.9938,
+     "char_start": 464,
+     "char_end": 561,
+     "page": null
+    },
+    {
+     "sentence_index": 5,
+     "text": "It also added a Run key to the registry.",
+     "probability": 0.9552,
+     "char_start": 562,
+     "char_end": 602,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0005",
+   "name": "Defense Evasion",
+   "order": 7,
+   "url": "https://attack.mitre.org/tactics/TA0005",
+   "confidence": 0.9994,
+   "source": "model",
+   "sentence_count": 3,
+   "technique_ids": [
+    "T1562",
+    "T1070"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 9,
+     "text": "The malware disabled Windows Defender real-time protection and cleared the Security event log to hide its activity.",
+     "probability": 0.9994,
+     "char_start": 965,
+     "char_end": 1080,
+     "page": null
+    },
+    {
+     "sentence_index": 2,
+     "text": "When a user opened the document and enabled macros, the macro launched PowerShell with an encoded command.",
+     "probability": 0.7283,
+     "char_start": 224,
+     "char_end": 330,
+     "page": null
+    },
+    {
+     "sentence_index": 3,
+     "text": "The PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder.",
+     "probability": 0.7224,
+     "char_start": 332,
+     "char_end": 463,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0006",
+   "name": "Credential Access",
+   "order": 8,
+   "url": "https://attack.mitre.org/tactics/TA0006",
+   "confidence": 0.9537,
+   "source": "model",
+   "sentence_count": 1,
+   "technique_ids": [
+    "T1003"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 7,
+     "text": "They used a renamed copy of Mimikatz to dump credentials from LSASS memory.",
+     "probability": 0.9537,
+     "char_start": 733,
+     "char_end": 808,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0007",
+   "name": "Discovery",
+   "order": 9,
+   "url": "https://attack.mitre.org/tactics/TA0007",
+   "confidence": 1.0,
+   "source": "model",
+   "sentence_count": 1,
+   "technique_ids": [
+    "T1033"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 6,
+     "text": "Once on the host, the actors ran whoami, ipconfig and net group \"domain admins\" /domain to learn about the user and the network.",
+     "probability": 1.0,
+     "char_start": 604,
+     "char_end": 732,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0008",
+   "name": "Lateral Movement",
+   "order": 10,
+   "url": "https://attack.mitre.org/tactics/TA0008",
+   "confidence": 0.9908,
+   "source": "model",
+   "sentence_count": 2,
+   "technique_ids": [
+    "T1021"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 8,
+     "text": "With the stolen administrator password, the operators moved laterally to the file server over RDP and used PsExec to run commands on several workstations.",
+     "probability": 0.9908,
+     "char_start": 810,
+     "char_end": 964,
+     "page": null
+    },
+    {
+     "sentence_index": 3,
+     "text": "The PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder.",
+     "probability": 0.9792,
+     "char_start": 332,
+     "char_end": 463,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0009",
+   "name": "Collection",
+   "order": 11,
+   "url": "https://attack.mitre.org/tactics/TA0009",
+   "confidence": 0.9999,
+   "source": "model",
+   "sentence_count": 1,
+   "technique_ids": [
+    "T1560",
+    "T1074"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 10,
+     "text": "Files from the finance share were collected, compressed into a password-protected RAR archive and staged in a temporary folder.",
+     "probability": 0.9999,
+     "char_start": 1082,
+     "char_end": 1209,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0011",
+   "name": "Command and Control",
+   "order": 12,
+   "url": "https://attack.mitre.org/tactics/TA0011",
+   "confidence": 0.9995,
+   "source": "model",
+   "sentence_count": 2,
+   "technique_ids": [
+    "T1071",
+    "T1105"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 12,
+     "text": "The backdoor communicated with its command and control server over HTTPS using a custom user agent.",
+     "probability": 0.9995,
+     "char_start": 1305,
+     "char_end": 1404,
+     "page": null
+    },
+    {
+     "sentence_index": 3,
+     "text": "The PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder.",
+     "probability": 0.8787,
+     "char_start": 332,
+     "char_end": 463,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0010",
+   "name": "Exfiltration",
+   "order": 13,
+   "url": "https://attack.mitre.org/tactics/TA0010",
+   "confidence": 0.9809,
+   "source": "model",
+   "sentence_count": 1,
+   "technique_ids": [
+    "T1048"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 11,
+     "text": "The archive was exfiltrated over HTTPS to a cloud storage account controlled by the attackers.",
+     "probability": 0.9809,
+     "char_start": 1210,
+     "char_end": 1304,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "TA0040",
+   "name": "Impact",
+   "order": 14,
+   "url": "https://attack.mitre.org/tactics/TA0040",
+   "confidence": 0.9981,
+   "source": "model",
+   "sentence_count": 1,
+   "technique_ids": [
+    "T1486"
+   ],
+   "evidence": [
+    {
+     "sentence_index": 16,
+     "text": "In the final stage the actors encrypted files on the file server and left a ransom note demanding payment in Bitcoin.",
+     "probability": 0.9981,
+     "char_start": 1515,
+     "char_end": 1632,
+     "page": null
+    }
+   ]
+  }
+ ],
+ "techniques": [
+  {
+   "id": "T1071",
+   "name": "Application Layer Protocol",
+   "tactic_ids": [
+    "TA0011"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1071",
+   "confidence": 0.9992,
+   "band": "high",
+   "mean_confidence": 0.9992,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 12,
+     "text": "The backdoor communicated with its command and control server over HTTPS using a custom user agent.",
+     "probability": 0.9992,
+     "char_start": 1305,
+     "char_end": 1404,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1566",
+   "name": "Phishing",
+   "tactic_ids": [
+    "TA0001"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1566",
+   "confidence": 0.9957,
+   "band": "high",
+   "mean_confidence": 0.9957,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 1,
+     "text": "The intrusion began when the operators sent spearphishing emails with a malicious Microsoft Word attachment to staff in the finance department.",
+     "probability": 0.9957,
+     "char_start": 80,
+     "char_end": 223,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1053",
+   "name": "Scheduled Task/Job",
+   "tactic_ids": [
+    "TA0002",
+    "TA0003",
+    "TA0004"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1053",
+   "confidence": 0.9906,
+   "band": "high",
+   "mean_confidence": 0.9906,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 4,
+     "text": "To survive reboots, the loader created a scheduled task named OneDriveUpdate that ran every hour.",
+     "probability": 0.9906,
+     "char_start": 464,
+     "char_end": 561,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1059",
+   "name": "Command and Scripting Interpreter",
+   "tactic_ids": [
+    "TA0002"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1059",
+   "confidence": 0.9873,
+   "band": "high",
+   "mean_confidence": 0.9873,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 2,
+     "text": "When a user opened the document and enabled macros, the macro launched PowerShell with an encoded command.",
+     "probability": 0.9873,
+     "char_start": 224,
+     "char_end": 330,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1003",
+   "name": "OS Credential Dumping",
+   "tactic_ids": [
+    "TA0006"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1003",
+   "confidence": 0.9863,
+   "band": "high",
+   "mean_confidence": 0.9863,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 7,
+     "text": "They used a renamed copy of Mimikatz to dump credentials from LSASS memory.",
+     "probability": 0.9863,
+     "char_start": 733,
+     "char_end": 808,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1547",
+   "name": "Boot or Logon Autostart Execution",
+   "tactic_ids": [
+    "TA0003",
+    "TA0004"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1547",
+   "confidence": 0.9711,
+   "band": "high",
+   "mean_confidence": 0.9711,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 5,
+     "text": "It also added a Run key to the registry.",
+     "probability": 0.9711,
+     "char_start": 562,
+     "char_end": 602,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1033",
+   "name": "System Owner/User Discovery",
+   "tactic_ids": [
+    "TA0007"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1033",
+   "confidence": 0.9598,
+   "band": "high",
+   "mean_confidence": 0.9598,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 6,
+     "text": "Once on the host, the actors ran whoami, ipconfig and net group \"domain admins\" /domain to learn about the user and the network.",
+     "probability": 0.9598,
+     "char_start": 604,
+     "char_end": 732,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1486",
+   "name": "Data Encrypted for Impact",
+   "tactic_ids": [
+    "TA0040"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1486",
+   "confidence": 0.9551,
+   "band": "high",
+   "mean_confidence": 0.9551,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 16,
+     "text": "In the final stage the actors encrypted files on the file server and left a ransom note demanding payment in Bitcoin.",
+     "probability": 0.9551,
+     "char_start": 1515,
+     "char_end": 1632,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1021",
+   "name": "Remote Services",
+   "tactic_ids": [
+    "TA0008"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1021",
+   "confidence": 0.9325,
+   "band": "high",
+   "mean_confidence": 0.9325,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 8,
+     "text": "With the stolen administrator password, the operators moved laterally to the file server over RDP and used PsExec to run commands on several workstations.",
+     "probability": 0.9325,
+     "char_start": 810,
+     "char_end": 964,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1048",
+   "name": "Exfiltration Over Alternative Protocol",
+   "tactic_ids": [
+    "TA0010"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1048",
+   "confidence": 0.9024,
+   "band": "high",
+   "mean_confidence": 0.9024,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 11,
+     "text": "The archive was exfiltrated over HTTPS to a cloud storage account controlled by the attackers.",
+     "probability": 0.9024,
+     "char_start": 1210,
+     "char_end": 1304,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1105",
+   "name": "Ingress Tool Transfer",
+   "tactic_ids": [
+    "TA0011"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1105",
+   "confidence": 0.8655,
+   "band": "high",
+   "mean_confidence": 0.8655,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 3,
+     "text": "The PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder.",
+     "probability": 0.8655,
+     "char_start": 332,
+     "char_end": 463,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1560",
+   "name": "Archive Collected Data",
+   "tactic_ids": [
+    "TA0009"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1560",
+   "confidence": 0.8454,
+   "band": "high",
+   "mean_confidence": 0.8454,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 10,
+     "text": "Files from the finance share were collected, compressed into a password-protected RAR archive and staged in a temporary folder.",
+     "probability": 0.8454,
+     "char_start": 1082,
+     "char_end": 1209,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1562",
+   "name": "Impair Defenses",
+   "tactic_ids": [
+    "TA0005"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1562",
+   "confidence": 0.6832,
+   "band": "medium",
+   "mean_confidence": 0.6832,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 9,
+     "text": "The malware disabled Windows Defender real-time protection and cleared the Security event log to hide its activity.",
+     "probability": 0.6832,
+     "char_start": 965,
+     "char_end": 1080,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1070",
+   "name": "Indicator Removal",
+   "tactic_ids": [
+    "TA0005"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1070",
+   "confidence": 0.6782,
+   "band": "medium",
+   "mean_confidence": 0.6782,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 9,
+     "text": "The malware disabled Windows Defender real-time protection and cleared the Security event log to hide its activity.",
+     "probability": 0.6782,
+     "char_start": 965,
+     "char_end": 1080,
+     "page": null
+    }
+   ]
+  },
+  {
+   "id": "T1074",
+   "name": "Data Staged",
+   "tactic_ids": [
+    "TA0009"
+   ],
+   "url": "https://attack.mitre.org/techniques/T1074",
+   "confidence": 0.6632,
+   "band": "medium",
+   "mean_confidence": 0.6632,
+   "sentence_count": 1,
+   "threshold": 0.6,
+   "evidence": [
+    {
+     "sentence_index": 10,
+     "text": "Files from the finance share were collected, compressed into a password-protected RAR archive and staged in a temporary folder.",
+     "probability": 0.6632,
+     "char_start": 1082,
+     "char_end": 1209,
+     "page": null
+    }
+   ]
+  }
+ ],
+ "sentences": [
+  {
+   "index": 0,
+   "text": "Operation Silent Current: synthetic test report (not real threat intelligence)",
+   "char_start": 0,
+   "char_end": 78,
+   "page": null,
+   "skipped": "heading",
+   "labels": []
+  },
+  {
+   "index": 1,
+   "text": "The intrusion began when the operators sent spearphishing emails with a malicious Microsoft Word attachment to staff in the finance department.",
+   "char_start": 80,
+   "char_end": 223,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "T1566",
+     "p": 0.9957,
+     "passed": true
+    },
+    {
+     "id": "TA0002",
+     "p": 0.9578,
+     "passed": true
+    },
+    {
+     "id": "TA0001",
+     "p": 0.9388,
+     "passed": true
+    },
+    {
+     "id": "T1534",
+     "p": 0.247,
+     "passed": false
+    },
+    {
+     "id": "TA0005",
+     "p": 0.161,
+     "passed": false
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "text": "When a user opened the document and enabled macros, the macro launched PowerShell with an encoded command.",
+   "char_start": 224,
+   "char_end": 330,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0002",
+     "p": 0.9998,
+     "passed": true
+    },
+    {
+     "id": "T1059",
+     "p": 0.9873,
+     "passed": true
+    },
+    {
+     "id": "TA0005",
+     "p": 0.7283,
+     "passed": true
+    },
+    {
+     "id": "T1204",
+     "p": 0.4857,
+     "passed": false
+    },
+    {
+     "id": "TA0004",
+     "p": 0.1965,
+     "passed": false
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "text": "The PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder.",
+   "char_start": 332,
+   "char_end": 463,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0008",
+     "p": 0.9792,
+     "passed": true
+    },
+    {
+     "id": "TA0042",
+     "p": 0.948,
+     "passed": true
+    },
+    {
+     "id": "TA0011",
+     "p": 0.8787,
+     "passed": true
+    },
+    {
+     "id": "T1105",
+     "p": 0.8655,
+     "passed": true
+    },
+    {
+     "id": "TA0001",
+     "p": 0.7975,
+     "passed": true
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "text": "To survive reboots, the loader created a scheduled task named OneDriveUpdate that ran every hour.",
+   "char_start": 464,
+   "char_end": 561,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0004",
+     "p": 0.9938,
+     "passed": true
+    },
+    {
+     "id": "TA0002",
+     "p": 0.9927,
+     "passed": true
+    },
+    {
+     "id": "T1053",
+     "p": 0.9906,
+     "passed": true
+    },
+    {
+     "id": "TA0003",
+     "p": 0.9863,
+     "passed": true
+    }
+   ]
+  },
+  {
+   "index": 5,
+   "text": "It also added a Run key to the registry.",
+   "char_start": 562,
+   "char_end": 602,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "T1547",
+     "p": 0.9711,
+     "passed": true
+    },
+    {
+     "id": "TA0004",
+     "p": 0.9552,
+     "passed": true
+    },
+    {
+     "id": "TA0003",
+     "p": 0.8976,
+     "passed": true
+    }
+   ]
+  },
+  {
+   "index": 6,
+   "text": "Once on the host, the actors ran whoami, ipconfig and net group \"domain admins\" /domain to learn about the user and the network.",
+   "char_start": 604,
+   "char_end": 732,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0007",
+     "p": 1.0,
+     "passed": true
+    },
+    {
+     "id": "T1033",
+     "p": 0.9598,
+     "passed": true
+    }
+   ]
+  },
+  {
+   "index": 7,
+   "text": "They used a renamed copy of Mimikatz to dump credentials from LSASS memory.",
+   "char_start": 733,
+   "char_end": 808,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "T1003",
+     "p": 0.9863,
+     "passed": true
+    },
+    {
+     "id": "TA0006",
+     "p": 0.9537,
+     "passed": true
+    },
+    {
+     "id": "T1210",
+     "p": 0.122,
+     "passed": false
+    }
+   ]
+  },
+  {
+   "index": 8,
+   "text": "With the stolen administrator password, the operators moved laterally to the file server over RDP and used PsExec to run commands on several workstations.",
+   "char_start": 810,
+   "char_end": 964,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0008",
+     "p": 0.9908,
+     "passed": true
+    },
+    {
+     "id": "T1021",
+     "p": 0.9325,
+     "passed": true
+    },
+    {
+     "id": "TA0005",
+     "p": 0.1374,
+     "passed": false
+    }
+   ]
+  },
+  {
+   "index": 9,
+   "text": "The malware disabled Windows Defender real-time protection and cleared the Security event log to hide its activity.",
+   "char_start": 965,
+   "char_end": 1080,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0005",
+     "p": 0.9994,
+     "passed": true
+    },
+    {
+     "id": "T1562",
+     "p": 0.6832,
+     "passed": true
+    },
+    {
+     "id": "T1070",
+     "p": 0.6782,
+     "passed": true
+    }
+   ]
+  },
+  {
+   "index": 10,
+   "text": "Files from the finance share were collected, compressed into a password-protected RAR archive and staged in a temporary folder.",
+   "char_start": 1082,
+   "char_end": 1209,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0009",
+     "p": 0.9999,
+     "passed": true
+    },
+    {
+     "id": "T1560",
+     "p": 0.8454,
+     "passed": true
+    },
+    {
+     "id": "T1074",
+     "p": 0.6632,
+     "passed": true
+    }
+   ]
+  },
+  {
+   "index": 11,
+   "text": "The archive was exfiltrated over HTTPS to a cloud storage account controlled by the attackers.",
+   "char_start": 1210,
+   "char_end": 1304,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0010",
+     "p": 0.9809,
+     "passed": true
+    },
+    {
+     "id": "T1048",
+     "p": 0.9024,
+     "passed": true
+    },
+    {
+     "id": "T1567",
+     "p": 0.3957,
+     "passed": false
+    },
+    {
+     "id": "T1020",
+     "p": 0.2003,
+     "passed": false
+    },
+    {
+     "id": "TA0042",
+     "p": 0.1613,
+     "passed": false
+    }
+   ]
+  },
+  {
+   "index": 12,
+   "text": "The backdoor communicated with its command and control server over HTTPS using a custom user agent.",
+   "char_start": 1305,
+   "char_end": 1404,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0011",
+     "p": 0.9995,
+     "passed": true
+    },
+    {
+     "id": "T1071",
+     "p": 0.9992,
+     "passed": true
+    }
+   ]
+  },
+  {
+   "index": 13,
+   "text": "Indicators of compromise:",
+   "char_start": 1406,
+   "char_end": 1431,
+   "page": null,
+   "skipped": "short",
+   "labels": []
+  },
+  {
+   "index": 14,
+   "text": "44d88612fea8a8f36de82e1278abb02f 185.220.101.4 hxxps://update-cdn[.",
+   "char_start": 1433,
+   "char_end": 1500,
+   "page": null,
+   "skipped": "ioc_list",
+   "labels": []
+  },
+  {
+   "index": 15,
+   "text": "]com/load.bin",
+   "char_start": 1500,
+   "char_end": 1513,
+   "page": null,
+   "skipped": "short",
+   "labels": []
+  },
+  {
+   "index": 16,
+   "text": "In the final stage the actors encrypted files on the file server and left a ransom note demanding payment in Bitcoin.",
+   "char_start": 1515,
+   "char_end": 1632,
+   "page": null,
+   "skipped": null,
+   "labels": [
+    {
+     "id": "TA0040",
+     "p": 0.9981,
+     "passed": true
+    },
+    {
+     "id": "T1486",
+     "p": 0.9551,
+     "passed": true
+    }
+   ]
+  }
+ ],
+ "warnings": [
+  "1 sentence(s) skipped: mostly hashes, IPs, URLs or paths",
+  "2 sentence(s) skipped: fewer than 4 words",
+  "1 heading/title line(s) skipped"
+ ]
+}
