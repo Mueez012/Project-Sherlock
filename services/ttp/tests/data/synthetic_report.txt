@@ -1,0 +1,17 @@
+Operation Silent Current: synthetic test report (not real threat intelligence)
+
+The intrusion began when the operators sent spearphishing emails with a malicious Microsoft Word attachment to staff in the finance department. When a user opened the document and enabled macros, the macro launched PowerShell with an encoded command.
+
+The PowerShell script downloaded a second-stage loader from a compromised WordPress site and saved it in the user's AppData folder. To survive reboots, the loader created a scheduled task named OneDriveUpdate that ran every hour. It also added a Run key to the registry.
+
+Once on the host, the actors ran whoami, ipconfig and net group "domain admins" /domain to learn about the user and the network. They used a renamed copy of Mimikatz to dump credentials from LSASS memory.
+
+With the stolen administrator password, the operators moved laterally to the file server over RDP and used PsExec to run commands on several workstations. The malware disabled Windows Defender real-time protection and cleared the Security event log to hide its activity.
+
+Files from the finance share were collected, compressed into a password-protected RAR archive and staged in a temporary folder. The archive was exfiltrated over HTTPS to a cloud storage account controlled by the attackers. The backdoor communicated with its command and control server over HTTPS using a custom user agent.
+
+Indicators of compromise:
+
+44d88612fea8a8f36de82e1278abb02f 185.220.101.4 hxxps://update-cdn[.]com/load.bin
+
+In the final stage the actors encrypted files on the file server and left a ransom note demanding payment in Bitcoin.

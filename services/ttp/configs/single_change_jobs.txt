@@ -1,0 +1,48 @@
+# Phase 3 and 4: one change at a time against the paper preset, split seed 0.
+# Compare each against concat_seed_0 in reports/experiments.csv (validation only).
+# Run:  python -m ttp_extraction.training.queue --jobs configs/single_change_jobs.txt --parallel 2
+
+# --- Phase 3: loss / class imbalance ---
+p3_asl_s0              --seed 0 --loss asl
+p3_focal_s0            --seed 0 --loss focal
+p3_wbce_sqrt10_s0      --seed 0 --loss weighted_bce --pos-weight sqrt --pos-weight-cap 10
+p3_wbce_log5_s0        --seed 0 --loss weighted_bce --pos-weight log --pos-weight-cap 5
+p3_prior_bias_s0       --seed 0 --prior-bias-init true
+p3_rare_oversample_s0  --seed 0 --sampler rare_oversample
+
+# --- Phase 3: regularisation / optimisation ---
+p3_adamw_1e-2_s0       --seed 0 --optimizer adamw --weight-decay 1e-2
+p3_adamw_1e-3_s0       --seed 0 --optimizer adamw --weight-decay 1e-3
+p3_dropout_0.3_s0      --seed 0 --dropout 0.3
+p3_input_dropout_0.2_s0 --seed 0 --input-dropout 0.2
+p3_token_dropout_0.1_s0 --seed 0 --token-dropout 0.1
+p3_grad_clip_1_s0      --seed 0 --grad-clip 1.0
+p3_lr_3e-4_s0          --seed 0 --lr 3e-4
+p3_lr_1e-3_s0          --seed 0 --lr 1e-3
+p3_cosine_s0           --seed 0 --lr-schedule cosine --warmup-epochs 3
+p3_stop_macro_p10_s0   --seed 0 --early-stop-metric val_macro_f1 --patience 10
+p3_patience_10_s0      --seed 0 --patience 10
+p3_batch_16_s0         --seed 0 --batch-size 16
+p3_ema_0.999_s0        --seed 0 --ema 0.999
+
+# --- Phase 4: capacity / model variants ---
+p4_d_model_96_s0       --seed 0 --d-model 96
+p4_d_state_16_s0       --seed 0 --d-state 16
+p4_layers_4_s0         --seed 0 --n-layers 4
+p4_silu_s0             --seed 0 --activation silu
+p4_mamba_block_s0      --seed 0 --block mamba
+p4_diagonal_s0         --seed 0 --covariance diagonal
+p4_bidirectional_s0    --seed 0 --bidirectional true
+p4_repr_norm_s0        --seed 0 --repr-norm sum_s
+p4_temperature_s0      --seed 0 --similarity-temperature true
+p4_last4_mean_s0       --seed 0 --features last4_mean
+
+# --- Re-runs: the first ASL / focal / weighted-BCE runs stopped at epoch 19 because early
+# stopping watched plain BCE validation loss, which those losses do not minimise.
+p3_asl_f1stop_s0       --seed 0 --loss asl --early-stop-metric val_micro_f1 --patience 10
+p3_focal_f1stop_s0     --seed 0 --loss focal --early-stop-metric val_micro_f1 --patience 10
+p3_wbce_sqrt10_f1stop_s0 --seed 0 --loss weighted_bce --pos-weight sqrt --pos-weight-cap 10 --early-stop-metric val_micro_f1 --patience 10
+
+# --- First combination of the single-change winners (lr, input dropout, oversampling).
+p5_combo_a_s0          --seed 0 --lr 1e-3 --input-dropout 0.2 --sampler rare_oversample
+p5_combo_b_s0          --seed 0 --lr 1e-3 --input-dropout 0.2 --sampler rare_oversample --early-stop-metric val_micro_f1 --patience 10

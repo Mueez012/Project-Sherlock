@@ -1,0 +1,4 @@
+# Tuned frozen preset (configs/tuned.json, from the Optuna search), split seeds 0/1/2.
+tuned_seed_0  --preset tuned --seed 0
+tuned_seed_1  --preset tuned --seed 1
+tuned_seed_2  --preset tuned --seed 2

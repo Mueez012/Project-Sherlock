@@ -1,0 +1,27 @@
+{
+  "paper_preset_frozen": [
+    "concat_seed_0",
+    "concat_seed_1",
+    "concat_seed_2"
+  ],
+  "finetuned_securebert": [
+    "finetune_v2_seed_0",
+    "finetune_v2_seed_1",
+    "finetune_v2_seed_2"
+  ],
+  "finetuned_2model_ensemble": [
+    "finetune_v2_seed_0,finetune_v2b_seed_0",
+    "finetune_v2_seed_1,finetune_v2b_seed_1",
+    "finetune_v2_seed_2,finetune_v2b_seed_2"
+  ],
+  "tuned_v1_preset_frozen": [
+    "tuned_v1_seed_0",
+    "tuned_v1_seed_1",
+    "tuned_v1_seed_2"
+  ],
+  "tuned_preset_frozen": [
+    "tuned_seed_0",
+    "tuned_seed_1",
+    "tuned_seed_2"
+  ]
+}

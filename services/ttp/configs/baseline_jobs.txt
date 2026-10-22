@@ -1,0 +1,4 @@
+# Phase 0 baseline: paper preset (concat classifier), split seeds 0/1/2.
+concat_seed_0  --seed 0 --changed "baseline (paper preset, concat)"
+concat_seed_1  --seed 1 --changed "baseline (paper preset, concat)"
+concat_seed_2  --seed 2 --changed "baseline (paper preset, concat)"

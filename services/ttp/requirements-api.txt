@@ -1,0 +1,15 @@
+# API layer on top of the research environment (torch, transformers, nltk, numpy, pandas
+# are already installed for training). Versions are the ones tested on 12 Oct 2026.
+fastapi==0.123.0
+uvicorn[standard]==0.38.0
+python-multipart==0.0.26
+pydantic==2.12.5
+pydantic-settings==2.15.0
+pymupdf==1.28.2
+python-docx==1.2.0
+beautifulsoup4==4.15.0
+charset-normalizer==3.4.0
+httpx==0.28.1
+pytest==9.1.1
+# not used: trafilatura (BeautifulSoup main-text extraction is enough), sse-starlette
+# (the /events stream uses Starlette's StreamingResponse directly)
