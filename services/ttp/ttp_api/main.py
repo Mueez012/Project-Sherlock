@@ -19,7 +19,7 @@ from ttp_api import errors
 from ttp_api.attack_catalog import load_catalog
 from ttp_api.config import Settings
 from ttp_api.jobs import InMemoryJobStore, JobRunner, SQLiteJobStore
-from ttp_api.routes import analyses, meta
+from ttp_api.routes import analyses, meta, predict
 
 log = logging.getLogger("ttp_api")
 DESCRIPTION = """
@@ -28,6 +28,9 @@ each with a confidence score and the sentences that triggered it.
 
 **Flow:** `POST /analyses` (202 + job id) → poll `GET /analyses/{id}` → `GET /analyses/{id}/result`
 → optional `GET /analyses/{id}/export?format=json|csv|navigator|stix`.
+
+**Hub:** `POST /predict` takes sentences already split and numbered by the hub and returns, per
+sentence, every label that passed (tactics and techniques), keeping the hub's index numbers.
 
 Errors use `application/problem+json` (RFC 9457) with a machine-readable `code`.
 Confidence bands: high ≥ 0.80, medium 0.50–0.79, low = passed its threshold but < 0.50.
@@ -73,6 +76,7 @@ def create_app(settings: Settings | None = None, predictor=None) -> FastAPI:
     errors.install(app)
     app.include_router(meta.router, prefix="/api/v1")
     app.include_router(analyses.router, prefix="/api/v1")
+    app.include_router(predict.router, prefix="/api/v1")    # the hub's call
     return app
 
 
