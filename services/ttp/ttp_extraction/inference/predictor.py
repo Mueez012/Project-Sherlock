@@ -29,6 +29,7 @@ import hashlib
 import json
 import logging
 import os
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -102,6 +103,8 @@ class TTPPredictor:
         self.device = device or torch.device("cpu")
         self.max_length = max_length
         self.model_type = manifest.get("model_type", "frozen_head")
+        # one forward pass at a time: the job worker and the hub's /predict share the model
+        self._lock = threading.Lock()
 
     # -------------------------------------------------------------- loading
     @classmethod
@@ -130,6 +133,9 @@ class TTPPredictor:
             specs = [(bundle_dir / manifest.get("checkpoint", "best.pt"),
                       json.loads((bundle_dir / "config.json").read_text(encoding="utf-8")))]
         encoder_name = manifest.get("encoder", MODEL_NAME)
+        if (bundle_dir / encoder_name).is_dir():
+            # self-contained bundle: SecureBERT's config and tokenizer live in the bundle folder
+            encoder_name = str(bundle_dir / encoder_name)
         t0 = time.perf_counter()
         members = [cls._load_member(model_type, checkpoint, config, labels, encoder_name, device)
                    for checkpoint, config in specs]
@@ -162,7 +168,8 @@ class TTPPredictor:
 
             from ttp_extraction.classifier.model import TTPExtractorE2E
 
-            e2e = TTPExtractorE2E(AutoModel.from_config(AutoConfig.from_pretrained(encoder_name)),
+            encoder_config = AutoConfig.from_pretrained(encoder_name, local_files_only=Path(encoder_name).is_dir())
+            e2e = TTPExtractorE2E(AutoModel.from_config(encoder_config),
                                   n_labels=len(labels), d_model=config["d_model"],
                                   d_state=config["d_state"], n_layers=config["n_layers"],
                                   kernel_size=config["kernel_size"], dropout=config["dropout"],
@@ -185,14 +192,20 @@ class TTPPredictor:
         ids = self.tokenizer(list(sentences), add_special_tokens=True, truncation=False)["input_ids"]
         return [len(x) for x in ids]
 
-    @torch.inference_mode()
     def predict(self, sentences: list[str], batch_size: int = 32,
                 progress_cb: Callable[[int, int], None] | None = None) -> np.ndarray:
         """(N, n_labels) float32 probabilities, rows in the order of `sentences`.
 
         Sentences are processed shortest-first (less padding, faster); the
         output order is restored. progress_cb(done, total) runs after each batch.
+        Thread-safe: concurrent callers take turns.
         """
+        with self._lock:
+            return self._predict(sentences, batch_size, progress_cb)
+
+    @torch.inference_mode()
+    def _predict(self, sentences: list[str], batch_size: int,
+                 progress_cb: Callable[[int, int], None] | None) -> np.ndarray:
         from ttp_extraction.data.batching import pad_batch
         from ttp_extraction.preprocessing.tokenization import encode
 

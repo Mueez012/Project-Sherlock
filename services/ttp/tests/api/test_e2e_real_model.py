@@ -13,7 +13,7 @@ from ttp_api.config import Settings
 from ttp_api.main import create_app
 
 REPORT = Path(__file__).resolve().parents[1] / "data" / "synthetic_report.txt"
-BUNDLE = Path(__file__).resolve().parents[2] / "models" / "ttp-v2" / "manifest.json"   # final ensemble
+BUNDLE = Path(__file__).resolve().parents[4] / "models" / "ttp-v3" / "manifest.json"   # final ensemble, repo-root models/
 
 
 @pytest.mark.slow

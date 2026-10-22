@@ -17,7 +17,8 @@ MAX_LENGTH = 160
 
 
 def load_tokenizer(name: str = MODEL_NAME):
-    return AutoTokenizer.from_pretrained(name)
+    """By hub name (downloaded once to the Hugging Face cache) or from a local folder (no network)."""
+    return AutoTokenizer.from_pretrained(name, local_files_only=Path(name).is_dir())
 
 
 def encode(tokenizer, texts, max_length: int = MAX_LENGTH) -> dict[str, np.ndarray]:

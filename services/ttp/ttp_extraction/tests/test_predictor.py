@@ -106,10 +106,13 @@ def test_ensemble_averages_member_probabilities():
     np.testing.assert_allclose(ensemble.predict(sentences, batch_size=2), expected, atol=1e-6)
 
 
+SERVED = Path(__file__).resolve().parents[4] / "models" / "ttp-v3"   # repo-root models/ (git-ignored)
+
+
 @pytest.mark.slow
-@pytest.mark.skipif(not Path("models/ttp-v2/manifest.json").exists(), reason="no ensemble bundle")
+@pytest.mark.skipif(not (SERVED / "manifest.json").exists(), reason="no ensemble bundle")
 def test_served_ensemble_bundle_loads_both_members():
-    predictor = TTPPredictor.load(Path("models/ttp-v2"), num_threads=min(8, os.cpu_count() or 1), warmup=False)
+    predictor = TTPPredictor.load(SERVED, num_threads=min(8, os.cpu_count() or 1), warmup=False)
     assert len(predictor.members) == 2
     assert predictor.thresholds.default_mode == "report_tuned"
     probs = predictor.predict(["The actor used PowerShell to download a second-stage payload."])

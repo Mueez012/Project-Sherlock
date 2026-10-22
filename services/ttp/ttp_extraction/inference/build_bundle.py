@@ -5,6 +5,10 @@
   # 2-model ensemble (the final model of FINAL_RESULTS.md): probabilities are averaged
   python -m ttp_extraction.inference.build_bundle --run finetune_v2_seed_0,finetune_v2b_seed_0 \
       --out models/ttp-v2 --version ttp-v2 --default-mode report_tuned
+  # the served bundle: retrained on the team's D1, self-contained (no files outside the folder)
+  python -m ttp_extraction.inference.build_bundle --run finetune_v2_d1,finetune_v2b_d1 \
+      --out ../../models/ttp-v3 --version ttp-v3 --default-mode report_tuned \
+      --report-technique-threshold 0.6 --self-contained
 
 Reads only finished files (never a run that is still training). Checkpoints are
 referenced by relative paths in manifest.json instead of copied (they are 500 MB
@@ -34,12 +38,56 @@ DATASET = Path("ThreatMAMBA-main/CTI2TTPs.csv")
 FINAL_RESULTS = Path("reports/final_results_with_tuned.json")
 
 
+def d1_dir_of(run_dirs: list[Path]) -> Path | None:
+    """The D1 folder the runs were trained on (train_finetune.py --d1), or None for CTI2TTPs.csv runs."""
+    dirs = set()
+    for d in run_dirs:
+        info = json.loads((d / "split.json").read_text(encoding="utf-8")) if (d / "split.json").exists() else {}
+        dirs.add(info.get("d1_dir"))
+    if len(dirs) != 1:
+        raise SystemExit(f"ensemble members were trained on different data: {dirs}")
+    found = dirs.pop()
+    return Path(found) if found else None
+
+
+def d1_probs(run_dirs: list[Path], d1_dir: Path):
+    """(y_train, y_val, p_val, y_test, p_test) on the team's D1 split, probabilities averaged over runs."""
+    from ttp_extraction.data.labels import load_d1
+
+    _, y, _, split = load_d1(d1_dir)
+    stored = [np.load(d / "probabilities.npz") for d in run_dirs]
+    for d, s in zip(run_dirs, stored):
+        if not (np.array_equal(s["val_idx"], split["val"]) and np.array_equal(s["test_idx"], split["test"])):
+            raise SystemExit(f"{d}/probabilities.npz does not match the D1 split")
+    return (y[split["train"]], y[split["val"]], np.mean([s["val"] for s in stored], axis=0),
+            y[split["test"]], np.mean([s["test"] for s in stored], axis=0))
+
+
+def d1_test_metrics(y_train, y_val, p_val, y_test, p_test, n_tactics: int) -> dict:
+    """Test precision/recall/F1 on D1 test.csv: the paper's 0.5 rule, and 0.5 + top-1 (chosen on validation)."""
+    from ttp_extraction.evaluation.decision import DecisionLayer
+    from ttp_extraction.evaluation.metrics import evaluate_label_sets
+
+    out = {}
+    for name, top1 in (("fixed_0.5", False), ("fixed_0.5+top1", True)):
+        layer = DecisionLayer("fixed", top1=top1).fit(y_val, p_val, n_tactics, y_train)
+        scores = evaluate_label_sets(y_test, layer.predict(p_test), n_tactics)
+        out[name] = {f"{s}_{avg}_{m}": round(scores[s][avg][m], 2) for s in ("tactics", "techniques")
+                     for avg in ("micro", "macro_supported_labels") for m in ("precision", "recall", "f1")}
+    out["source"] = "datasets/d1_model_ready/test.csv (1,262 sentences), scored once"
+    return out
+
+
 def validation_probs(run_dirs: list[Path]):
     """(y_val, mean probability over runs) on the runs' shared validation split."""
     from ttp_extraction.data.labels import load_dataset
     from ttp_extraction.data.splits import load_split
     from ttp_extraction.evaluation.evaluate import run_split_seed
 
+    d1_dir = d1_dir_of(run_dirs)
+    if d1_dir is not None:
+        _, y_val, p_val, _, _ = d1_probs(run_dirs, d1_dir)
+        return y_val, p_val
     seeds = {run_split_seed(d) for d in run_dirs}
     if len(seeds) != 1:
         raise SystemExit(f"ensemble members were trained on different splits: {seeds}")
@@ -125,7 +173,12 @@ def main() -> None:
     p.add_argument("--real-eval", type=Path, default=None,
                    help="real_reports.py output to record in the manifest (reports/real_reports_eval.json)")
     p.add_argument("--copy-checkpoint", action="store_true")
+    p.add_argument("--self-contained", action="store_true",
+                   help="copy the checkpoints as member-<i>.pt and SecureBERT (config, tokenizer and weights) "
+                        "into <out>/securebert, so the bundle needs nothing outside its folder")
     args = p.parse_args()
+    if args.self_contained:
+        args.copy_checkpoint = True
 
     from ttp_api.attack_catalog import load_catalog
 
@@ -162,10 +215,17 @@ def main() -> None:
     tt = {t: catalog["techniques"][t]["tactics"] for t in vocab["techniques"]}
     (args.out / "technique_to_tactics.json").write_text(json.dumps(tt, indent=1), encoding="utf-8")
 
+    encoder = "ehsanaghaei/SecureBERT"
+    if args.self_contained:
+        from transformers import AutoModel, AutoTokenizer
+
+        AutoTokenizer.from_pretrained(encoder).save_pretrained(args.out / "securebert")
+        AutoModel.from_pretrained(encoder).save_pretrained(args.out / "securebert")
+        encoder = "securebert"
     checkpoints = []
     for i, d in enumerate(run_dirs):
         if args.copy_checkpoint:
-            name = "best.pt" if len(runs) == 1 else f"best_{i}.pt"
+            name = f"member-{i}.pt" if args.self_contained else "best.pt" if len(runs) == 1 else f"best_{i}.pt"
             shutil.copyfile(d / "best.pt", args.out / name)
             checkpoints.append(name)
         else:
@@ -176,7 +236,7 @@ def main() -> None:
         "version": args.version,
         "run_id": "+".join(runs),
         "model_type": model_type,
-        "encoder": "ehsanaghaei/SecureBERT",
+        "encoder": encoder,
         "max_length": 160,
         "classifier": configs[0].get("classifier", "concat"),
         "checkpoint": checkpoints[0],
@@ -187,7 +247,8 @@ def main() -> None:
         "training": summaries[0] if len(runs) == 1 else {r: s for r, s in zip(runs, summaries)},
         "metrics": {
             "validation": validation_metrics(y_val, p_val, n_tactics),
-            "test": test_metrics(runs),
+            "test": (d1_test_metrics(*d1_probs(run_dirs, d1_dir), n_tactics) if (d1_dir := d1_dir_of(run_dirs))
+                     else test_metrics(runs)),
             "report_level_agreement": report_tuning(tuning_path),
             "real_cisa_advisories": real_report_eval(args.real_eval, args.version),
         },

@@ -52,6 +52,36 @@ class LabelVocab:
         return cls(tuple(payload["tactics"]), tuple(payload["techniques"]))
 
 
+def load_d1(d1_dir: Path) -> tuple[list[str], np.ndarray, LabelVocab, dict[str, np.ndarray]]:
+    """The team's cleaned D1 (datasets/d1_model_ready): train.csv, valid.csv, test.csv, labels.json.
+
+    Returns (texts, labels (N, 203), vocabulary, split). The three files are
+    concatenated in that order and the split holds their row ranges, so the
+    team's split is used exactly as given. Label columns are mapped by id
+    through labels.json, never by position; the vocabulary keeps this
+    package's order (sorted tactics, sorted techniques). Every row is kept
+    (duplicates are part of the dataset).
+    """
+    d1_dir = Path(d1_dir)
+    meta = json.loads((d1_dir / "labels.json").read_text(encoding="utf-8"))
+    tactics = [x["id"] for x in meta["tactics"]]
+    techniques = [x["id"] for x in meta["techniques"]]
+    vocab = LabelVocab(tuple(sorted(tactics)), tuple(sorted(techniques)))
+    texts, rows, split, start = [], [], {}, 0
+    for name, file in (("train", "train.csv"), ("val", "valid.csv"), ("test", "test.csv")):
+        df = pd.read_csv(d1_dir / file, encoding="utf-8", keep_default_na=False, dtype={"Text": str})
+        if list(df.columns) != ["Text", *tactics, *techniques]:
+            raise ValueError(f"{file}: columns do not match labels.json")
+        texts.extend(df["Text"].tolist())
+        rows.append(df[list(vocab.labels)].to_numpy(dtype=np.int8))
+        split[name] = np.arange(start, start + len(df))
+        start += len(df)
+    y = np.concatenate(rows)
+    if not set(np.unique(y).tolist()) <= {0, 1}:
+        raise ValueError("D1 labels must be 0 or 1")
+    return texts, y, vocab, split
+
+
 def load_dataset(csv: Path, encoding: str = "gb18030") -> tuple[list[str], np.ndarray, LabelVocab]:
     """Return (texts, multi-hot labels of shape (N, 203), vocabulary)."""
     df = pd.read_csv(csv, encoding=encoding, low_memory=False)

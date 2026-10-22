@@ -8,7 +8,8 @@ tokens but the average sentence has about 21), which gives the same results
 several times faster. Resume state (about 1.5 GB: weights plus AdamW moments)
 is written outside OneDrive, under ~/ttp_cache/finetune_state/<run>/.
 
-  python -m ttp_extraction.training.train_finetune --csv ThreatMAMBA-main/CTI2TTPs.csv --seed 0
+  python -m ttp_extraction.training.train_finetune --d1 ../../datasets/d1_model_ready --seed 0
+  python -m ttp_extraction.training.train_finetune --csv ThreatMAMBA-main/CTI2TTPs.csv --seed 0   (original data)
   ... --resume                     continue an interrupted run exactly
   ... --warm-start-from-best       continue an old run that has only best.pt (approximate:
                                    AdamW moments restart from zero)
@@ -31,7 +32,7 @@ from torch.optim import AdamW
 from transformers import AutoModel, AutoTokenizer
 
 from ttp_extraction.classifier.model import CLASSIFIERS, TTPExtractorE2E
-from ttp_extraction.data.labels import load_dataset
+from ttp_extraction.data.labels import load_d1, load_dataset
 from ttp_extraction.data.splits import load_split
 from ttp_extraction.preprocessing.tokenization import MODEL_NAME, encode
 from ttp_extraction.training.focal_loss import FocalBCEWithLogitsLoss, compute_pos_weight
@@ -165,7 +166,7 @@ def get_linear_schedule_with_warmup(optimizer, num_warmup_steps, num_training_st
 
 def fit_e2e(texts, y: np.ndarray, split: dict, config: FinetuneConfig, run_dir: Path,
             n_tactics: int = 14, resume: bool = False, warm_start: bool = False,
-            state_dir: Path | None = None):
+            state_dir: Path | None = None, save_probabilities: bool = False):
     run_dir.mkdir(parents=True, exist_ok=True)
     state_dir = state_dir or STATE_ROOT / run_dir.name
     state_dir.mkdir(parents=True, exist_ok=True)
@@ -306,6 +307,12 @@ def fit_e2e(texts, y: np.ndarray, split: dict, config: FinetuneConfig, run_dir: 
               flush=True)
 
     print(str(write_summary(run_dir, history, stopper, finished=True)))
+    if save_probabilities:
+        # Validation and test probabilities of the best weights, as evaluate.py would cache them.
+        model.load_state_dict(torch.load(best_path, map_location=device, weights_only=True))
+        probs = {s: evaluate_e2e(model, input_ids, attention_mask, y, split[s], config.batch_size * 2, device)[1]
+                 for s in ("val", "test")}
+        np.savez(run_dir / "probabilities.npz", **probs, val_idx=split["val"], test_idx=split["test"])
 
 
 def write_summary(run_dir: Path, history: list, stopper: EarlyStopping, finished: bool) -> dict:
@@ -323,7 +330,10 @@ def write_summary(run_dir: Path, history: list, stopper: EarlyStopping, finished
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--csv", type=Path, required=True)
+    data = p.add_mutually_exclusive_group(required=True)
+    data.add_argument("--d1", type=Path, help="the team's cleaned D1 folder (datasets/d1_model_ready); "
+                                              "its train/valid/test split is used as given")
+    data.add_argument("--csv", type=Path, help="original CTI2TTPs.csv with the seeded splits")
     p.add_argument("--splits", type=Path, default=Path("artifacts/splits"))
     p.add_argument("--runs", type=Path, default=Path("runs"))
     p.add_argument("--seed", type=int, default=0, help="model seed (and split seed by default)")
@@ -337,12 +347,17 @@ def main():
     p.add_argument("--state-dir", type=Path, default=None)
     args = p.parse_args()
 
-    texts, y, vocab = load_dataset(args.csv)
-    split_seed = args.seed if args.split_seed is None else args.split_seed
-    split = load_split(args.splits / f"seed_{split_seed}.json")
     run_dir = args.runs / (args.run_name or f"finetune_seed_{args.seed}")
     run_dir.mkdir(parents=True, exist_ok=True)
-    (run_dir / "split.json").write_text(json.dumps({"split_seed": split_seed}), encoding="utf-8")
+    if args.d1:
+        texts, y, vocab, split = load_d1(args.d1)
+        split_info = {"split_seed": None, "dataset": "d1_model_ready", "d1_dir": str(args.d1)}
+    else:
+        texts, y, vocab = load_dataset(args.csv)
+        split_seed = args.seed if args.split_seed is None else args.split_seed
+        split = load_split(args.splits / f"seed_{split_seed}.json")
+        split_info = {"split_seed": split_seed}
+    (run_dir / "split.json").write_text(json.dumps(split_info), encoding="utf-8")
     config = FinetuneConfig(seed=args.seed)
     if (args.resume or args.warm_start_from_best) and (run_dir / "config.json").exists():
         config = FinetuneConfig(**json.loads((run_dir / "config.json").read_text(encoding="utf-8")))
@@ -351,7 +366,8 @@ def main():
     if args.unfreeze_top is not None:
         config.unfreeze_top = args.unfreeze_top
     fit_e2e(texts, y, split, config, run_dir, n_tactics=len(vocab.tactics), resume=args.resume,
-            warm_start=args.warm_start_from_best, state_dir=args.state_dir)
+            warm_start=args.warm_start_from_best, state_dir=args.state_dir,
+            save_probabilities=args.d1 is not None)
 
 
 if __name__ == "__main__":

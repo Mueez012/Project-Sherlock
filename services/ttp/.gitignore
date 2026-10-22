@@ -1,0 +1,2 @@
+# training logs (runs/ and reports/ are ignored by the repo-root .gitignore)
+*.log
