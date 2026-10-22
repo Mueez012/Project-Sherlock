@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # final model: 2-model fine-tuned ensemble retrained on datasets/d1_model_ready, in the repo-root
     # models/ folder (git-ignored); the container sets /models/ttp-v3
-    bundle_dir: Path = ROOT.parents[1] / "models" / "ttp-v3"
+    bundle_dir: Path = ROOT / ".." / ".." / "models" / "ttp-v3"
     catalog_path: Path = ROOT / "data" / "attack" / "catalog-v14.json"
     device: str = "cpu"                       # TTP_API_DEVICE=cuda when the GPU is not busy training
     torch_threads: int | None = None          # None = all CPU cores

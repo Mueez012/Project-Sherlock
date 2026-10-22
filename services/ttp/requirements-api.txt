@@ -1,5 +1,11 @@
-# API layer on top of the research environment (torch, transformers, nltk, numpy, pandas
-# are already installed for training). Versions are the ones tested on 12 Oct 2026.
+# What the running TTP service needs (the Docker image installs exactly this list).
+# torch is installed first by the Dockerfile (GPU or CPU wheel); keep TORCH_VERSION there equal to this pin.
+torch==2.14.1
+transformers==5.19.0
+numpy==2.1.2
+pandas==2.2.3
+scikit-learn==1.9.1
+nltk==3.10.3
 fastapi==0.123.0
 uvicorn[standard]==0.38.0
 python-multipart==0.0.26
@@ -9,7 +15,5 @@ pymupdf==1.28.2
 python-docx==1.2.0
 beautifulsoup4==4.15.0
 charset-normalizer==3.4.0
-httpx==0.28.1
-pytest==9.1.1
-# not used: trafilatura (BeautifulSoup main-text extraction is enough), sse-starlette
-# (the /events stream uses Starlette's StreamingResponse directly)
+# not installed: rapidocr-onnxruntime (OCR of scanned PDFs, optional; the hub sends text, and the
+# service answers "no_text_layer" for a scanned PDF without it), trafilatura, sse-starlette

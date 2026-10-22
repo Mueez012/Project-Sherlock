@@ -1,0 +1,9 @@
+.venv
+venv
+__pycache__
+.pytest_cache
+runs
+reports
+nltk_data
+**/tests
+*.log
