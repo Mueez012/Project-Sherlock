@@ -17,7 +17,10 @@ from ttp_api.deps import get_predictor
 
 router = APIRouter(tags=["hub"])
 
-LABEL_FLOOR = 0.05  # labels below this probability (and not passed) are left out to keep the answer small
+# Labels below this probability (and not passed) are left out to keep the answer small. On a sentence that
+# describes no technique the model spreads 0.1-0.4 over most labels, so a floor of 0.05 would list ~200
+# not-passed labels per sentence; the hub keeps only passed labels anyway.
+LABEL_FLOOR = 0.3
 MAX_SENTENCES = 20_000  # the hub accepts reports of up to 20,000 sentences and sends them in one call
 
 
