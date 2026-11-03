@@ -1,0 +1,1 @@
+{"passive_dns":[{"hostname":"example.com","address":"192.0.2.10","record_type":"A","last":"2026-01-01"},{"hostname":"other.example.net","address":"192.0.2.11","record_type":"A"},{"hostname":"example.com","address":"2001:db8::1","record_type":"AAAA"}],"pulse_info":{"pulses":[{"indicators":[{"indicator":"203.0.113.9"}]}]}}

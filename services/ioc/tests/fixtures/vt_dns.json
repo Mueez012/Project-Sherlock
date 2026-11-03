@@ -1,0 +1,1 @@
+{"data":[{"type":"resolution","attributes":{"host_name":"example.com","ip_address":"192.0.2.10","date":1767225600}},{"type":"resolution","attributes":{"host_name":"sub.example.com","ip_address":"192.0.2.11","date":1767225600}}]}

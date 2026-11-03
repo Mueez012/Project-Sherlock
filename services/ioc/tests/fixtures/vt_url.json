@@ -1,0 +1,1 @@
+{"data":{"id":"opaque-id","type":"url","attributes":{"url":"https://example.com/a","outgoing_links":["https://linked.example.net/x"],"redirection_chain":["https://example.com/a","https://redirect.example.net/b"],"last_final_url":"https://final.example.net/c"}}}
