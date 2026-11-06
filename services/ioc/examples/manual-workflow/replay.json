@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "description": "Synthetic offline fixtures. These are not live-provider observations.",
+  "documents": [
+    {
+      "source": "rapiddns",
+      "request_url": "https://rapiddns.io/subdomain/example.com?page=1",
+      "operation": "dns",
+      "body_file": "rapiddns.html",
+      "format": "html",
+      "retrieved_at": "2026-01-04T00:00:00+00:00"
+    },
+    {
+      "source": "rapiddns",
+      "request_url": "https://rapiddns.io/sameip/192.0.2.12?page=1",
+      "operation": "dns",
+      "format": "html",
+      "body": "<table><tr><th>Domain</th><th>Address</th><th>Type</th></tr><tr><td>example.com</td><td>192.0.2.12</td><td>A</td></tr></table>"
+    }
+  ]
+}

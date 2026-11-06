@@ -1,0 +1,15 @@
+
+[api]
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+[browser]
+playwright<2,>=1.45
+
+[extraction]
+ioc-finder<9,>=7
+spacy<4,>=3.8
+openpyxl<4,>=3.1
+
+[mcp]
+mcp<2,>=1.12

@@ -23,6 +23,7 @@ node_modules/
 services/ttp/runs/
 services/ttp/reports/
 services/ioc/data/
+services/ioc/output/
 frontend/.next/
 # infra state can hold secrets
 infra/**/.terraform/

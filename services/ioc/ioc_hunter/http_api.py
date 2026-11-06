@@ -5,7 +5,7 @@ same way mcp_server.py does for MCP.
 
 POST /v1/extract: extract_report() result unchanged via dataclasses.asdict,
 plus sentence_matches from find_sentence_iocs() when hub sentences are sent.
-POST /v1/lookup: one directed LookupClient.lookup() with its stored record.
+POST /v1/lookup: one directed lookup with its exact call-scoped stored record.
 GET /v1/methods: the method catalogue, as the CLI and MCP list it.
 GET /health: 200 when the extraction dependencies are loaded.
 
@@ -100,8 +100,8 @@ async def lookup(req: LookupRequest):
     def run() -> dict:
         client = lookup_client()
         query = IOC(req.value, req.type)
-        iocs = [asdict(i) for i in client.lookup(query, req.method)]
-        return {"iocs": iocs, "lookup": client.latest_record(query, req.method)}
+        record = client.lookup_detailed(query, req.method)
+        return {"iocs": [asdict(i) for i in record.outputs], "lookup": record.to_dict()}
 
     try:
         # Synchronous Playwright must not run inside the event loop.

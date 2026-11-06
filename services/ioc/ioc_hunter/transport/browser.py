@@ -102,7 +102,7 @@ class BrowserTransport:
         if not allowed_url(request.source, request.url):
             raise LookupError("invalid_request", "Only provider pages may be opened")
         try:
-            from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout
+            from playwright.sync_api import sync_playwright, Error as BrowserError, TimeoutError as BrowserTimeout
         except ImportError as exc:
             raise LookupError("dependency_missing", "Install the browser extra and run playwright install chromium") from exc
         started = time.monotonic()
@@ -246,5 +246,20 @@ class BrowserTransport:
         except LookupError:
             raise
         except Exception as exc:
+            if isinstance(exc, BrowserError):
+                # Recognize local runtime failures without exporting raw Playwright
+                # messages, which can include paths, launch arguments or secrets.
+                message = str(exc).lower()
+                if "executable doesn't exist" in message:
+                    command = "python -m playwright install chromium" + (" --only-shell" if self.headless else "")
+                    raise LookupError("browser_binary_missing",
+                                      "The Chromium executable matching this Playwright installation is missing. "
+                                      "Run '" + command + "' in the same Python environment used to start IOC Hunter.") from exc
+                if ("host system is missing dependencies" in message
+                        or "error while loading shared libraries" in message):
+                    raise LookupError("browser_dependencies_missing",
+                                      "Chromium cannot start because required system libraries are missing. "
+                                      "Run 'python -m playwright install-deps chromium' in the same environment "
+                                      "used to start IOC Hunter.") from exc
             raise LookupError("browser_error", "Browser lookup failed: " + type(exc).__name__) from exc
 

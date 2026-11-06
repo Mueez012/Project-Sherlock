@@ -1,5 +1,30 @@
 # Complete workflow implementation plan
 
+## Current status: 4 November 2026
+
+The terminal report-to-investigation workflow is now implemented in
+`ioc_hunter/workflow/`, exposed through `investigate`, `runs` and `export`.
+It saves the report and extracted graph nodes, executes a manually selected
+IOC/method lookup, retains its exact receipt and accepted evidence associations,
+and transactionally commits admitted graph changes with step state. Resume,
+offline fixtures and evidence-inclusive JSON export use the same runner.
+
+The implemented policy is **manual selection with the paper's admission gate**:
+the selected IOC is used before the candidate-overlap test; a pass admits all
+validated outputs and supported edges within limits. Validated but non-admitted
+outputs remain in receipts. Reward is unevaluated. Full Algorithm 1 ranking,
+coverage/tried counters, repeated rounds and LLM selection remain future work,
+along with Hub/web investigation integration and SecureBERT encoding.
+
+Use [the workflow guide](WORKFLOW_GUIDE.md) for current behavior and commands,
+and [the handoff](WORKFLOW_HANDOFF.md) for the integration boundary. The plan
+below preserves the 14 October design and acceptance criteria as historical
+context. Its missing-feature tables, proposed commands and manual-policy choice
+describe that earlier plan, not the current implementation. The current paper
+admission gate supersedes its proposed unconditional manual edge admission.
+
+## Historical plan: 14 October 2026
+
 Status: proposed implementation plan, refined 14 October 2026. No workflow or algorithm
 has been implemented by this document. Companion: [organization plan](CODEBASE_ORGANIZATION_PLAN.md).
 

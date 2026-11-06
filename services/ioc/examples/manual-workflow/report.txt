@@ -1,0 +1,7 @@
+This synthetic CTI report is an offline workflow example, not a real incident.
+The loader contacted example.com for its configuration.
+The report also lists 192.0.2.10 as an observed address.
+The sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.
+
+References
+https://publisher.example/reference

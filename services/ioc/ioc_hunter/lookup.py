@@ -53,12 +53,20 @@ class LookupClient:
     def latest_record(self, ioc: IOC, method_id: str) -> dict | None:
         return self.store.latest(self._key(ioc, method_id))
     def lookup(self, ioc: IOC, method_id: str) -> list[IOC]:
+        return self.lookup_detailed(ioc, method_id).outputs
+    def lookup_detailed(self, ioc: IOC, method_id: str, *, lookup_id: str | None = None) -> LookupRecord:
+        """Return this call's saved receipt, optionally using a durable attempt ID.
+
+        Workflow callers must recover a saved receipt before executing its ID again.
+        """
+        if lookup_id is not None and (not isinstance(lookup_id, str) or not lookup_id.strip()):
+            raise ValueError("A lookup ID must be a nonempty string")
         method = get_method(method_id)
         kind, value = identity(ioc)
         if kind != method.input_type:
             raise ValueError("Input IOC type does not match selected method")
         query = IOC(value, kind, list(ioc.context), ioc.source)
-        record = LookupRecord(uuid4().hex, method_id, query)
+        record = LookupRecord(lookup_id if lookup_id is not None else uuid4().hex, method_id, query)
         try:
             if not method.implemented:
                 raise LookupError("unsupported_method", method.unavailable_reason)
@@ -73,6 +81,11 @@ class LookupClient:
                 record.outcome_reason = "no_matching_records"
             if not record.complete:
                 record.status = "partial"
+        except (KeyboardInterrupt, SystemExit):
+            record.status = "interrupted_unknown"
+            record.complete = False
+            record.error = "Acquisition interrupted; provider completion is unknown."
+            raise
         except LookupError as exc:
             record.status, record.error = exc.status, str(exc)
             exc.lookup_id = record.id
@@ -83,9 +96,10 @@ class LookupClient:
         finally:
             record.finished_at = utc_now()
             self.store.save_record(record, self._key(query, method_id))
-        return record.outputs
+        return record
     def _fetch(self, request, transport, record):
-        scope = self.browser.cache_scope() if transport == "browser" and hasattr(self.browser, "cache_scope") else "anonymous"
+        client = self.http if transport == "http" else self.browser
+        scope = client.cache_scope() if hasattr(client, "cache_scope") else "anonymous"
         cache_key = self.store.cache_key(request, transport, scope)
         # A cached first page has no live GUI state for clicking Next. Start
         # paginated GUI reads live; retain their snapshots for audit/single-page use.
@@ -94,10 +108,10 @@ class LookupClient:
         if document:
             record.cache_hit = True
             return document, cache_key
-        client = self.http if transport == "http" else self.browser
         for attempt in range(3):
-            self.limiter.wait(request.source)
-            self.store.consume_budget(request.source, self.daily_limit)
+            if not getattr(client, "offline", False):
+                self.limiter.wait(request.source)
+                self.store.consume_budget(request.source, self.daily_limit)
             try:
                 document = client.fetch(request)
                 if not allowed_url(request.source, document.url):
@@ -179,6 +193,7 @@ class LookupClient:
         else:
             raise last_error or LookupError("unsupported_method", "No source transport available")
         outputs, evidence_by_ioc = {}, {}
+        accepted_evidence = set()
         for observation in observations:
             ev, target = observation.evidence, observation.ioc
             verdict = validate_edge(query, target, method, ev)
@@ -201,6 +216,11 @@ class LookupClient:
                     if context not in outputs[key].context:
                         outputs[key].context.append(context)
             evidence_by_ioc[key].append(ev)
+            if (key, ev.id) not in accepted_evidence:
+                record.accepted.append({"type": key[0], "value": key[1], "method_id": method.id,
+                                        "ontology_label": verdict.ontology_label,
+                                        "evidence_id": ev.id, "validation": verdict.reason})
+                accepted_evidence.add((key, ev.id))
         for key, target in outputs.items():
             if self.context_generator:
                 try:

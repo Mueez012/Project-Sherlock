@@ -133,7 +133,7 @@ def read_json(document):
     return data
 
 
-def parse_html(builder, *, section_id=None):
+def parse_html(builder, *, section_id=None, completed_empty=False):
     method, document, result = builder.method, builder.document, builder.result
     parser = ResultTables(section_id)
     parser.feed(document.body)
@@ -187,7 +187,7 @@ def parse_html(builder, *, section_id=None):
         raise LookupError("parse_error", "No recognized result section; not treated as an empty lookup")
     result.complete = "limited access" not in text
     if recognized and not result.observations and not any(len(t) > 1 for t in parser.tables):
-        if not any(token in text for token in ("no entries found", "no results", "no records")):
+        if not completed_empty and not any(token in text for token in ("no entries found", "no results", "no records")):
             raise LookupError("loading_page", "Empty table has no completed-empty signal")
     if section_id:
         # OTX's HTML table can omit pagination controls or total counts.

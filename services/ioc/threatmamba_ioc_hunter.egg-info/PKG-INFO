@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: threatmamba-ioc-hunter
+Version: 0.1.0
+Summary: Testable IOCHunter core based on ThreatMAMBA Algorithm 1
+Requires-Python: >=3.11
+Provides-Extra: extraction
+Requires-Dist: ioc-finder<9,>=7; extra == "extraction"
+Requires-Dist: spacy<4,>=3.8; extra == "extraction"
+Requires-Dist: openpyxl<4,>=3.1; extra == "extraction"
+Provides-Extra: browser
+Requires-Dist: playwright<2,>=1.45; extra == "browser"
+Provides-Extra: mcp
+Requires-Dist: mcp<2,>=1.12; extra == "mcp"
+Provides-Extra: api
+Requires-Dist: fastapi>=0.115; extra == "api"
+Requires-Dist: uvicorn[standard]>=0.30; extra == "api"

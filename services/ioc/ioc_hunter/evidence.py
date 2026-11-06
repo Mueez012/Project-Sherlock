@@ -37,6 +37,7 @@ class LookupRecord:
     status: str = "pending"
     outputs: list[IOC] = field(default_factory=list)
     evidence: list[Evidence] = field(default_factory=list)
+    accepted: list[dict] = field(default_factory=list)
     rejected: list[dict] = field(default_factory=list)
     responses: list[dict] = field(default_factory=list)
     transport_errors: list[dict] = field(default_factory=list)
@@ -50,6 +51,16 @@ class LookupRecord:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "LookupRecord":
+        """Restore a receipt without inventing accepted mappings for old records."""
+        values = dict(data)
+        values["input_ioc"] = IOC(**values["input_ioc"])
+        values["outputs"] = [IOC(**ioc) for ioc in values.get("outputs", [])]
+        values["evidence"] = [Evidence(**item) for item in values.get("evidence", [])]
+        values.setdefault("accepted", [])
+        return cls(**values)
 
 def make_evidence(source, query, operation, document, locator, record, fact_type, facts, observed_at=""):
     excerpt = record if isinstance(record, str) else json.dumps(record, ensure_ascii=False, sort_keys=True)

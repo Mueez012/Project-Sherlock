@@ -75,10 +75,16 @@ match the manifest. Add an entry to the manifest whenever a new model is release
 
 ### The container
 
-There are two containers. `app` is the hub: the root `Dockerfile` builds it in two stages, the first installing
+There are three containers. `app` is the hub: the root `Dockerfile` builds it in two stages, the first installing
 the locked dependencies with uv, the second copying only the result into a slim Python image that runs as a non-root
 user and reports its health at `/health`. `web` is the website: `frontend/Dockerfile` builds the Next.js app in
 standalone mode on `node:22-slim`, with the hub's address (`http://app:8000`) fixed at build time.
+
+`ioc` builds IOC Hunter from `services/ioc/Dockerfile`, including its extraction dependencies and Chromium for
+provider lookups. The hub calls it at `http://ioc:8002`; Compose defaults IOC to real mode while TTP uses its
+baseline. The IOC service starts before the hub, and the hub starts before the website, once each is healthy.
+Lookup evidence is stored in the persistent `ioc-data` volume. Optional `OTX_API_KEY` and `VT_API_KEY` values
+are passed at runtime. The website currently uses IOC extraction; lookup controls are not connected yet.
 
 Settings (modes, ports, the emails-and-CVEs switch) live in `.env`: copy `.env.example` to `.env` and edit it;
 compose reads it automatically and git ignores it.
