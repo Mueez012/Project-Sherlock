@@ -100,6 +100,16 @@ class TerminalControlTests(unittest.TestCase):
         self.assertEqual(result["run"]["status"], "ready")
         self.assertIn("Saved investigation", "\n".join(output))
 
+    def test_pending_step_from_another_interface_remains_inspectable(self):
+        runner = FakeRunner()
+        runner.result["steps"] = [{
+            "id": "pending", "method_id": "rapiddns.domain_to_ipv4", "status": "running",
+            "outcome_status": "pending", "admission": None,
+        }]
+        result, output = self.run_script(runner, ["steps", "save"])
+        self.assertIn("pending admission", output)
+        self.assertEqual(result["steps"][0]["status"], "running")
+
     def test_cli_rejects_missing_dataset_row_before_runner_creation(self):
         with patch("sys.stderr", new_callable=io.StringIO):
             with self.assertRaises(SystemExit) as caught:

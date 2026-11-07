@@ -1,5 +1,12 @@
 # Workflow implementation handoff
 
+7 November update: [saved investigation APIs](API_GUIDE.md) are implemented over
+the same application service used by the terminal. IOC Hunter sentences are
+canonical, storage defaults are shared, execution is coordinated per run, and
+identity/access is a separate pluggable module. The older notes below preserve
+the terminal milestone and its dated verification; frontend investigation UI,
+full account management and background job scheduling remain separate work.
+
 Updated: 4 November 2026. The saved terminal workflow is implemented. Start with
 [the workflow guide](WORKFLOW_GUIDE.md) for commands, graph admission and recovery;
 the [14 October plan](WORKFLOW_IMPLEMENTATION_PLAN.md) remains a historical design

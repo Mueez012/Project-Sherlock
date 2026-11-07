@@ -10,7 +10,7 @@ class WorkflowConflict(ValueError):
 
 
 class WorkflowRepository:
-    SCHEMA_VERSION = 1
+    SCHEMA_VERSION = 2
     NODE_LIST_FIELDS = ("context", "sources", "passage_ids", "evidence_ids", "lookup_ids")
     EDGE_LIST_FIELDS = ("evidence_ids", "lookup_ids")
     TERMINAL_STEP_STATUSES = {"completed", "failed", "cancelled"}
@@ -21,18 +21,31 @@ class WorkflowRepository:
             db.execute("BEGIN IMMEDIATE")
             db.execute("CREATE TABLE IF NOT EXISTS wf_schema (id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL)")
             row = db.execute("SELECT version FROM wf_schema WHERE id=1").fetchone()
-            if row and row[0] != self.SCHEMA_VERSION:
+            if row and row[0] not in {1, self.SCHEMA_VERSION}:
                 raise WorkflowConflict(f"Unsupported workflow schema version: {row[0]}")
+            if row and row[0] == 1:
+                # Preserve historical step IDs while making request identity run-scoped.
+                db.execute("ALTER TABLE wf_steps RENAME TO wf_steps_v1")
+                db.execute("DROP INDEX IF EXISTS wf_steps_run")
+                db.execute("CREATE TABLE wf_steps (id TEXT NOT NULL, run_id TEXT NOT NULL, "
+                           "sequence INTEGER NOT NULL, record TEXT NOT NULL, "
+                           "PRIMARY KEY(run_id,id), UNIQUE(run_id,sequence))")
+                db.execute("INSERT INTO wf_steps SELECT id,run_id,sequence,record FROM wf_steps_v1")
+                db.execute("DROP TABLE wf_steps_v1")
+                db.execute("UPDATE wf_schema SET version=? WHERE id=1", (self.SCHEMA_VERSION,))
             statements = (
                 "CREATE TABLE IF NOT EXISTS wf_runs (id TEXT PRIMARY KEY, record TEXT NOT NULL)",
-                "CREATE TABLE IF NOT EXISTS wf_steps (id TEXT PRIMARY KEY, run_id TEXT NOT NULL, "
-                "sequence INTEGER NOT NULL, record TEXT NOT NULL, UNIQUE(run_id, sequence))",
+                "CREATE TABLE IF NOT EXISTS wf_steps (id TEXT NOT NULL, run_id TEXT NOT NULL, "
+                "sequence INTEGER NOT NULL, record TEXT NOT NULL, PRIMARY KEY(run_id,id), UNIQUE(run_id, sequence))",
                 "CREATE INDEX IF NOT EXISTS wf_steps_run ON wf_steps(run_id, sequence)",
                 "CREATE TABLE IF NOT EXISTS wf_nodes (run_id TEXT NOT NULL, id TEXT NOT NULL, "
                 "record TEXT NOT NULL, PRIMARY KEY(run_id, id))",
                 "CREATE TABLE IF NOT EXISTS wf_edges (run_id TEXT NOT NULL, id TEXT NOT NULL, "
                 "left_id TEXT NOT NULL, right_id TEXT NOT NULL, method_id TEXT NOT NULL, record TEXT NOT NULL, "
                 "PRIMARY KEY(run_id, id), UNIQUE(run_id, left_id, right_id, method_id))",
+                "CREATE TABLE IF NOT EXISTS wf_owners (run_id TEXT PRIMARY KEY, owner_id TEXT NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS wf_creation_requests (owner_id TEXT NOT NULL, request_key TEXT NOT NULL, "
+                "digest TEXT NOT NULL, run_id TEXT NOT NULL, PRIMARY KEY(owner_id,request_key))",
             )
             for statement in statements:
                 db.execute(statement)
@@ -139,13 +152,18 @@ class WorkflowRepository:
                    (run_id, edge_id, left, right, method_id, cls._json(merged)))
         return row is None, evidence_links
 
-    def create_run(self, run: dict, nodes: list[dict]) -> None:
+    def create_run(self, run: dict, nodes: list[dict], *, owner_id=None, creation_key=None, payload_digest=None) -> None:
         saved = deepcopy(run)
         run_id = self._required(saved, "id")
         saved["graph_revision"] = self._revision(saved)
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             db.execute("INSERT INTO wf_runs VALUES (?, ?)", (run_id, self._json(saved)))
+            if owner_id is not None:
+                db.execute("INSERT INTO wf_owners VALUES (?, ?)", (run_id, owner_id))
+            if creation_key is not None:
+                db.execute("INSERT INTO wf_creation_requests VALUES (?, ?, ?, ?)",
+                           (owner_id, creation_key, payload_digest, run_id))
             for node in nodes:
                 self._merge_node(db, run_id, node)
 
@@ -198,9 +216,69 @@ class WorkflowRepository:
     def steps(self, run_id: str) -> list[dict]:
         return self._records("wf_steps", run_id, "sequence")
 
-    def get_step(self, step_id: str) -> dict:
+    @staticmethod
+    def _read_step(db, step_id: str, run_id=None) -> dict:
+        rows = db.execute("SELECT record FROM wf_steps WHERE id=?" +
+                          (" AND run_id=?" if run_id is not None else ""),
+                          (step_id, run_id) if run_id is not None else (step_id,)).fetchall()
+        if not rows:
+            raise KeyError("Unknown step ID")
+        if len(rows) != 1:
+            raise WorkflowConflict("Step ID is ambiguous; supply its investigation ID")
+        return json.loads(rows[0][0])
+
+    def get_step(self, step_id: str, run_id=None) -> dict:
         with self.store.connect() as db:
-            return self._read(db, "wf_steps", step_id)
+            return self._read_step(db, step_id, run_id)
+
+    def owner(self, run_id: str, legacy_owner="local") -> str:
+        with self.store.connect() as db:
+            self._read(db, "wf_runs", run_id)
+            row = db.execute("SELECT owner_id FROM wf_owners WHERE run_id=?", (run_id,)).fetchone()
+            # Historical records belong to a configured local identity, never the first reader.
+            return row[0] if row else legacy_owner
+
+    def creation(self, owner_id: str, key: str):
+        with self.store.connect() as db:
+            row = db.execute("SELECT digest,run_id FROM wf_creation_requests WHERE owner_id=? AND request_key=?",
+                             (owner_id, key)).fetchone()
+            return {"digest": row[0], "run_id": row[1]} if row else None
+
+    def owned_runs(self, owner_id: str, legacy_owner="local") -> list[dict]:
+        with self.store.connect() as db:
+            return [json.loads(row[0]) for row in db.execute(
+                "SELECT r.record FROM wf_runs r LEFT JOIN wf_owners o ON o.run_id=r.id "
+                "WHERE COALESCE(o.owner_id,?)=?", (legacy_owner, owner_id))]
+
+    def snapshot(self, run_id: str, include_evidence=False) -> dict:
+        """One read transaction, without re-opening transports or recovering work."""
+        with self.store.connect() as db:
+            db.execute("BEGIN")
+            run = self._read(db, "wf_runs", run_id)
+            def records(table, order):
+                return [json.loads(row[0]) for row in db.execute(
+                    f"SELECT record FROM {table} WHERE run_id=? ORDER BY {order}", (run_id,))]
+            result = {"version": 1, "mode": run["mode"], "policy": run["policy"],
+                      "run": run, "report": run["report"], "extraction": run["extraction"],
+                      "graph": {"nodes": records("wf_nodes", "rowid"), "edges": records("wf_edges", "rowid")},
+                      "steps": records("wf_steps", "sequence")}
+            if include_evidence:
+                lookups, snapshots = [], {}
+                for step in result["steps"]:
+                    if not step.get("lookup"):
+                        continue
+                    row = db.execute("SELECT record FROM lookups WHERE id=?", (step["lookup_id"],)).fetchone()
+                    if not row:
+                        raise WorkflowConflict("A saved step has no exact lookup receipt")
+                    receipt = json.loads(row[0])
+                    lookups.append(receipt)
+                    for response in receipt.get("responses", []):
+                        key = response["snapshot_id"]
+                        row = db.execute("SELECT document FROM snapshots WHERE id=?", (key,)).fetchone()
+                        if row:
+                            snapshots[key] = json.loads(row[0])
+                result["evidence"] = {"lookups": lookups, "snapshots": snapshots}
+            return result
 
     @classmethod
     def _step_identity(cls, run: dict, step: dict):
@@ -232,7 +310,7 @@ class WorkflowRepository:
             db.execute("BEGIN IMMEDIATE")
             current_run = self._read(db, "wf_runs", run["id"])
             self._check_revision(current_run, run)
-            existing = db.execute("SELECT record FROM wf_steps WHERE id=?", (step["id"],)).fetchone()
+            existing = db.execute("SELECT record FROM wf_steps WHERE id=? AND run_id=?", (step["id"], run["id"])).fetchone()
             if existing:
                 current_step = json.loads(existing[0])
                 self._check_step_identity(current_step, step)
@@ -255,7 +333,7 @@ class WorkflowRepository:
     def update_step(self, step: dict) -> None:
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            current = self._read(db, "wf_steps", self._required(step, "id"))
+            current = self._read_step(db, self._required(step, "id"), step["run_id"])
             self._check_step_identity(current, step)
             if current.get("status") in self.TERMINAL_STEP_STATUSES:
                 if current == step:
@@ -264,13 +342,13 @@ class WorkflowRepository:
             if step.get("status") == "completed":
                 raise WorkflowConflict("Use commit_step to complete a step with its graph changes")
             saved = {**current, **deepcopy(step)}
-            db.execute("UPDATE wf_steps SET record=? WHERE id=?", (self._json(saved), step["id"]))
+            db.execute("UPDATE wf_steps SET record=? WHERE id=? AND run_id=?", (self._json(saved), step["id"], step["run_id"]))
 
     def commit_step(self, run: dict, step: dict, nodes: list[dict], edges: list[dict]) -> dict:
         self._step_identity(run, step)
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            current_step = self._read(db, "wf_steps", step["id"])
+            current_step = self._read_step(db, step["id"], run["id"])
             self._check_step_identity(current_step, step)
             if current_step.get("status") == "completed":
                 return deepcopy(current_step["delta"])
@@ -289,5 +367,5 @@ class WorkflowRepository:
             saved_run = {**current_run, **deepcopy(run), "graph_revision": self._revision(current_run) + 1}
             saved_step = {**current_step, **deepcopy(step), "status": "completed", "delta": delta}
             self._save_run(db, saved_run)
-            db.execute("UPDATE wf_steps SET record=? WHERE id=?", (self._json(saved_step), step["id"]))
+            db.execute("UPDATE wf_steps SET record=? WHERE id=? AND run_id=?", (self._json(saved_step), step["id"], run["id"]))
             return deepcopy(delta)

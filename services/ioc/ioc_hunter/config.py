@@ -30,7 +30,19 @@ def default_dataset() -> Path:
 
 DEFAULT_DATASET = default_dataset()
 DATASET_DIRECTORY = DEFAULT_DATASET.parent
-DEFAULT_LOOKUP_DIRECTORY = PROJECT_DIRECTORY / "output" / "lookups"
+def resolve_store_directory(directory: str | Path | None = None) -> Path:
+    """Resolve the one application store; explicit CLI paths retain cwd semantics."""
+    if directory is not None:
+        return Path(directory).expanduser().resolve()
+    configured = os.environ.get("IOC_HUNTER_STORE")
+    if configured:
+        target = Path(configured).expanduser()
+        return (target if target.is_absolute() else PROJECT_DIRECTORY / target).resolve()
+    return PROJECT_DIRECTORY / "output" / "investigations"
+
+
+# Compatibility import. New clients resolve at construction, after configuration.
+DEFAULT_LOOKUP_DIRECTORY = PROJECT_DIRECTORY / "output" / "investigations"
 
 
 def api_keys_from_environment() -> dict[str, str]:

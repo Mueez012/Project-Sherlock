@@ -73,14 +73,16 @@ class InvestigationTerminal:
         if not steps:
             self._write("No lookup steps yet.")
         for index, step in enumerate(steps, 1):
-            admission = "admitted" if step["admission"]["accepted"] else "not admitted"
+            decision = step.get("admission")
+            admission = ("pending admission" if decision is None else
+                         "admitted" if decision["accepted"] else "not admitted")
             self._write(f"  {index}. {step['method_id']} | {step['outcome_status']} | {admission} | {step['id']}")
 
     def _step_summary(self, step: dict) -> None:
         receipt = step.get("lookup") or {}
         outputs = receipt.get("outputs", [])
         rejected = receipt.get("rejected", [])
-        admission = step["admission"]
+        admission = step.get("admission")
         delta = step.get("delta", {})
         self._write(f"\nStep {step['sequence']}: {step['method_id']} | {step['outcome_status']}")
         self._write(f"Lookup {step.get('lookup_id') or '(not started)'} | "
@@ -95,9 +97,12 @@ class InvestigationTerminal:
             self._write("Partial retrieval: " + ", ".join(receipt.get("partial_reasons", []) or ["provider results incomplete"]))
         if step.get("error") or receipt.get("error"):
             self._write("Error: " + str(step.get("error") or receipt["error"]))
-        self._write(f"Graph admission: {'accepted' if admission['accepted'] else 'not admitted'} "
-                    f"({admission['reason']}). Paper reward: not evaluated.")
-        if outputs and not admission["accepted"]:
+        if admission is None:
+            self._write("Graph admission: pending; this lookup has not finished.")
+        else:
+            self._write(f"Graph admission: {'accepted' if admission['accepted'] else 'not admitted'} "
+                        f"({admission['reason']}). Paper reward: not evaluated.")
+        if outputs and admission is not None and not admission["accepted"]:
             self._write("Validated outputs are retained as evidence; this step did not admit them to the graph.")
         self._write(f"Graph changes: {delta.get('new_nodes', 0)} new nodes, "
                     f"{delta.get('new_edges', 0)} new edges, {delta.get('evidence_links', 0)} evidence links.")

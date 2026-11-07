@@ -13,6 +13,7 @@ import time
 from uuid import uuid4
 
 from ..evidence import LookupRecord, utc_now
+from ..config import resolve_store_directory
 from ..extraction import extract_report
 from ..lookup import LookupClient
 from ..methods import get_method, list_runnable_methods, method_status
@@ -41,14 +42,15 @@ class WorkflowRunner:
             raise ValueError("Replay mode requires fixture transports for both HTTP and browser")
 
     def create_run(self, text: str, source: str = "cti report", *, include_references=False,
-                   extended_types=False) -> dict:
+                   extended_types=False, run_id=None, owner_id=None, creation_key=None,
+                   payload_digest=None) -> dict:
         if not isinstance(text, str) or not text.strip():
             raise ValueError("Report must contain nonempty text")
         if len(text) > 2_000_000:
             raise ValueError("Report exceeds the 2,000,000-character limit")
         if not isinstance(source, str) or len(source) > 2000:
             raise ValueError("Report source must be text of at most 2,000 characters")
-        run_id, report_id = uuid4().hex, uuid4().hex
+        run_id, report_id = run_id or uuid4().hex, uuid4().hex
         now = utc_now()
         run = {
             "id": run_id, "status": "extracting", "mode": self.config.mode,
@@ -63,7 +65,8 @@ class WorkflowRunner:
         if self.config.mode == "replay":
             run["replay"] = {"manifest": str(self.client.http.path), "sha256": self.client.http.digest}
         # Persist the original report before extraction so failures remain inspectable.
-        self.repository.create_run(run, [])
+        self.repository.create_run(run, [], owner_id=owner_id, creation_key=creation_key,
+                                   payload_digest=payload_digest)
         started = time.monotonic()
         try:
             result = extract_report(text, source=source, include_references=include_references,
@@ -161,7 +164,7 @@ class WorkflowRunner:
         self._check_mode(run)
         if step_id:
             try:
-                previous = self.repository.get_step(step_id)
+                previous = self.repository.get_step(step_id, run_id)
             except KeyError:
                 previous = None
             if previous:
@@ -170,7 +173,7 @@ class WorkflowRunner:
                 if previous["status"] == "completed":
                     return previous
                 self.resume(run_id)
-                return self.repository.get_step(step_id)
+                return self.repository.get_step(step_id, run_id)
         if run["status"] in TERMINAL_STATUSES:
             raise ValueError("This investigation is " + run["status"] + "; start a new one for further hunting")
         steps = self.repository.steps(run_id)
@@ -198,10 +201,10 @@ class WorkflowRunner:
         run["status"], run["updated_at"] = "running", utc_now()
         self.repository.begin_step(run, step)
         # Respect persisted limits when a run is reopened with a different default configuration.
-        self.client.max_pages, self.client.max_outputs = config.max_pages, config.max_outputs
         query = IOC(node["value"], node["type"], list(node["context"]), "; ".join(node["sources"]))
         try:
-            record = self.client.lookup_detailed(query, method_id, lookup_id=step["lookup_id"])
+            record = self.client.lookup_detailed(query, method_id, lookup_id=step["lookup_id"],
+                                                 max_pages=config.max_pages, max_outputs=config.max_outputs)
         except LookupError as exc:
             record = LookupRecord.from_dict(self.client.store.get_record(exc.lookup_id))
         # KeyboardInterrupt/process termination leaves a durable pending attempt for resume().
@@ -274,7 +277,7 @@ class WorkflowRunner:
             run["stop_reason"] = "step_limit" if step["sequence"] >= config.max_steps else "time_limit"
         run["updated_at"] = utc_now()
         self.repository.commit_step(run, step, proposed_nodes, proposed_edges)
-        return self.repository.get_step(step["id"])
+        return self.repository.get_step(step["id"], run_id)
 
     def resume(self, run_id: str) -> dict:
         run = self.repository.get_run(run_id)
@@ -319,26 +322,7 @@ class WorkflowRunner:
         return self.repository.get_run(run_id)
 
     def get_result(self, run_id: str, include_evidence=False) -> dict:
-        run = self.repository.get_run(run_id)
-        result = {"version": 1, "mode": run["mode"], "policy": run["policy"],
-                  "run": run, "report": run["report"], "extraction": run["extraction"],
-                  "graph": {"nodes": self.repository.nodes(run_id), "edges": self.repository.edges(run_id)},
-                  "steps": self.repository.steps(run_id)}
-        if include_evidence:
-            lookups, snapshots = [], {}
-            for step in result["steps"]:
-                if not step.get("lookup"):
-                    continue
-                record = self.client.store.get_record(step["lookup_id"])
-                lookups.append(record)
-                for response in record.get("responses", []):
-                    key = response["snapshot_id"]
-                    with self.client.store.connect() as db:
-                        row = db.execute("SELECT document FROM snapshots WHERE id=?", (key,)).fetchone()
-                    if row:
-                        snapshots[key] = json.loads(row[0])
-            result["evidence"] = {"lookups": lookups, "snapshots": snapshots}
-        return result
+        return self.repository.snapshot(run_id, include_evidence)
 
     def export_result(self, run_id: str, path: str | Path, include_evidence=True) -> dict:
         result = self.get_result(run_id, include_evidence=include_evidence)
@@ -351,8 +335,7 @@ class WorkflowRunner:
 
 
 def build_runner(store_directory=None, config: RunConfig | None = None, replay_path=None, *, run_id=None):
-    store = EvidenceStore(store_directory) if store_directory else EvidenceStore(
-        Path(__file__).resolve().parents[2] / "output" / "investigations")
+    store = EvidenceStore(resolve_store_directory(store_directory))
     saved = WorkflowRepository(store).get_run(run_id) if run_id else None
     if saved:
         if config and config.mode != saved["mode"]:

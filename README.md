@@ -93,9 +93,12 @@ analyses answer 503.
 `ioc` builds IOC Hunter from `services/ioc/Dockerfile`, including its extraction dependencies and Chromium for
 provider lookups. The hub calls it at `http://ioc:8002` when `TM_IOC_MODE=real` (set in `.env`; the compose default
 is stub, which is what CI runs). The hub does not wait for `ioc`: until it is healthy, `/health` reports it as down
-and real-mode analyses answer 503. The website waits for the hub. Lookup evidence is stored in the persistent
-`ioc-data` volume. Optional `OTX_API_KEY` and `VT_API_KEY` values are passed at runtime. The website currently uses
-IOC extraction; lookup controls are not connected yet.
+and real-mode analyses answer 503. The website waits for the hub.
+Investigations and lookup evidence share the host-mounted `services/ioc/output/investigations` collection
+(configurable with `IOC_HUNTER_HOST_STORE`), so the terminal and IOC service can use the same database.
+Existing `ioc-data` named-volume contents are preserved and are not automatically migrated. Optional
+`OTX_API_KEY` and `VT_API_KEY` values are passed at runtime. Saved investigation endpoints are available
+through the hub; see [the API guide](services/ioc/API_GUIDE.md). Website lookup controls are not connected yet.
 
 Settings (modes, ports, the emails-and-CVEs switch) live in `.env`: copy `.env.example` to `.env` and edit it;
 compose reads it automatically and git ignores it.

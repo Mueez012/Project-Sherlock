@@ -7,16 +7,16 @@ from __future__ import annotations
 from contextlib import nullcontext
 from dataclasses import replace
 import json
-from threading import Lock
+from threading import local
 import time
 from uuid import uuid4
 from .context import ContextGenerator, generated_context
-from .config import DEFAULT_LOOKUP_DIRECTORY, api_keys_from_environment
+from .config import resolve_store_directory, api_keys_from_environment
 from .evidence import LookupRecord, utc_now
 from .method_spec import MethodSpec
 from .methods import get_method, list_methods, list_runnable_methods
 from .models import IOC, identity
-from .providers import PROVIDERS, parse_document, requests_for
+from .providers import parse_document, requests_for
 from .storage import EvidenceStore
 from .transport import HTTPTransport, BrowserTransport, RateLimiter, LookupError, allowed_url
 from .validation import validate_edge
@@ -34,13 +34,21 @@ class LookupClient:
                  interval: float = 15, daily_limit: int = 500):
         if max_pages < 1 or max_outputs < 1 or cache_ttl < 0 or interval < 0 or daily_limit < 1:
             raise ValueError("Invalid lookup limits")
-        self.store = store or EvidenceStore(DEFAULT_LOOKUP_DIRECTORY)
+        self.store = store or EvidenceStore(resolve_store_directory())
         self.http, self.browser = http or HTTPTransport(), browser or BrowserTransport()
         self.api_keys = dict(api_keys) if api_keys is not None else api_keys_from_environment()
         self.context_generator = context_generator
         self.cache_ttl, self.max_pages, self.max_outputs = cache_ttl, max_pages, max_outputs
-        self.limiter, self.daily_limit = RateLimiter(interval), daily_limit
-        self.source_locks = {source: Lock() for source in PROVIDERS}
+        self.limiter, self.daily_limit = RateLimiter(interval, store=self.store), daily_limit
+        self._operation = local()
+
+    @property
+    def operation_pages(self):
+        return getattr(self._operation, "limits", (self.max_pages, self.max_outputs))[0]
+
+    @property
+    def operation_outputs(self):
+        return getattr(self._operation, "limits", (self.max_pages, self.max_outputs))[1]
     def method(self, method_id: str) -> LookupMethod:
         return LookupMethod(self, get_method(method_id))
     def methods(self, input_type=None):
@@ -54,7 +62,24 @@ class LookupClient:
         return self.store.latest(self._key(ioc, method_id))
     def lookup(self, ioc: IOC, method_id: str) -> list[IOC]:
         return self.lookup_detailed(ioc, method_id).outputs
-    def lookup_detailed(self, ioc: IOC, method_id: str, *, lookup_id: str | None = None) -> LookupRecord:
+    def lookup_detailed(self, ioc: IOC, method_id: str, *, lookup_id: str | None = None,
+                        max_pages=None, max_outputs=None) -> LookupRecord:
+        """Use per-call immutable limits; concurrent runs never mutate client defaults."""
+        limits = (self.max_pages if max_pages is None else max_pages,
+                  self.max_outputs if max_outputs is None else max_outputs)
+        if any(type(value) is not int or value < 1 for value in limits):
+            raise ValueError("Lookup limits must be positive integers")
+        previous = getattr(self._operation, "limits", None)
+        self._operation.limits = limits
+        try:
+            return self._lookup_detailed(ioc, method_id, lookup_id=lookup_id)
+        finally:
+            if previous is None:
+                del self._operation.limits
+            else:
+                self._operation.limits = previous
+
+    def _lookup_detailed(self, ioc: IOC, method_id: str, *, lookup_id: str | None = None) -> LookupRecord:
         """Return this call's saved receipt, optionally using a durable attempt ID.
 
         Workflow callers must recover a saved receipt before executing its ID again.
@@ -70,10 +95,9 @@ class LookupClient:
         try:
             if not method.implemented:
                 raise LookupError("unsupported_method", method.unavailable_reason)
-            with self.source_locks[method.source]:
-                session = self.browser.session() if hasattr(self.browser, "session") else nullcontext()
-                with session:
-                    self._run(query, method, record)
+            session = self.browser.session() if hasattr(self.browser, "session") else nullcontext()
+            with session:
+                self._run(query, method, record)
             record.status = "ok" if record.outputs else "empty"
             if not record.outputs and record.evidence:
                 record.outcome_reason = "all_candidates_rejected"
@@ -103,7 +127,7 @@ class LookupClient:
         cache_key = self.store.cache_key(request, transport, scope)
         # A cached first page has no live GUI state for clicking Next. Start
         # paginated GUI reads live; retain their snapshots for audit/single-page use.
-        live_pagination = transport == "browser" and request.next_selector and self.max_pages > 1
+        live_pagination = transport == "browser" and request.next_selector and self.operation_pages > 1
         document = self.store.cached(cache_key) if self.cache_ttl and not live_pagination else None
         if document:
             record.cache_hit = True
@@ -141,7 +165,7 @@ class LookupClient:
             route_observations = []
             visited = set()
             try:
-                for page in range(self.max_pages):
+                for page in range(self.operation_pages):
                     page_identity = request.continuation_url or request.url
                     if page_identity in visited:
                         record.complete = False
@@ -162,7 +186,7 @@ class LookupClient:
                         record.partial_reasons.append(parsed.reason or "provider_limited")
                     if not parsed.next_url:
                         break
-                    if page + 1 == self.max_pages:
+                    if page + 1 == self.operation_pages:
                         record.complete = False
                         record.partial_reasons.append("page_limit")
                         break
@@ -205,7 +229,7 @@ class LookupClient:
                 continue
             key = identity(target)
             if key not in outputs:
-                if len(outputs) >= self.max_outputs:
+                if len(outputs) >= self.operation_outputs:
                     record.complete = False
                     record.partial_reasons.append("output_limit")
                     continue

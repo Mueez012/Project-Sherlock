@@ -23,6 +23,31 @@ def _client(handler):
     return IOCServiceExtractor("http://ioc:8002", transport=httpx.MockTransport(handler))
 
 
+def test_native_extraction_keeps_its_own_sentences_and_indices():
+    seen = {}
+
+    def handler(request):
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json=ANSWER)
+
+    native = _client(handler).extract_native(TEXT)
+    assert native.sentences == ANSWER["sentences"]
+    assert native.original_text == TEXT
+    assert seen["body"] == {"text": TEXT, "extended_types": False}
+    by_value = {ioc.value: ioc for ioc in native.iocs}
+    assert by_value["185.220.101.4"].sentence_indices == [1, 6]
+    assert by_value["evil-mail.com"].sentence_indices == [0, 4]
+    assert "www.vendor-blog.com" not in by_value
+    assert [ioc.context for ioc in native.iocs] == [ioc["context"] for ioc in ANSWER["iocs"]]
+
+
+def test_native_sentence_match_shape_is_validated():
+    answer = json.loads(json.dumps(ANSWER))
+    answer["matches"] = []
+    with pytest.raises(ServiceError, match="native matches and sentences"):
+        _client(lambda request: httpx.Response(200, json=answer)).extract_native(TEXT)
+
+
 def _extract(answer=ANSWER, text=TEXT, sentences=SENTENCES):
     return _client(lambda request: httpx.Response(200, json=answer)).extract(sentences, text=text)
 

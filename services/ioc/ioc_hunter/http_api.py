@@ -19,14 +19,13 @@ from __future__ import annotations
 import asyncio
 from dataclasses import asdict
 from importlib.metadata import PackageNotFoundError, version
-import os
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from .extraction import extract_report
+from .config import resolve_store_directory
 from .extraction.pipeline import create_sentencizer, find_sentence_iocs
 from .lookup import LookupClient
 from .methods import list_methods
@@ -45,11 +44,11 @@ _client: LookupClient | None = None
 
 
 def lookup_client() -> LookupClient:
-    """Create on first lookup; IOC_HUNTER_STORE (default /data) holds evidence."""
+    """Create on first lookup using the shared application-store resolver."""
     global _client
     if _client is None:
         _client = LookupClient(
-            store=EvidenceStore(Path(os.environ.get("IOC_HUNTER_STORE", "/data")))
+            store=EvidenceStore(resolve_store_directory())
         )
     return _client
 
@@ -125,3 +124,12 @@ def methods(input_type: str = "", implemented_only: bool = False) -> list[dict]:
         {**asdict(m), "implemented": m.implemented, "description": m.description}
         for m in list_methods(input_type or None, implemented_only=implemented_only)
     ]
+
+
+# Keep the historical entry point and primitive contracts; new HTTP adapters live
+# separately from the shared workflow application and persistence code.
+from .api.errors import install_error_handlers  # noqa: E402
+from .api.investigations import router as investigation_router  # noqa: E402
+
+app.include_router(investigation_router)
+install_error_handlers(app)
