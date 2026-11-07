@@ -1,0 +1,9 @@
+{
+  "text": "This synthetic CTI report is an offline workflow example, not a real incident.\nThe loader contacted example.com for its configuration.\nThe report also lists 192.0.2.10 as an observed address.\nThe sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.\n\nReferences\nhttps://publisher.example/reference\n",
+  "source": "synthetic-example.txt",
+  "include_references": false,
+  "extended_types": false,
+  "limits": {
+    "max_nodes": 1
+  }
+}

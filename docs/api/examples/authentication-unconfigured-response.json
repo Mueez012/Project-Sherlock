@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "authentication_not_configured",
+    "message": "HTTP authentication is not configured correctly",
+    "run_id": null,
+    "step_id": null,
+    "details": {}
+  }
+}

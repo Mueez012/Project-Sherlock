@@ -1,0 +1,168 @@
+{
+  "run_id": "53e4e31e846a4e45a43555a17326bfe1",
+  "node_id": "e124110e6ed903393fb178c54d8b0b56",
+  "execution_allowed": true,
+  "execution_block_reason": "",
+  "methods": [
+    {
+      "id": "alienvault.domain_to_ipv4",
+      "input_type": "domain",
+      "output_type": "ipv4",
+      "source": "alienvault",
+      "operation": "dns",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": true,
+      "implemented": true,
+      "description": "Retrieve ipv4 related to domain using alienvault (dns).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    },
+    {
+      "id": "alienvault.domain_to_ipv6",
+      "input_type": "domain",
+      "output_type": "ipv6",
+      "source": "alienvault",
+      "operation": "dns",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": false,
+      "implemented": true,
+      "description": "Retrieve ipv6 related to domain using alienvault (dns).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    },
+    {
+      "id": "alienvault.domain_to_url",
+      "input_type": "domain",
+      "output_type": "url",
+      "source": "alienvault",
+      "operation": "urls",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": true,
+      "implemented": true,
+      "description": "Retrieve url related to domain using alienvault (urls).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    },
+    {
+      "id": "rapiddns.domain_to_ipv4",
+      "input_type": "domain",
+      "output_type": "ipv4",
+      "source": "rapiddns",
+      "operation": "dns",
+      "unavailable_reason": "",
+      "baseline": true,
+      "implemented": true,
+      "description": "Retrieve ipv4 related to domain using rapiddns (dns).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "http",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": true
+      },
+      "selectable": true
+    },
+    {
+      "id": "rapiddns.domain_to_ipv6",
+      "input_type": "domain",
+      "output_type": "ipv6",
+      "source": "rapiddns",
+      "operation": "dns",
+      "unavailable_reason": "",
+      "baseline": true,
+      "implemented": true,
+      "description": "Retrieve ipv6 related to domain using rapiddns (dns).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "http",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": true
+      },
+      "selectable": true
+    },
+    {
+      "id": "virustotal.domain_to_ipv4",
+      "input_type": "domain",
+      "output_type": "ipv4",
+      "source": "virustotal",
+      "operation": "dns",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": true,
+      "implemented": true,
+      "description": "Retrieve ipv4 related to domain using virustotal (dns).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    },
+    {
+      "id": "virustotal.domain_to_ipv6",
+      "input_type": "domain",
+      "output_type": "ipv6",
+      "source": "virustotal",
+      "operation": "dns",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": false,
+      "implemented": true,
+      "description": "Retrieve ipv6 related to domain using virustotal (dns).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    },
+    {
+      "id": "virustotal.domain_to_url",
+      "input_type": "domain",
+      "output_type": "url",
+      "source": "virustotal",
+      "operation": "urls",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": true,
+      "implemented": true,
+      "description": "Retrieve url related to domain using virustotal (urls).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    }
+  ]
+}

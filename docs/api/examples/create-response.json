@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "run": {
+    "id": "53e4e31e846a4e45a43555a17326bfe1",
+    "status": "ready",
+    "mode": "replay",
+    "policy": "manual-selection/paper-admission-v1",
+    "config": {
+      "max_steps": 20,
+      "max_nodes": 1000,
+      "max_seconds": 600.0,
+      "max_pages": 2,
+      "max_outputs": 1000,
+      "mode": "replay"
+    },
+    "graph_revision": 1,
+    "created_at": "2026-11-07T19:03:05.947991+00:00",
+    "updated_at": "2026-11-07T19:03:11.153932+00:00",
+    "elapsed_seconds": 5.171999999998661,
+    "stop_reason": "",
+    "diagnostics": [],
+    "extraction_options": {
+      "include_references": false,
+      "extended_types": false
+    }
+  },
+  "report": {
+    "id": "051d1481b04b413aa6a2e0c01bd51f58",
+    "source": "synthetic-example.txt",
+    "original_text": "This synthetic CTI report is an offline workflow example, not a real incident.\nThe loader contacted example.com for its configuration.\nThe report also lists 192.0.2.10 as an observed address.\nThe sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.\n\nReferences\nhttps://publisher.example/reference\n",
+    "sha256": "ed2b6404d5fec9c422d77d0c0382e3cbceee259efefae70ad219096ebf1a6363",
+    "ingested_at": "2026-11-07T19:03:05.947991+00:00"
+  },
+  "extraction": {
+    "source": "synthetic-example.txt",
+    "original_text": "This synthetic CTI report is an offline workflow example, not a real incident.\nThe loader contacted example.com for its configuration.\nThe report also lists 192.0.2.10 as an observed address.\nThe sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.\n\nReferences\nhttps://publisher.example/reference\n",
+    "retained_text": "This synthetic CTI report is an offline workflow example, not a real incident.\nThe loader contacted example.com for its configuration.\nThe report also lists 192.0.2.10 as an observed address.\nThe sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.\n\n\n\n",
+    "excluded_sections": [
+      {
+        "heading": "References",
+        "start_line": 6,
+        "end_line": 7,
+        "text": "References\nhttps://publisher.example/reference\n"
+      }
+    ],
+    "sentences": [
+      "This synthetic CTI report is an offline workflow example, not a real incident.",
+      "The loader contacted example.com for its configuration.",
+      "The report also lists 192.0.2.10 as an observed address.",
+      "The sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."
+    ],
+    "matches": [
+      [],
+      [
+        [
+          "domain",
+          "example.com"
+        ]
+      ],
+      [
+        [
+          "ipv4",
+          "192.0.2.10"
+        ]
+      ],
+      [
+        [
+          "sha256",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ]
+      ]
+    ],
+    "iocs": [
+      {
+        "value": "example.com",
+        "type": "domain",
+        "context": [
+          "The loader contacted example.com for its configuration."
+        ],
+        "source": "synthetic-example.txt"
+      },
+      {
+        "value": "192.0.2.10",
+        "type": "ipv4",
+        "context": [
+          "The report also lists 192.0.2.10 as an observed address."
+        ],
+        "source": "synthetic-example.txt"
+      },
+      {
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "type": "sha256",
+        "context": [
+          "The sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."
+        ],
+        "source": "synthetic-example.txt"
+      }
+    ],
+    "passages": [
+      {
+        "id": "051d1481b04b413aa6a2e0c01bd51f58:s1",
+        "text": "This synthetic CTI report is an offline workflow example, not a real incident.",
+        "sentence_index": 0
+      },
+      {
+        "id": "051d1481b04b413aa6a2e0c01bd51f58:s2",
+        "text": "The loader contacted example.com for its configuration.",
+        "sentence_index": 1
+      },
+      {
+        "id": "051d1481b04b413aa6a2e0c01bd51f58:s3",
+        "text": "The report also lists 192.0.2.10 as an observed address.",
+        "sentence_index": 2
+      },
+      {
+        "id": "051d1481b04b413aa6a2e0c01bd51f58:s4",
+        "text": "The sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.",
+        "sentence_index": 3
+      }
+    ]
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "e124110e6ed903393fb178c54d8b0b56",
+        "type": "domain",
+        "value": "example.com",
+        "context": [
+          "The loader contacted example.com for its configuration."
+        ],
+        "sources": [
+          "synthetic-example.txt"
+        ],
+        "passage_ids": [
+          "051d1481b04b413aa6a2e0c01bd51f58:s2"
+        ],
+        "evidence_ids": [],
+        "lookup_ids": [],
+        "origin": "report",
+        "used": false
+      },
+      {
+        "id": "f1c524957075e2a38d816b02e2072ab4",
+        "type": "ipv4",
+        "value": "192.0.2.10",
+        "context": [
+          "The report also lists 192.0.2.10 as an observed address."
+        ],
+        "sources": [
+          "synthetic-example.txt"
+        ],
+        "passage_ids": [
+          "051d1481b04b413aa6a2e0c01bd51f58:s3"
+        ],
+        "evidence_ids": [],
+        "lookup_ids": [],
+        "origin": "report",
+        "used": false
+      },
+      {
+        "id": "1ccbc4fb258c050bfd7459ccc75139ab",
+        "type": "sha256",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "context": [
+          "The sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."
+        ],
+        "sources": [
+          "synthetic-example.txt"
+        ],
+        "passage_ids": [
+          "051d1481b04b413aa6a2e0c01bd51f58:s4"
+        ],
+        "evidence_ids": [],
+        "lookup_ids": [],
+        "origin": "report",
+        "used": false
+      }
+    ],
+    "edges": []
+  },
+  "steps": []
+}

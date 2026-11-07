@@ -1,0 +1,20 @@
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "The request is invalid.",
+    "run_id": null,
+    "step_id": null,
+    "details": {
+      "errors": [
+        {
+          "loc": [
+            "body",
+            "sentences"
+          ],
+          "type": "extra_forbidden",
+          "msg": "Extra inputs are not permitted"
+        }
+      ]
+    }
+  }
+}

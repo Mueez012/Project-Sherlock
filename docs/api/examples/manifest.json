@@ -1,0 +1,398 @@
+{
+  "description": "Synthetic fixture data generated through the actual Hub and IOC HTTP routes; no live provider calls.",
+  "documentation_date": "2026-11-07",
+  "redactions": {
+    "export-response.json": [
+      "run.replay.manifest: absolute server path replaced"
+    ]
+  },
+  "captures": [
+    {
+      "name": "create",
+      "method": "POST",
+      "path": "/api/investigations",
+      "openapi_path": "/api/investigations",
+      "status": 201,
+      "request_file": "create-request.json",
+      "response_file": "create-response.json",
+      "request_headers": {
+        "Idempotency-Key": "7055ba5f104841c18ba233011be817c6"
+      },
+      "response_headers": {
+        "content-type": "application/json",
+        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationSnapshot"
+      }
+    },
+    {
+      "name": "methods",
+      "method": "GET",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/nodes/e124110e6ed903393fb178c54d8b0b56/methods",
+      "openapi_path": "/api/investigations/{run_id}/nodes/{node_id}/methods",
+      "status": 200,
+      "request_file": null,
+      "response_file": "methods-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/NodeMethods"
+      }
+    },
+    {
+      "name": "methodless",
+      "method": "GET",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/nodes/1ccbc4fb258c050bfd7459ccc75139ab/methods",
+      "openapi_path": "/api/investigations/{run_id}/nodes/{node_id}/methods",
+      "status": 200,
+      "request_file": null,
+      "response_file": "methodless-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/NodeMethods"
+      }
+    },
+    {
+      "name": "step",
+      "method": "POST",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps",
+      "openapi_path": "/api/investigations/{run_id}/steps",
+      "status": 201,
+      "request_file": "step-request.json",
+      "response_file": "step-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json",
+        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps/65106ed7b69a483fb841c0f10f20417a"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/StepExecution"
+      }
+    },
+    {
+      "name": "nonadmitted-step",
+      "method": "POST",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps",
+      "openapi_path": "/api/investigations/{run_id}/steps",
+      "status": 201,
+      "request_file": "nonadmitted-step-request.json",
+      "response_file": "nonadmitted-step-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json",
+        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps/662c78c28953485b803f0b66a0156346"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/StepExecution"
+      }
+    },
+    {
+      "name": "snapshot",
+      "method": "GET",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1",
+      "openapi_path": "/api/investigations/{run_id}",
+      "status": 200,
+      "request_file": null,
+      "response_file": "snapshot-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationSnapshot"
+      }
+    },
+    {
+      "name": "history",
+      "method": "GET",
+      "path": "/api/investigations?limit=50&offset=0&status=ready",
+      "openapi_path": "/api/investigations",
+      "status": 200,
+      "request_file": null,
+      "response_file": "history-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationList"
+      }
+    },
+    {
+      "name": "step-replay",
+      "method": "POST",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps",
+      "openapi_path": "/api/investigations/{run_id}/steps",
+      "status": 200,
+      "request_file": "step-replay-request.json",
+      "response_file": "step-replay-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json",
+        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps/65106ed7b69a483fb841c0f10f20417a"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/StepExecution"
+      }
+    },
+    {
+      "name": "step-detail",
+      "method": "GET",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps/65106ed7b69a483fb841c0f10f20417a?include_snapshots=true",
+      "openapi_path": "/api/investigations/{run_id}/steps/{step_id}",
+      "status": 200,
+      "request_file": null,
+      "response_file": "step-detail-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/StepDetail"
+      }
+    },
+    {
+      "name": "resume",
+      "method": "POST",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/resume",
+      "openapi_path": "/api/investigations/{run_id}/resume",
+      "status": 200,
+      "request_file": "resume-request.json",
+      "response_file": "resume-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationSnapshot"
+      }
+    },
+    {
+      "name": "stale-revision",
+      "method": "POST",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps",
+      "openapi_path": "/api/investigations/{run_id}/steps",
+      "status": 409,
+      "request_file": "stale-revision-request.json",
+      "response_file": "stale-revision-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationError"
+      }
+    },
+    {
+      "name": "validation-error",
+      "method": "POST",
+      "path": "/api/investigations",
+      "openapi_path": "/api/investigations",
+      "status": 422,
+      "request_file": "validation-error-request.json",
+      "response_file": "validation-error-response.json",
+      "request_headers": {
+        "Idempotency-Key": "c463e764c09a4e5d82d503f378c9d60f"
+      },
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationError"
+      }
+    },
+    {
+      "name": "not-found",
+      "method": "GET",
+      "path": "/api/investigations/2d484a0b52c64283b3e0d318b3a4f58f",
+      "openapi_path": "/api/investigations/{run_id}",
+      "status": 404,
+      "request_file": null,
+      "response_file": "not-found-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationError"
+      }
+    },
+    {
+      "name": "authentication-error",
+      "method": "GET",
+      "path": "/api/investigations",
+      "openapi_path": "/api/investigations",
+      "status": 401,
+      "request_file": null,
+      "response_file": "authentication-error-response.json",
+      "request_headers": {
+        "Authorization": "Bearer invalid-local-header"
+      },
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationError"
+      }
+    },
+    {
+      "name": "authentication-unconfigured",
+      "method": "GET",
+      "path": "/api/investigations",
+      "openapi_path": "/api/investigations",
+      "status": 503,
+      "request_file": null,
+      "response_file": "authentication-unconfigured-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationError"
+      }
+    },
+    {
+      "name": "service-unavailable",
+      "method": "GET",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1",
+      "openapi_path": "/api/investigations/{run_id}",
+      "status": 503,
+      "request_file": null,
+      "response_file": "service-unavailable-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationError"
+      }
+    },
+    {
+      "name": "close",
+      "method": "POST",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/close",
+      "openapi_path": "/api/investigations/{run_id}/close",
+      "status": 200,
+      "request_file": "close-request.json",
+      "response_file": "close-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationSnapshot"
+      }
+    },
+    {
+      "name": "export",
+      "method": "GET",
+      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/export?include_evidence=true",
+      "openapi_path": "/api/investigations/{run_id}/export",
+      "status": 200,
+      "request_file": null,
+      "response_file": "export-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json",
+        "content-disposition": "attachment; filename=\"investigation-53e4e31e846a4e45a43555a17326bfe1.json\""
+      },
+      "response_schema": {}
+    },
+    {
+      "name": "creation-replay",
+      "method": "POST",
+      "path": "/api/investigations",
+      "openapi_path": "/api/investigations",
+      "status": 200,
+      "request_file": "creation-replay-request.json",
+      "response_file": "creation-replay-response.json",
+      "request_headers": {
+        "Idempotency-Key": "7055ba5f104841c18ba233011be817c6"
+      },
+      "response_headers": {
+        "content-type": "application/json",
+        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationSnapshot"
+      }
+    },
+    {
+      "name": "failed-create",
+      "method": "POST",
+      "path": "/api/investigations",
+      "openapi_path": "/api/investigations",
+      "status": 201,
+      "request_file": "failed-create-request.json",
+      "response_file": "failed-create-response.json",
+      "request_headers": {
+        "Idempotency-Key": "67260e16d1da49549b832db6337dee0f"
+      },
+      "response_headers": {
+        "content-type": "application/json",
+        "location": "/api/investigations/af0cc56f87b4467b8915271837437616"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationSnapshot"
+      }
+    },
+    {
+      "name": "challenge-create",
+      "method": "POST",
+      "path": "/api/investigations",
+      "openapi_path": "/api/investigations",
+      "status": 201,
+      "request_file": "challenge-create-request.json",
+      "response_file": "challenge-create-response.json",
+      "request_headers": {
+        "Idempotency-Key": "cae093123e1144d6bbd9834aada497c8"
+      },
+      "response_headers": {
+        "content-type": "application/json",
+        "location": "/api/investigations/8a53edee00034817ba7be1d5a2a8b205"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationSnapshot"
+      }
+    },
+    {
+      "name": "provider-failure",
+      "method": "POST",
+      "path": "/api/investigations/8a53edee00034817ba7be1d5a2a8b205/steps",
+      "openapi_path": "/api/investigations/{run_id}/steps",
+      "status": 201,
+      "request_file": "provider-failure-request.json",
+      "response_file": "provider-failure-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json",
+        "location": "/api/investigations/8a53edee00034817ba7be1d5a2a8b205/steps/156921a44bb34d18af9a14091c8f7fc6"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/StepExecution"
+      }
+    },
+    {
+      "name": "cancel",
+      "method": "POST",
+      "path": "/api/investigations/8a53edee00034817ba7be1d5a2a8b205/close",
+      "openapi_path": "/api/investigations/{run_id}/close",
+      "status": 200,
+      "request_file": "cancel-request.json",
+      "response_file": "cancel-response.json",
+      "request_headers": {},
+      "response_headers": {
+        "content-type": "application/json"
+      },
+      "response_schema": {
+        "$ref": "#/components/schemas/InvestigationSnapshot"
+      }
+    }
+  ]
+}

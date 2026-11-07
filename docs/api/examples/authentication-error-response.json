@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "authentication_required",
+    "message": "An authenticated identity is required",
+    "run_id": null,
+    "step_id": null,
+    "details": {}
+  }
+}

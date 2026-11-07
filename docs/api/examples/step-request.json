@@ -1,0 +1,6 @@
+{
+  "step_id": "65106ed7b69a483fb841c0f10f20417a",
+  "input_node_id": "e124110e6ed903393fb178c54d8b0b56",
+  "method_id": "rapiddns.domain_to_ipv4",
+  "expected_graph_revision": 1
+}
