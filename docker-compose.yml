@@ -1,10 +1,12 @@
 # Local:    docker compose up -d --build     -> website http://localhost:3000, hub http://localhost:8000
+#           Runs on any machine with Docker: TTP runs on CPU. With an NVIDIA GPU (and the NVIDIA Container Toolkit):
+#           docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build
 # Release:  TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d app
 # Ports:    TM_PORT and WEB_PORT change the host ports (e.g. TM_PORT=8080 where Splunk already uses 8000).
 # Modes:    the defaults below are stub (CI starts only `app`); .env switches a module to real (see .env.example).
 #           The hub does not wait for the services: it reports them as down until they are healthy.
-# Models:   `ttp` needs the model bundle in ./models/ttp-v3 (uv run python scripts/fetch_models.py) and an NVIDIA GPU
-#           with the NVIDIA Container Toolkit installed on the host.
+# Models:   the one-shot `models` service downloads the model bundle (models/manifest.json, SHA-256 checked) into the
+#           ttp-models volume on the first start (about 1.4 GB); later starts reuse it. `ttp` starts once it is done.
 services:
   app:            # the hub
     image: ${TM_IMAGE:-threatmamba:local}
@@ -20,20 +22,31 @@ services:
       TM_IOC_EXTENDED_TYPES: ${TM_IOC_EXTENDED_TYPES:-false}
     restart: unless-stopped
 
-  ttp:            # the trained TTP model; reachable by the hub on the compose network
+  models:         # one-shot: downloads and checks the model bundle into the ttp-models volume, then exits
+    image: python:3.12-slim
+    command: ["python", "/fetch/fetch_models.py", "--models", "/models", "--manifest", "/fetch/manifest.json"]
+    environment:
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./scripts/fetch_models.py:/fetch/fetch_models.py:ro
+      - ./models/manifest.json:/fetch/manifest.json:ro
+      - ttp-models:/models
+    restart: "no"
+
+  ttp:            # the trained TTP model (CPU here; docker-compose.gpu.yml switches it to an NVIDIA GPU)
     image: ${TTP_IMAGE:-threatmamba-ttp:local}
-    build: ./services/ttp
+    build:
+      context: ./services/ttp
+      args:
+        TORCH_INDEX: https://download.pytorch.org/whl/cpu   # the CPU-only torch build: small, runs anywhere
     environment:
       TTP_API_BUNDLE_DIR: /models/ttp-v3
+      TTP_API_DEVICE: cpu
     volumes:
-      - ./models:/models:ro
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+      - ttp-models:/models:ro
+    depends_on:
+      models:
+        condition: service_completed_successfully
     init: true
     restart: unless-stopped
 
@@ -65,3 +78,4 @@ services:
 
 volumes:
   ioc-data:
+  ttp-models:

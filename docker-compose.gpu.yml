@@ -1,0 +1,18 @@
+# Run TTP on an NVIDIA GPU instead of the CPU. The host needs the NVIDIA driver and the NVIDIA Container Toolkit.
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build
+# Same model and answers as on CPU, only faster. The GPU torch build is a much larger download (several GB).
+services:
+  ttp:
+    image: ${TTP_IMAGE:-threatmamba-ttp:gpu}
+    build:
+      args:
+        TORCH_INDEX: https://pypi.org/simple   # PyPI's Linux torch wheels bundle CUDA
+    environment:
+      TTP_API_DEVICE: cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

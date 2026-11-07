@@ -64,7 +64,8 @@ To change a dataset on purpose, commit the new files and `SHA256SUMS` together:
 ### Model files
 
 Trained models are too big for git, so they are attached to a GitHub Release and listed in `models/manifest.json`
-(name, download URL, SHA-256). Download them into `models/` with:
+(name, download URL, SHA-256). docker compose downloads them by itself (see below). To run the TTP service outside
+Docker, download them into `models/` with:
 
 ```bash
 uv run python scripts/fetch_models.py
@@ -80,12 +81,14 @@ the locked dependencies with uv, the second copying only the result into a slim 
 user and reports its health at `/health`. `web` is the website: `frontend/Dockerfile` builds the Next.js app in
 standalone mode on `node:22-slim`, with the hub's address (`http://app:8000`) fixed at build time.
 
-`ttp` builds the trained TTP model service from `services/ttp/Dockerfile`. The model bundle is not in the image:
-compose mounts `models/` at `/models`, so run `uv run python scripts/fetch_models.py` first (it puts `ttp-v3` there).
-The service runs on an NVIDIA GPU, so the host needs the NVIDIA driver and the NVIDIA Container Toolkit. The hub calls
-it at `http://ttp:8001` when `TM_TTP_MODE=real` (set in `.env`; the compose default is stub, which is what CI runs).
-Like `ioc`, the hub does not wait for it: until it is healthy, `/health` reports it as down and real-mode analyses
-answer 503. It needs a few minutes to start, because it loads the model.
+`ttp` builds the trained TTP model service from `services/ttp/Dockerfile` and runs it on CPU, so the stack runs on
+any machine with Docker. The model bundle is not in the image: on the first start the one-shot `models` service
+downloads it from the GitHub Release (about 1.4 GB, SHA-256 checked) into the `ttp-models` volume and exits, and
+`ttp` starts after it; later starts reuse the volume. On a machine with an NVIDIA GPU and the NVIDIA Container
+Toolkit, add `-f docker-compose.gpu.yml` (below) for the same model on the GPU, which is faster on long reports. The
+hub calls it at `http://ttp:8001` when `TM_TTP_MODE=real` (set in `.env`; the compose default is stub, which is what
+CI runs). Like `ioc`, the hub does not wait for it: until it is healthy, `/health` reports it as down and real-mode
+analyses answer 503.
 
 `ioc` builds IOC Hunter from `services/ioc/Dockerfile`, including its extraction dependencies and Chromium for
 provider lookups. The hub calls it at `http://ioc:8002` when `TM_IOC_MODE=real` (set in `.env`; the compose default
@@ -98,8 +101,8 @@ Settings (modes, ports, the emails-and-CVEs switch) live in `.env`: copy `.env.e
 compose reads it automatically and git ignores it.
 
 ```bash
-uv run python scripts/fetch_models.py                                  # once: downloads models/ttp-v3
 docker compose up -d --build                                           # website http://localhost:3000, hub :8000
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build   # same, TTP on an NVIDIA GPU
 TM_PORT=8080 docker compose up -d --build                              # if port 8000 is taken on this machine
 TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d app   # run a published hub release
 docker compose down

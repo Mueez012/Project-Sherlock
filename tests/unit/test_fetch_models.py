@@ -48,6 +48,28 @@ def test_an_empty_manifest_is_fine(tmp_path, capsys):
     assert "lists no files yet" in capsys.readouterr().out
 
 
+def test_the_manifest_can_live_outside_the_models_folder(tmp_path):
+    """docker compose keeps the models in a volume and mounts the repo's manifest separately."""
+    models = _setup(tmp_path)
+    manifest = tmp_path / "manifest.json"
+    (models / "manifest.json").replace(manifest)
+    assert fetch_models.main(["--models", str(models), "--manifest", str(manifest)]) == 0
+    assert (models / "ttp-v3" / "config.json").is_file()
+
+
+def test_an_interrupted_unzip_is_redone_and_a_finished_one_is_not(tmp_path, capsys):
+    models = _setup(tmp_path)
+    assert fetch_models.main(["--models", str(models)]) == 0
+    (models / "ttp-v3" / "config.json").unlink()
+    (models / "ttp-v3.zip.unzipped").unlink()  # as if the container stopped mid-extraction
+    capsys.readouterr()
+    assert fetch_models.main(["--models", str(models)]) == 0
+    assert (models / "ttp-v3" / "config.json").is_file()
+    assert "unzip" in capsys.readouterr().out
+    assert fetch_models.main(["--models", str(models)]) == 0
+    assert "unzip" not in capsys.readouterr().out
+
+
 def test_the_committed_manifest_entries_are_well_formed():
     """A typo in the real manifest (hash, URL, name) would only show up on the first real download."""
     manifest = json.loads((SCRIPT.parent.parent / "models" / "manifest.json").read_text(encoding="utf-8"))
