@@ -1,6 +1,8 @@
 # Local:    docker compose up -d --build     -> website http://localhost:3000, hub http://localhost:8000
 # Release:  TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d app
 # Ports:    TM_PORT and WEB_PORT change the host ports (e.g. TM_PORT=8080 where Splunk already uses 8000).
+# Modes:    the defaults below are stub (CI starts only `app`); .env switches a module to real (see .env.example).
+#           The hub does not wait for the services: it reports them as down until they are healthy.
 services:
   app:            # the hub
     image: ${TM_IMAGE:-threatmamba:local}
@@ -10,12 +12,9 @@ services:
     environment:
       TM_MODEL_MODE: ${TM_MODEL_MODE:-stub}
       TM_TTP_MODE: ${TM_TTP_MODE:-}
-      TM_IOC_MODE: ${TM_IOC_MODE:-real}
+      TM_IOC_MODE: ${TM_IOC_MODE:-}
       TM_IOC_URL: http://ioc:8002
       TM_IOC_EXTENDED_TYPES: ${TM_IOC_EXTENDED_TYPES:-false}
-    depends_on:
-      ioc:
-        condition: service_healthy
     restart: unless-stopped
 
   ioc:            # IOC Hunter; reachable by the hub on the compose network

@@ -17,6 +17,6 @@ COPY --from=builder --chown=app:app /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1 TM_MODEL_MODE=stub
 USER 10001
 EXPOSE 8000
-HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=5 \
-  CMD ["python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+HEALTHCHECK --interval=10s --timeout=10s --start-period=20s --retries=5 \
+  CMD ["python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=8)"]
 CMD ["uvicorn", "threatmamba.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

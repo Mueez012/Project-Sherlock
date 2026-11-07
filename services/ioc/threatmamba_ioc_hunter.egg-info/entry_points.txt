@@ -1,3 +1,0 @@
-[console_scripts]
-ioc-hunter = ioc_hunter.main:main
-ioc-hunter-mcp = ioc_hunter.mcp_server:main

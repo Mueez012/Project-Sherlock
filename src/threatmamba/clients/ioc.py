@@ -20,6 +20,7 @@ from threatmamba.contracts import IOC
 
 EXTRACT_PATH = "/v1/extract"
 HEALTH_PATH = "/health"
+HEALTH_TIMEOUT_S = 2.0  # the hub's /health probes each service; together they must stay under its healthcheck timeout
 
 
 class _NativeIOC(BaseModel):
@@ -104,7 +105,7 @@ class IOCServiceExtractor:
     def health(self) -> str:
         """'ok' when the service answers its health check with 200, otherwise 'down'."""
         try:
-            with self._client(5.0) as client:
+            with self._client(HEALTH_TIMEOUT_S) as client:
                 return "ok" if client.get(HEALTH_PATH).status_code == 200 else "down"
         except httpx.HTTPError:
             return "down"

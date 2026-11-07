@@ -24,6 +24,7 @@ services/ttp/runs/
 services/ttp/reports/
 services/ioc/data/
 services/ioc/output/
+*.egg-info/
 frontend/.next/
 # infra state can hold secrets
 infra/**/.terraform/
