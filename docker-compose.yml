@@ -3,6 +3,8 @@
 # Ports:    TM_PORT and WEB_PORT change the host ports (e.g. TM_PORT=8080 where Splunk already uses 8000).
 # Modes:    the defaults below are stub (CI starts only `app`); .env switches a module to real (see .env.example).
 #           The hub does not wait for the services: it reports them as down until they are healthy.
+# Models:   `ttp` needs the model bundle in ./models/ttp-v3 (uv run python scripts/fetch_models.py) and an NVIDIA GPU
+#           with the NVIDIA Container Toolkit installed on the host.
 services:
   app:            # the hub
     image: ${TM_IMAGE:-threatmamba:local}
@@ -13,8 +15,26 @@ services:
       TM_MODEL_MODE: ${TM_MODEL_MODE:-stub}
       TM_TTP_MODE: ${TM_TTP_MODE:-}
       TM_IOC_MODE: ${TM_IOC_MODE:-}
+      TM_TTP_URL: http://ttp:8001
       TM_IOC_URL: http://ioc:8002
       TM_IOC_EXTENDED_TYPES: ${TM_IOC_EXTENDED_TYPES:-false}
+    restart: unless-stopped
+
+  ttp:            # the trained TTP model; reachable by the hub on the compose network
+    image: ${TTP_IMAGE:-threatmamba-ttp:local}
+    build: ./services/ttp
+    environment:
+      TTP_API_BUNDLE_DIR: /models/ttp-v3
+    volumes:
+      - ./models:/models:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    init: true
     restart: unless-stopped
 
   ioc:            # IOC Hunter; reachable by the hub on the compose network

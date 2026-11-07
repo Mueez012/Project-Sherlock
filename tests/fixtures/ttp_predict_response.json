@@ -1,7 +1,7 @@
 {
-  "model": {"bundle": "ttp-v2"},
+  "model": {"bundle": "ttp-v3"},
   "sentences": [
-    {"index": 0, "labels": [{"id": "T1566", "p": 0.93, "passed": true}, {"id": "TA0001", "p": 0.88, "passed": true}, {"id": "T1059", "p": 0.12, "passed": false}]},
-    {"index": 1, "labels": []}
+    {"index": 0, "labels": [{"id": "T1566", "p": 0.8773, "passed": true}, {"id": "TA0001", "p": 0.7524, "passed": true}, {"id": "TA0002", "p": 0.6107, "passed": true}, {"id": "TA0042", "p": 0.3236, "passed": false}]},
+    {"index": 1, "labels": [{"id": "TA0005", "p": 0.4682, "passed": false}, {"id": "TA0011", "p": 0.4119, "passed": false}, {"id": "TA0001", "p": 0.3534, "passed": false}, {"id": "TA0003", "p": 0.3399, "passed": false}, {"id": "TA0009", "p": 0.3293, "passed": false}, {"id": "T1608", "p": 0.3277, "passed": false}]}
   ]
 }

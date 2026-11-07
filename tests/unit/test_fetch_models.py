@@ -46,3 +46,11 @@ def test_an_empty_manifest_is_fine(tmp_path, capsys):
     (tmp_path / "manifest.json").write_text(json.dumps({"files": []}))
     assert fetch_models.main(["--models", str(tmp_path)]) == 0
     assert "lists no files yet" in capsys.readouterr().out
+
+
+def test_the_committed_manifest_entries_are_well_formed():
+    """A typo in the real manifest (hash, URL, name) would only show up on the first real download."""
+    manifest = json.loads((SCRIPT.parent.parent / "models" / "manifest.json").read_text(encoding="utf-8"))
+    for entry in manifest["files"]:
+        assert entry["url"].startswith("https://github.com/") and entry["url"].endswith("/" + entry["name"])
+        assert len(entry["sha256"]) == 64 and set(entry["sha256"]) <= set("0123456789abcdef")

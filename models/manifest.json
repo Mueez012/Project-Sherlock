@@ -1,4 +1,11 @@
 {
   "about": "Model files are too big for git. They are attached to a GitHub Release and downloaded by scripts/fetch_models.py into this folder. Add one entry per file when a release is made.",
-  "files": []
+  "files": [
+    {
+      "name": "ttp-v3.zip",
+      "url": "https://github.com/Mueez012/Project-Sherlock/releases/download/models-ttp-v3/ttp-v3.zip",
+      "sha256": "bdd0c824927aa7f465a14e6967f3b883092ec8b394f4ff14274edb961867db93",
+      "unzip": true
+    }
+  ]
 }

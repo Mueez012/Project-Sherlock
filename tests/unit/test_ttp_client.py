@@ -27,7 +27,12 @@ def test_passed_labels_become_hits_and_tactics_are_kept():
     assert seen["body"] == {
         "sentences": [{"index": 0, "text": "Spear-phishing email arrived."}, {"index": 1, "text": "Nothing here."}]
     }
-    assert [(h.technique_id, h.score, h.sentence_index) for h in hits] == [("T1566", 0.93, 0), ("TA0001", 0.88, 0)]
+    # The recorded real answer: three labels pass in sentence 0; in sentence 1 none do (all under their thresholds).
+    assert [(h.technique_id, h.score, h.sentence_index) for h in hits] == [
+        ("T1566", 0.8773, 0),
+        ("TA0001", 0.7524, 0),
+        ("TA0002", 0.6107, 0),
+    ]
 
 
 @pytest.mark.parametrize(

@@ -10,7 +10,7 @@ compromise and, once the classifier is trained, the likely threat actor.
 |---|---|---|---|
 | Datasets (cleaned D1 and D2) | `datasets/` | graph lead | committed, checked in CI |
 | IOC extraction + IOCHunter | `src/threatmamba/ioc/`, `src/threatmamba/clients/ioc.py` | IOC teammate | regex stub; client for the IOC-hunter service ready |
-| TTP Extractor | `src/threatmamba/ttp/` | TTP teammate | keyword baseline in place |
+| TTP Extractor | `src/threatmamba/ttp/`, `src/threatmamba/clients/ttp.py`, `services/ttp/` | TTP teammate | keyword stub; the trained model runs in the `ttp` container |
 | CSKG construction | `src/threatmamba/cskg/` | graph lead | next |
 | Attribution (GAT + MAMBA) | `src/threatmamba/attribution/` | team | after CSKG |
 | API (the hub) + test page | `src/threatmamba/api/`, `src/threatmamba/web/` | team | working |
@@ -75,10 +75,17 @@ match the manifest. Add an entry to the manifest whenever a new model is release
 
 ### The container
 
-There are three containers. `app` is the hub: the root `Dockerfile` builds it in two stages, the first installing
+There are four containers. `app` is the hub: the root `Dockerfile` builds it in two stages, the first installing
 the locked dependencies with uv, the second copying only the result into a slim Python image that runs as a non-root
 user and reports its health at `/health`. `web` is the website: `frontend/Dockerfile` builds the Next.js app in
 standalone mode on `node:22-slim`, with the hub's address (`http://app:8000`) fixed at build time.
+
+`ttp` builds the trained TTP model service from `services/ttp/Dockerfile`. The model bundle is not in the image:
+compose mounts `models/` at `/models`, so run `uv run python scripts/fetch_models.py` first (it puts `ttp-v3` there).
+The service runs on an NVIDIA GPU, so the host needs the NVIDIA driver and the NVIDIA Container Toolkit. The hub calls
+it at `http://ttp:8001` when `TM_TTP_MODE=real` (set in `.env`; the compose default is stub, which is what CI runs).
+Like `ioc`, the hub does not wait for it: until it is healthy, `/health` reports it as down and real-mode analyses
+answer 503. It needs a few minutes to start, because it loads the model.
 
 `ioc` builds IOC Hunter from `services/ioc/Dockerfile`, including its extraction dependencies and Chromium for
 provider lookups. The hub calls it at `http://ioc:8002` when `TM_IOC_MODE=real` (set in `.env`; the compose default
@@ -91,6 +98,7 @@ Settings (modes, ports, the emails-and-CVEs switch) live in `.env`: copy `.env.e
 compose reads it automatically and git ignores it.
 
 ```bash
+uv run python scripts/fetch_models.py                                  # once: downloads models/ttp-v3
 docker compose up -d --build                                           # website http://localhost:3000, hub :8000
 TM_PORT=8080 docker compose up -d --build                              # if port 8000 is taken on this machine
 TM_IMAGE=ghcr.io/<owner>/threatmamba:latest docker compose up -d app   # run a published hub release

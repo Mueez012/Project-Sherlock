@@ -78,7 +78,11 @@ def test_real_ttp_with_stub_ioc_is_mixed_mode(monkeypatch):
     assert r.status_code == 200
     body = r.json()
     assert body["mode"] == "mixed"
-    assert {(t["technique_id"], t["sentence_index"]) for t in body["ttps"]} == {("T1566", 0), ("TA0001", 0)}
+    assert {(t["technique_id"], t["sentence_index"]) for t in body["ttps"]} == {
+        ("T1566", 0),
+        ("TA0001", 0),
+        ("TA0002", 0),
+    }
     assert body["iocs"][0]["value"] == "10.0.0.1"
     assert body["iocs"][0]["sentence_indices"] == [1]
 
