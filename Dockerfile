@@ -11,7 +11,11 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-edi
 
 # ---- runtime stage: only the virtualenv, run as a non-root user
 FROM python:3.12-slim
-RUN useradd --create-home --uid 10001 app
+# Apply Debian security fixes newer than the base image (CI's Trivy scan fails on fixed HIGH/CRITICAL CVEs).
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 10001 app
 WORKDIR /app
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1 TM_MODEL_MODE=stub
