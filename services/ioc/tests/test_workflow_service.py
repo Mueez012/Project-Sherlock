@@ -30,8 +30,8 @@ def service(tmp_path):
     return InvestigationService(tmp_path / "store", replay_path=EXAMPLE / "replay.json")
 
 
-def create(service, actor="alice", key="create", **options):
-    return service.create(actor, {"text": REPORT, **options}, key)[0]
+def create(service, key="create", **options):
+    return service.create({"text": REPORT, **options}, key)[0]
 
 
 def domain(snapshot):
@@ -45,37 +45,38 @@ def failure(code, action):
     return captured.value
 
 
-def test_creation_identity_owner_filter_and_independent_results(service):
+def test_creation_replay_conflict_listing_and_unknown_runs(service):
     first = create(service)
-    again, replayed = service.create("alice", {"text": REPORT, "source": "cti report", "limits": {"max_seconds": 600.0}}, "create")
+    again, replayed = service.create({"text": REPORT, "source": "cti report", "limits": {"max_seconds": 600.0}}, "create")
     assert replayed and again == first
-    failure("idempotency_conflict", lambda: service.create("alice", {"text": "Other report"}, "create"))
-    other = create(service, "bob")
+    failure("idempotency_conflict", lambda: service.create({"text": "Other report"}, "create"))
+    other = create(service, key="second")
     assert other["run"]["id"] != first["run"]["id"]
-    assert service.list("alice")["total"] == service.list("bob")["total"] == 1
-    assert service.list("alice")["items"][0]["run"]["id"] == first["run"]["id"]
-    assert failure("not_found", lambda: service.read("bob", first["run"]["id"])).status == 404
-    failure("not_found", lambda: service.export("bob", first["run"]["id"]))
+    assert service.list()["total"] == 2
+    assert {item["run"]["id"] for item in service.list()["items"]} == {first["run"]["id"], other["run"]["id"]}
+    assert "owner_id" not in first["run"]
+    assert failure("not_found", lambda: service.read("unknown-run")).status == 404
+    failure("not_found", lambda: service.export("unknown-run"))
 
 
 def test_scoped_step_identity_replay_after_close_and_native_export(service):
-    a, b = create(service), create(service, "bob")
+    a, b = create(service), create(service, key="second")
     results = []
-    for actor, snapshot in (("alice", a), ("bob", b)):
+    for snapshot in (a, b):
         run_id = snapshot["run"]["id"]
-        execution = service.execute(actor, run_id, domain(snapshot), METHOD, "same-client-key", 1)
+        execution = service.execute(run_id, domain(snapshot), METHOD, "same-client-key", 1)
         assert execution["step"]["id"] == "same-client-key"
         assert execution["step"]["lookup"]["id"] == execution["step"]["lookup_id"]
         assert execution["step"]["delta"] == {"new_nodes": 1, "new_edges": 2, "evidence_links": 3}
         results.append(execution)
-        service.close(actor, run_id, "finish")
-        repeated = service.execute(actor, run_id, domain(snapshot), METHOD, "same-client-key", 0)
+        service.close(run_id, "finish")
+        repeated = service.execute(run_id, domain(snapshot), METHOD, "same-client-key", 0)
         assert repeated["replayed"] and repeated["step"] == execution["step"]
-        assert service.close(actor, run_id, "finish")["run"]["status"] == "completed"
-        failure("run_closed", lambda: service.close(actor, run_id, "cancel"))
-        exported = service.export(actor, run_id)
+        assert service.close(run_id, "finish")["run"]["status"] == "completed"
+        failure("run_closed", lambda: service.close(run_id, "cancel"))
+        exported = service.export(run_id)
         assert exported == build_runner(service.directory).get_result(run_id, include_evidence=True)
-        detail = service.step(actor, run_id, "same-client-key", True)
+        detail = service.step(run_id, "same-client-key", True)
         assert detail["snapshots"] and detail["step"] == execution["step"]
     assert results[0]["step"]["lookup_id"] != results[1]["step"]["lookup_id"]
     with pytest.raises(WorkflowConflict, match="ambiguous"):
@@ -85,16 +86,16 @@ def test_scoped_step_identity_replay_after_close_and_native_export(service):
 def test_preflight_does_not_mutate_selection_and_receipts_are_retained(service):
     snapshot = create(service)
     run_id, node_id = snapshot["run"]["id"], domain(snapshot)
-    failure("stale_graph_revision", lambda: service.execute("alice", run_id, node_id, METHOD, "stale", 0))
-    assert not service.read("alice", run_id)["steps"]
-    failure("not_found", lambda: service.methods("alice", run_id, "foreign-node"))
+    failure("stale_graph_revision", lambda: service.execute(run_id, node_id, METHOD, "stale", 0))
+    assert not service.read(run_id)["steps"]
+    failure("not_found", lambda: service.methods(run_id, "foreign-node"))
     hashed = next(node for node in snapshot["graph"]["nodes"] if node["type"] == "sha256")
-    assert service.methods("alice", run_id, hashed["id"])["methods"] == []
-    execution = service.execute("alice", run_id, node_id, METHOD, "step", 1)
+    assert service.methods(run_id, hashed["id"])["methods"] == []
+    execution = service.execute(run_id, node_id, METHOD, "step", 1)
     assert execution["step"]["admission"]["reward"] is None
     assert execution["step"]["lookup"]["rejected"][0]["reason"] == "dns_domain_mismatch"
-    failure("idempotency_conflict", lambda: service.execute("alice", run_id, hashed["id"], METHOD, "step", 2))
-    failure("not_found", lambda: service.step("bob", run_id, "step", True))
+    failure("idempotency_conflict", lambda: service.execute(run_id, hashed["id"], METHOD, "step", 2))
+    failure("not_found", lambda: service.step(run_id, "unknown-step", True))
 
 
 def test_limits_explicit_recovery_and_read_never_recovers(service):
@@ -104,17 +105,17 @@ def test_limits_explicit_recovery_and_read_never_recovers(service):
     with patch.object(runner.client, "lookup_detailed", side_effect=KeyboardInterrupt):
         with pytest.raises(KeyboardInterrupt):
             runner.execute_step(run_id, domain(snapshot), METHOD, step_id="orphan")
-    assert service.read("alice", run_id)["steps"][0]["status"] == "running"
-    failure("recovery_required", lambda: service.close("alice", run_id, "finish"))
-    recovered = service.resume("alice", run_id)
+    assert service.read(run_id)["steps"][0]["status"] == "running"
+    failure("recovery_required", lambda: service.close(run_id, "finish"))
+    recovered = service.resume(run_id)
     assert recovered["steps"][0]["outcome_status"] == "interrupted_unknown"
     assert recovered["graph"]["edges"] == []
     run = service.repository.get_run(run_id)
     run["elapsed_seconds"] = run["config"]["max_seconds"]
     service.repository.save_run(run)
-    failure("limit_reached", lambda: service.execute("alice", run_id, domain(snapshot), METHOD, "budget", run["graph_revision"]))
-    assert service.read("alice", run_id)["run"]["stop_reason"] == "time_limit"
-    assert len(service.read("alice", run_id)["steps"]) == 1
+    failure("limit_reached", lambda: service.execute(run_id, domain(snapshot), METHOD, "budget", run["graph_revision"]))
+    assert service.read(run_id)["run"]["stop_reason"] == "time_limit"
+    assert len(service.read(run_id)["steps"]) == 1
 
 
 def test_saved_receipt_recovery_and_saved_replay_reads_without_fixtures(service):
@@ -124,15 +125,15 @@ def test_saved_receipt_recovery_and_saved_replay_reads_without_fixtures(service)
     with patch.object(runner.repository, "commit_step", side_effect=KeyboardInterrupt):
         with pytest.raises(KeyboardInterrupt):
             runner.execute_step(run_id, domain(snapshot), METHOD, step_id="saved-receipt")
-    recovered = service.resume("alice", run_id)
+    recovered = service.resume(run_id)
     assert len(recovered["graph"]["edges"]) == 2
     run = service.repository.get_run(run_id)
     run["replay"]["manifest"] = str(service.directory / "missing.json")
     service.repository.save_run(run)
     reopened = InvestigationService(service.directory)
-    assert reopened.read("alice", run_id)["steps"]
-    assert reopened.export("alice", run_id)["evidence"]["snapshots"]
-    methods = reopened.methods("alice", run_id, domain(snapshot))
+    assert reopened.read(run_id)["steps"]
+    assert reopened.export(run_id)["evidence"]["snapshots"]
+    methods = reopened.methods(run_id, domain(snapshot))
     assert methods["execution_block_reason"] == "saved_configuration_unavailable"
     assert all(not row["selectable"] for row in methods["methods"])
 
@@ -150,16 +151,16 @@ def test_different_runs_acquire_concurrently_but_same_run_cannot_recover(tmp_pat
     client = LookupClient(store=store, http=replay, browser=replay, interval=0, cache_ttl=0)
     service = InvestigationService(store.directory, replay_path=EXAMPLE / "replay.json",
                                    client_factory=lambda *_: client)
-    a, b = create(service, limits={"max_outputs": 1}), create(service, "bob", limits={"max_outputs": 2})
+    a, b = create(service, limits={"max_outputs": 1}), create(service, key="second", limits={"max_outputs": 2})
     with ThreadPoolExecutor(max_workers=2) as pool:
-        future_a = pool.submit(service.execute, "alice", a["run"]["id"], domain(a), METHOD, "step", 1)
-        future_b = pool.submit(service.execute, "bob", b["run"]["id"], domain(b), METHOD, "step", 1)
+        future_a = pool.submit(service.execute, a["run"]["id"], domain(a), METHOD, "step", 1)
+        future_b = pool.submit(service.execute, b["run"]["id"], domain(b), METHOD, "step", 1)
         assert entered.wait(10)
         try:
-            failure("operation_in_progress", lambda: service.resume("alice", a["run"]["id"]))
-            failure("operation_in_progress", lambda: service.close("alice", a["run"]["id"], "finish"))
-            failure("step_in_progress", lambda: service.execute("alice", a["run"]["id"], domain(a), METHOD, "step", 1))
-            assert service.read("alice", a["run"]["id"])["run"]["status"] == "running"
+            failure("operation_in_progress", lambda: service.resume(a["run"]["id"]))
+            failure("operation_in_progress", lambda: service.close(a["run"]["id"], "finish"))
+            failure("step_in_progress", lambda: service.execute(a["run"]["id"], domain(a), METHOD, "step", 1))
+            assert service.read(a["run"]["id"])["run"]["status"] == "running"
         finally:
             release.set()
         result_a, result_b = future_a.result(20), future_b.result(20)

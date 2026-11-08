@@ -1,0 +1,43 @@
+{
+  "items": [
+    {
+      "run": {
+        "id": "54acd8b3d9e94c0bba48cdc285fe69b2",
+        "status": "ready",
+        "mode": "replay",
+        "policy": "manual-selection/paper-admission-v1",
+        "config": {
+          "max_steps": 20,
+          "max_nodes": 1000,
+          "max_seconds": 600.0,
+          "max_pages": 2,
+          "max_outputs": 1000,
+          "mode": "replay"
+        },
+        "graph_revision": 3,
+        "created_at": "2026-11-08T08:54:10.762734+00:00",
+        "updated_at": "2026-11-08T08:54:11.466215+00:00",
+        "elapsed_seconds": 0.665271234999989,
+        "stop_reason": "",
+        "diagnostics": [],
+        "extraction_options": {
+          "include_references": false,
+          "extended_types": false
+        }
+      },
+      "report": {
+        "id": "a294d1e03d3449febce7c16c122448ac",
+        "source": "synthetic-example.txt",
+        "sha256": "ed2b6404d5fec9c422d77d0c0382e3cbceee259efefae70ad219096ebf1a6363"
+      },
+      "counts": {
+        "nodes": 4,
+        "edges": 2,
+        "steps": 2
+      }
+    }
+  ],
+  "limit": 50,
+  "offset": 0,
+  "total": 1
+}

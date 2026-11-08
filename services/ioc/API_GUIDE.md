@@ -12,58 +12,36 @@ The existing Windows workspace can reuse its IOC environment:
 ```powershell
 $env:PYTHONPATH = (Get-Location).Path
 $iocPython = 'D:\SEMESTERS\FYP\code\ioc-hunter\.venv\Scripts\python.exe'
-$env:IOC_HUNTER_LOCAL_ACTOR = 'local'
 & $iocPython -m uvicorn ioc_hunter.http_api:app --host 127.0.0.1 --port 8002
 ```
 
 The Hub uses `TM_IOC_URL=http://127.0.0.1:8002` outside Compose. Start the Hub
 using the root README's environment. IOC OpenAPI is at `/openapi.json` and its
-interactive reference is `/docs`; the Hub also lists the mirrored routes.
+interactive reference is `/docs`; the Hub's `/docs` lists the forwarded routes
+without field details. The frontend reference is [docs/api](docs/api/README.md).
 
 Default storage is `services/ioc/output/investigations/lookups.sqlite3` in this
 checkout. Explicit `--store`/injected stores take precedence, then
 `IOC_HUNTER_STORE`, then this default. Relative environment paths resolve from
 the service root; explicit CLI paths resolve from the current directory.
 
-Compose mounts `IOC_HUNTER_HOST_STORE` (default the host workflow directory)
-at `/data`, so the host terminal and container can address the same collection.
-The old `ioc-data` named volume is not deleted, moved or automatically merged.
-If it contains earlier work, select/export that collection deliberately before
-switching storage. Linux bind mounts must be writable by container UID 10001.
+In Compose the store is the `ioc-data` volume at `/data` (`IOC_HUNTER_STORE=/data`).
+Use the terminal inside the container to work on the same saved investigations,
+for example `docker compose exec ioc ioc-hunter runs`. To bring investigations
+saved on a host into the volume, copy that store's files into it, for example
+`docker compose cp output/investigations/. ioc:/data/`.
 
-## Identity is pluggable
+## No users
 
-Account management and authentication verification are intentionally deferred.
-The new routes receive a trusted actor through a separate `ioc_hunter.access`
-module. The application can inject its future user-management adapter:
-
-```python
-from ioc_hunter.http_api import app
-
-# An application-provided object; its resolve(authorization) verifies identity
-# and returns the actor ID, or raises an AccessError.
-app.state.identity_provider = user_management_adapter
-```
-
-No user ID is accepted in the request body. The Hub forwards Authorization to
-the IOC service, whose identity provider verifies it. Ownership is checked on
-all saved investigation operations, including history, receipts and export.
-Foreign resources return 404. Creation keys are owner-scoped and step IDs are
-run-scoped. Different runs may execute concurrently; a competing mutation of
-the same run returns 409. Provider pacing and daily budgets are shared.
-
-For development only, explicitly setting `IOC_HUNTER_LOCAL_ACTOR=local` uses one
-local actor and requires no Authorization header. It is not multiuser
-authentication. Without an injected provider or this explicit setting, saved
-HTTP routes return 503 `authentication_not_configured`. An Authorization header
-in local mode is rejected rather than treated as verified. No bearer-token
-database, login flow or credential verifier is included.
-
-Terminal identity is `IOC_HUNTER_ACTOR_ID`, default `local`. Set it to the same
-trusted actor when continuing a run across interfaces. Historical unowned runs
-are restricted to the service's local legacy actor, `local`; the first HTTP
-reader never takes ownership. The old extraction/catalogue/one-call lookup
-routes remain compatibility primitives and do not list saved investigations.
+There are no users, accounts or login, and no `Authorization` header. Every
+investigation belongs to one built-in owner, so history lists every saved
+investigation. The database keeps its owner tables unchanged, so existing stores
+keep working and a later multi-user decision needs no migration. Unknown
+resources return 404. Creation keys are global and step IDs are run-scoped.
+Different runs may execute concurrently; a competing mutation of the same run
+returns 409. Provider pacing and daily budgets are shared. The old
+extraction/catalogue/one-call lookup routes remain compatibility primitives and
+do not list saved investigations.
 
 ## Endpoints
 
@@ -74,7 +52,7 @@ The browser calls the Hub prefix `/api/investigations`. The Hub forwards to
 | Method and path | Input | Success |
 | --- | --- | --- |
 | `POST /v1/investigations` | Text, source, extraction options, optional limits; required `Idempotency-Key` | 201 snapshot; identical creation retry 200 |
-| `GET /v1/investigations` | `limit=50`, `offset=0`, optional status | Owner-filtered history/counts |
+| `GET /v1/investigations` | `limit=50`, `offset=0`, optional status | History/counts of every saved investigation |
 | `GET I` | None | Saved report, native extraction/passages, graph and step summaries |
 | `GET I/nodes/{node_id}/methods` | None | Compatible methods, availability, per-run execution eligibility |
 | `POST I/steps` | Node ID, method ID, step ID, expected graph revision | 201 completed saved step; identical completed retry 200 |
@@ -116,7 +94,7 @@ Content-Type: application/json
 ```
 
 All limits are optional and default to the values above. Text is nonblank and
-limited to 2,000,000 characters. Caller-supplied sentence lists, owner IDs, graph
+limited to 2,000,000 characters. Caller-supplied sentence lists, graph
 nodes, replay paths and unknown fields are rejected. API replay is a test/server
 configuration, never an arbitrary client filesystem path.
 
@@ -176,18 +154,19 @@ failures 500. Legacy primitives retain their existing error contracts.
 | Location | Responsibility |
 | --- | --- |
 | `http_api.py` | Existing ASGI entry point and compatibility primitives |
-| `api/schemas.py`, `api/investigations.py`, `api/dependencies.py`, `api/errors.py` | Wire contracts, thin routes, injected identity/service, HTTP error mapping |
-| `access/` | Identity-provider interface and ownership policy; no account management |
-| `workflow/service.py` | Shared authorized commands/queries and idempotency |
+| `api/schemas.py`, `api/investigations.py`, `api/dependencies.py`, `api/errors.py` | Wire contracts, thin routes, injected service, HTTP error mapping |
+| `workflow/service.py` | Shared commands/queries and idempotency |
 | `workflow/coordination.py` | Per-run thread/process execution ownership |
 | `workflow/adapters.py` | Existing terminal protocol backed by the shared service |
 | `workflow/runner.py`, `workflow/repository.py` | Extraction/lookup/admission and transactional durable state |
-| Hub `api/investigations.py`, `api/investigation_models.py`, `clients/investigations.py` | Forwarding, OpenAPI wire models and external-service transport |
+| Hub `api/investigations.py`, `clients/investigations.py` | Plain pass-through routes and transport; no models, rules or storage |
 
 Schema version 2 migrates old workflow step keys to `(run_id, id)` while
 preserving existing rows and lookup tables. Owner/key records are additional
-tables in the same file. No existing report/evidence database is deleted.
+tables in the same file (one built-in owner). No existing report/evidence database is deleted.
 
-Optional TTP analysis receives IOC Hunter sentences first on the real-IOC Hub
-analysis path. Prepared datasets and historical TTP sentence indices remain
-unchanged. Persisting complete TTP analysis results is separate later work.
+The Hub's `/api/analyze` is separate: it splits with the Hub's one splitter (the
+one D2 was built with) and sends those sentences to both TTP and IOC Hunter's
+`/v1/extract`, so its sentence indices match D2. Investigations use IOC Hunter's
+own sentences; their graph links IOCs by value, not by sentence index.
+Persisting complete TTP analysis results is separate later work.

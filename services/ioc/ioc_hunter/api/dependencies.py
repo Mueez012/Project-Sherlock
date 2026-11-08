@@ -1,16 +1,9 @@
-"""Composition dependencies; authentication remains outside workflow rules."""
+"""Composition dependencies for the investigation routes."""
 
-from typing import Annotated
+from fastapi import Request
 
-from fastapi import Header, Request
-
-from ..access import resolve_actor
 from ..config import resolve_store_directory
 from ..workflow.service import InvestigationService
-
-
-def actor(request: Request, authorization: Annotated[str | None, Header()] = None) -> str:
-    return resolve_actor(authorization, provider=getattr(request.app.state, "identity_provider", None))
 
 
 def service(request: Request) -> InvestigationService:

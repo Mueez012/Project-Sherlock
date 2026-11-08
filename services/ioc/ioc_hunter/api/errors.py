@@ -4,7 +4,6 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from ..access import AccessError
 from ..workflow.errors import WorkflowServiceError
 
 
@@ -27,13 +26,6 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(WorkflowServiceError)
     async def workflow_error(request: Request, exc: WorkflowServiceError):
         return error_response(request, exc.status, exc.code, str(exc), exc.details)
-
-    @app.exception_handler(AccessError)
-    async def access_error(request: Request, exc: AccessError):
-        code = "authentication_not_configured" if exc.status_code == 503 else "authentication_required"
-        if exc.status_code == 403:
-            code = "access_denied"
-        return error_response(request, exc.status_code, code, str(exc))
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError):

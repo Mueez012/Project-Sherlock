@@ -8,7 +8,6 @@ from fastapi import FastAPI
 import httpx
 import pytest
 
-from ioc_hunter.api.dependencies import actor
 from ioc_hunter.api.errors import install_error_handlers
 from ioc_hunter.api.investigations import router
 from ioc_hunter.lookup import LookupClient
@@ -43,7 +42,6 @@ def test_cancelled_http_request_keeps_worker_claim_and_other_runs_continue(tmp_p
     )
     app = FastAPI()
     app.state.investigation_service = backend
-    app.dependency_overrides[actor] = lambda: "alice"
     app.include_router(router)
     install_error_handlers(app)
 

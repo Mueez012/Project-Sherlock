@@ -2,8 +2,13 @@
 
 Status: implementation reference, updated 7 November 2026. The investigation
 routes and shared application service are implemented; see [API_GUIDE.md](API_GUIDE.md)
-for setup, code organization and current boundaries. User identity is pluggable;
-account management and authentication verification remain separate future work.
+for setup, code organization and current boundaries.
+
+> **Superseded parts (8 November 2026).** Users, ownership checks, the identity
+> provider, `Authorization` and `IOC_HUNTER_LOCAL_ACTOR` were removed: there is one
+> built-in owner and no login (the owner tables remain). Compose keeps the
+> `ioc-data` volume instead of a host-folder mount. The Hub forwards without its own
+> models. Where this design says otherwise, [API_GUIDE.md](API_GUIDE.md) is current.
 This document specifies the backend API needed to expose the existing manual
 terminal workflow through the Hub and frontend. It does not change admission
 policy, add automatic Algorithm 1 selection, or implement the frontend.

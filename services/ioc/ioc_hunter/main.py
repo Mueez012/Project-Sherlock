@@ -17,7 +17,6 @@ def _add_store(parser):
 
 
 def _workflow(args, parser):
-    from .access import trusted_cli_actor
     from .workflow.adapters import TerminalWorkflowAdapter
     from .workflow.models import RunConfig
     from .workflow.service import InvestigationService
@@ -43,7 +42,7 @@ def _workflow(args, parser):
         limits = {name: getattr(args, name) for name in limit_names if getattr(args, name) is not None}
         config = None if args.resume and args.mode is None else RunConfig(mode=mode, **limits)
         runner = TerminalWorkflowAdapter(
-            InvestigationService(args.store, replay_path=args.replay), trusted_cli_actor(), config,
+            InvestigationService(args.store, replay_path=args.replay), config,
         )
         if args.resume:
             run = runner.resume(args.resume)
@@ -69,7 +68,7 @@ def _workflow(args, parser):
                                     extended_types=args.extended_types)
         result = InvestigationTerminal(runner).run(run["id"])
         return 1 if result["run"]["status"] == "failed" else 0
-    runner = TerminalWorkflowAdapter(InvestigationService(args.store), trusted_cli_actor())
+    runner = TerminalWorkflowAdapter(InvestigationService(args.store))
     if args.command == "runs":
         summaries = [
             {**{key: run.get(key) for key in ("id", "status", "mode", "created_at", "updated_at", "stop_reason")},

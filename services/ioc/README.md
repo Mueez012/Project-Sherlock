@@ -6,9 +6,8 @@ validated observations, graph admission decisions, evidence and resumable steps.
 See the [terminal workflow guide](WORKFLOW_GUIDE.md) for a complete offline example.
 
 The [saved investigation API guide](API_GUIDE.md) describes the implemented HTTP
-routes, shared terminal/backend service, native sentence identity, common store
-and pluggable access boundary. User authentication can be attached later through
-the separate access module; local API use requires an explicit development actor.
+routes, shared terminal/backend service, native sentence identity and common
+store. There are no users or login.
 
 Selection is manual. Graph admission uses Algorithm 1's candidate-overlap
 condition; automatic ranking, coverage/tried counters, LLM selection, SecureBERT

@@ -55,13 +55,10 @@ services:
     build: ./services/ioc
     environment:
       IOC_HUNTER_STORE: /data
-      # Explicit single-user development identity until a user-management adapter is connected.
-      IOC_HUNTER_LOCAL_ACTOR: ${IOC_HUNTER_LOCAL_ACTOR:-}
       OTX_API_KEY: ${OTX_API_KEY:-}
       VT_API_KEY: ${VT_API_KEY:-}
     volumes:
-      # The host terminal and container now address the same investigation collection.
-      - ${IOC_HUNTER_HOST_STORE:-./services/ioc/output/investigations}:/data
+      - ioc-data:/data
     init: true
     shm_size: "1gb"
     restart: unless-stopped

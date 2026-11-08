@@ -1,0 +1,204 @@
+{
+  "step": {
+    "id": "8187db04c3b846b2bba78b4a837dc4c3",
+    "sequence": 1,
+    "input_node_id": "e124110e6ed903393fb178c54d8b0b56",
+    "method_id": "rapiddns.domain_to_ipv4",
+    "lookup_id": "3f9c433657444c5b9dbeb026678b9d45",
+    "status": "completed",
+    "started_at": "2026-11-08T08:54:11.444698+00:00",
+    "finished_at": "2026-11-08T08:54:11.451146+00:00",
+    "outcome_status": "ok",
+    "admission": {
+      "accepted": true,
+      "reason": "known_unused_overlap",
+      "overlap_ids": [
+        "f1c524957075e2a38d816b02e2072ab4"
+      ],
+      "reward": null,
+      "reward_status": "not_evaluated"
+    },
+    "delta": {
+      "new_nodes": 1,
+      "new_edges": 2,
+      "evidence_links": 3
+    },
+    "error": "",
+    "run_id": "54acd8b3d9e94c0bba48cdc285fe69b2",
+    "lookup": {
+      "id": "3f9c433657444c5b9dbeb026678b9d45",
+      "method_id": "rapiddns.domain_to_ipv4",
+      "input_ioc": {
+        "value": "example.com",
+        "type": "domain",
+        "context": [
+          "The loader contacted example.com for its configuration."
+        ],
+        "source": "synthetic-example.txt"
+      },
+      "status": "ok",
+      "outputs": [
+        {
+          "value": "192.0.2.10",
+          "type": "ipv4",
+          "context": [
+            "{\"address\": \"192.0.2.10\", \"date\": \"2026-01-01\", \"domain\": \"example.com\", \"type\": \"A\"}",
+            "{\"address\": \"192.0.2.10\", \"date\": \"2026-01-04\", \"domain\": \"example.com\", \"type\": \"A\"}"
+          ],
+          "source": "rapiddns"
+        },
+        {
+          "value": "192.0.2.12",
+          "type": "ipv4",
+          "context": [
+            "{\"address\": \"192.0.2.12\", \"date\": \"2026-01-02\", \"domain\": \"example.com\", \"type\": \"A\"}"
+          ],
+          "source": "rapiddns"
+        }
+      ],
+      "evidence": [
+        {
+          "id": "be1d45bfb93a28def0d79db9",
+          "source": "rapiddns",
+          "query_type": "domain",
+          "query_value": "example.com",
+          "operation": "dns",
+          "page_url": "https://rapiddns.io/subdomain/example.com?page=1",
+          "locator": "table[0].row[1]",
+          "excerpt": "{\"address\": \"192.0.2.10\", \"date\": \"2026-01-01\", \"domain\": \"example.com\", \"type\": \"A\"}",
+          "fact_type": "dns_record",
+          "facts": {
+            "domain": "example.com",
+            "ip": "192.0.2.10",
+            "record_type": "A"
+          },
+          "response_sha256": "4c2700c1030a61acb6122c779ae1548411b35ea26dfcd861d284387f9bf13d9a",
+          "retrieved_at": "2026-01-04T00:00:00+00:00",
+          "observed_at": "2026-01-01"
+        },
+        {
+          "id": "c97215560d29da945370e9ac",
+          "source": "rapiddns",
+          "query_type": "domain",
+          "query_value": "example.com",
+          "operation": "dns",
+          "page_url": "https://rapiddns.io/subdomain/example.com?page=1",
+          "locator": "table[0].row[2]",
+          "excerpt": "{\"address\": \"192.0.2.12\", \"date\": \"2026-01-02\", \"domain\": \"example.com\", \"type\": \"A\"}",
+          "fact_type": "dns_record",
+          "facts": {
+            "domain": "example.com",
+            "ip": "192.0.2.12",
+            "record_type": "A"
+          },
+          "response_sha256": "4c2700c1030a61acb6122c779ae1548411b35ea26dfcd861d284387f9bf13d9a",
+          "retrieved_at": "2026-01-04T00:00:00+00:00",
+          "observed_at": "2026-01-02"
+        },
+        {
+          "id": "fa9f05c906dc79d5b1fcd1fc",
+          "source": "rapiddns",
+          "query_type": "domain",
+          "query_value": "example.com",
+          "operation": "dns",
+          "page_url": "https://rapiddns.io/subdomain/example.com?page=1",
+          "locator": "table[0].row[3]",
+          "excerpt": "{\"address\": \"192.0.2.11\", \"date\": \"2026-01-03\", \"domain\": \"sub.example.com\", \"type\": \"A\"}",
+          "fact_type": "dns_record",
+          "facts": {
+            "domain": "sub.example.com",
+            "ip": "192.0.2.11",
+            "record_type": "A"
+          },
+          "response_sha256": "4c2700c1030a61acb6122c779ae1548411b35ea26dfcd861d284387f9bf13d9a",
+          "retrieved_at": "2026-01-04T00:00:00+00:00",
+          "observed_at": "2026-01-03"
+        },
+        {
+          "id": "0519f37f4cd621aeb839fe0e",
+          "source": "rapiddns",
+          "query_type": "domain",
+          "query_value": "example.com",
+          "operation": "dns",
+          "page_url": "https://rapiddns.io/subdomain/example.com?page=1",
+          "locator": "table[0].row[4]",
+          "excerpt": "{\"address\": \"192.0.2.10\", \"date\": \"2026-01-04\", \"domain\": \"example.com\", \"type\": \"A\"}",
+          "fact_type": "dns_record",
+          "facts": {
+            "domain": "example.com",
+            "ip": "192.0.2.10",
+            "record_type": "A"
+          },
+          "response_sha256": "4c2700c1030a61acb6122c779ae1548411b35ea26dfcd861d284387f9bf13d9a",
+          "retrieved_at": "2026-01-04T00:00:00+00:00",
+          "observed_at": "2026-01-04"
+        }
+      ],
+      "accepted": [
+        {
+          "type": "ipv4",
+          "value": "192.0.2.10",
+          "method_id": "rapiddns.domain_to_ipv4",
+          "ontology_label": "DNS-parse",
+          "evidence_id": "be1d45bfb93a28def0d79db9",
+          "validation": "supported"
+        },
+        {
+          "type": "ipv4",
+          "value": "192.0.2.12",
+          "method_id": "rapiddns.domain_to_ipv4",
+          "ontology_label": "DNS-parse",
+          "evidence_id": "c97215560d29da945370e9ac",
+          "validation": "supported"
+        },
+        {
+          "type": "ipv4",
+          "value": "192.0.2.10",
+          "method_id": "rapiddns.domain_to_ipv4",
+          "ontology_label": "DNS-parse",
+          "evidence_id": "0519f37f4cd621aeb839fe0e",
+          "validation": "supported"
+        }
+      ],
+      "rejected": [
+        {
+          "type": "ipv4",
+          "value": "192.0.2.11",
+          "reason": "dns_domain_mismatch",
+          "message": "Expected DNS evidence for example.com, but this record belongs to sub.example.com.",
+          "details": {
+            "expected_domain": "example.com",
+            "observed_domain": "sub.example.com"
+          },
+          "evidence_id": "fa9f05c906dc79d5b1fcd1fc"
+        }
+      ],
+      "responses": [
+        {
+          "snapshot_id": "8ccfca3c20bc5ff17ef819ffe7dd61ca107bbb947d1c1711eab66cd8643b9997",
+          "url": "https://rapiddns.io/subdomain/example.com?page=1",
+          "transport": "replay"
+        }
+      ],
+      "transport_errors": [],
+      "cache_hit": false,
+      "complete": true,
+      "error": "",
+      "outcome_reason": "",
+      "partial_reasons": [],
+      "started_at": "2026-11-08T08:54:11.446067+00:00",
+      "finished_at": "2026-11-08T08:54:11.449089+00:00"
+    }
+  },
+  "snapshots": {
+    "8ccfca3c20bc5ff17ef819ffe7dd61ca107bbb947d1c1711eab66cd8643b9997": {
+      "url": "https://rapiddns.io/subdomain/example.com?page=1",
+      "body": "<!doctype html>\n<html><body>\n<p>Synthetic provider-shaped fixture for workflow verification.</p>\n<table><tr><th>Domain</th><th>Address</th><th>Type</th><th>Date</th></tr>\n<tr><td>example.com</td><td>192.0.2.10</td><td>A</td><td>2026-01-01</td></tr>\n<tr><td>example.com</td><td>192.0.2.12</td><td>A</td><td>2026-01-02</td></tr>\n<tr><td>sub.example.com</td><td>192.0.2.11</td><td>A</td><td>2026-01-03</td></tr>\n<tr><td>example.com</td><td>192.0.2.10</td><td>A</td><td>2026-01-04</td></tr>\n</table></body></html>\n",
+      "format": "html",
+      "transport": "replay",
+      "fetched_at": "2026-01-04T00:00:00+00:00",
+      "status_code": 200,
+      "diagnostics": {}
+    }
+  }
+}

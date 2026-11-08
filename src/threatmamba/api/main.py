@@ -69,17 +69,10 @@ def health() -> dict[str, object]:
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)
 def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
+    sentences = req.sentences if req.sentences is not None else split_sentences(req.text or "")
     try:
-        if ioc_mode() is Mode.real:
-            text = req.text if req.text is not None else "\n".join(req.sentences or [])
-            native = IOCServiceExtractor(
-                ioc_url(), ioc_timeout_s(), extended_types=ioc_extended_types()
-            ).extract_native(text)
-            sentences, iocs = native.sentences, native.iocs
-        else:
-            sentences = req.sentences if req.sentences is not None else split_sentences(req.text or "")
-            iocs = _ioc().extract(sentences, text=req.text)
         ttps = _ttp().predict(sentences)
+        iocs = _ioc().extract(sentences, text=req.text)
     except ServiceError as e:
         raise HTTPException(status_code=503, detail=f"{e.service} service unavailable: {e.detail}") from e
     return AnalyzeResponse(

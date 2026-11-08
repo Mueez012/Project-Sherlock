@@ -93,12 +93,14 @@ analyses answer 503.
 `ioc` builds IOC Hunter from `services/ioc/Dockerfile`, including its extraction dependencies and Chromium for
 provider lookups. The hub calls it at `http://ioc:8002` when `TM_IOC_MODE=real` (set in `.env`; the compose default
 is stub, which is what CI runs). The hub does not wait for `ioc`: until it is healthy, `/health` reports it as down
-and real-mode analyses answer 503. The website waits for the hub.
-Investigations and lookup evidence share the host-mounted `services/ioc/output/investigations` collection
-(configurable with `IOC_HUNTER_HOST_STORE`), so the terminal and IOC service can use the same database.
-Existing `ioc-data` named-volume contents are preserved and are not automatically migrated. Optional
-`OTX_API_KEY` and `VT_API_KEY` values are passed at runtime. Saved investigation endpoints are available
-through the hub; see [the API guide](services/ioc/API_GUIDE.md). Website lookup controls are not connected yet.
+and real-mode analyses answer 503. The website waits for the hub. Saved investigations and lookup evidence are
+stored in the persistent `ioc-data` volume. Optional `OTX_API_KEY` and `VT_API_KEY` values are passed at runtime.
+
+Saved IOC investigations (pick an IOC and a lookup method by hand, run it, grow the IOC graph, resume, export) are
+served by IOC-hunter and reached through the hub at `/api/investigations`; the hub forwards each request unchanged.
+The reference is `services/ioc/docs/api/`. IOC-hunter's terminal workflow uses the same saved investigations when
+run inside the container, for example `docker compose exec ioc ioc-hunter runs`. The website uses IOC extraction;
+investigation and lookup screens are not built yet.
 
 Settings (modes, ports, the emails-and-CVEs switch) live in `.env`: copy `.env.example` to `.env` and edit it;
 compose reads it automatically and git ignores it.
@@ -121,7 +123,7 @@ Terraform in `infra/github/`; everything else is files in this repo. Order matte
 3. `cd infra/github && cp team.tfvars.example team.tfvars` (fill it in), then
    `export GITHUB_TOKEN=$(gh auth token) && terraform init && terraform apply -var-file=team.tfvars`.
 4. Set the GHCR package visibility to Public once.
-5. From then on, every change goes through a PR.
+5. From then on, `develop` takes direct pushes; `QA` and `main` take pull requests.
 
 The Terraform adopts the existing repo through an `import` block. Keep `terraform.tfstate` (git-ignored) on
 your machine; if it is lost, `terraform apply` simply imports the repo again.
@@ -133,12 +135,13 @@ Every task, three steps:
 ```bash
 git switch develop && git pull                      # 1. start from the latest code
 # 2. write code (and, ideally, a test in tests/unit/)
-bash scripts/ship.sh "feat(ioc): what you did"      # 3. send it
+git add -A && git commit -m "feat(ioc): what you did" && git push   # 3. send it
 ```
 
-`ship.sh` commits, pushes, opens a pull request into `develop` and sets it to merge by itself once CI is green.
-No approval is needed for `develop`. If CI fails you get an email: fix the problem and run step 3 again.
-Messages start with `feat:`, `fix:`, `test:`, `docs:` or `chore:` (a scope like `feat(ttp):` is optional).
+`develop` takes direct pushes, so there is no pull request. The commit hooks check formatting, lint and the message,
+and the push hook runs the fast unit tests. CI then runs on `develop`; if it fails you get an email: fix the problem
+and push again. Messages start with `feat:`, `fix:`, `test:`, `docs:` or `chore:` (a scope like `feat(ttp):` is
+optional).
 
 Promotions (`develop` -> `QA` -> `main`) and releases are done by the repo owner and need one teammate's approval.
 To release, bump `VERSION` on `develop` before promoting to `main`.

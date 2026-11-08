@@ -1,8 +1,7 @@
-"""One saved investigation engine for trusted terminal and HTTP adapters.
+"""One saved investigation engine for the terminal and HTTP adapters.
 
-Actors are supplied by the access boundary, never taken from a report body.
-Historical runs without an owner row belong only to the configured local actor
-(default ``local``). Ownership is never assigned to the first reader.
+There are no users: every investigation belongs to one built-in owner (OWNER). The database keeps its owner
+tables unchanged, so existing stores keep working and a later multi-user decision needs no migration.
 """
 
 import json
@@ -10,7 +9,6 @@ from dataclasses import asdict
 from hashlib import sha256
 from uuid import uuid4
 
-from ..access import AccessError, require_owner
 from ..config import resolve_store_directory
 from ..evidence import utc_now
 from ..lookup import LookupClient
@@ -23,29 +21,26 @@ from .replay import ReplayTransport
 from .repository import WorkflowRepository
 from .runner import TERMINAL_STATUSES, WorkflowRunner
 
+OWNER = "local"
+
 
 class InvestigationService:
-    def __init__(self, directory=None, *, client_factory=None, replay_path=None, local_actor="local"):
+    def __init__(self, directory=None, *, client_factory=None, replay_path=None):
         self.directory = resolve_store_directory(directory)
         self.store = EvidenceStore(self.directory)
         self.repository = WorkflowRepository(self.store)
         self.coordinator = ExecutionCoordinator(self.directory)
         self.client_factory = client_factory
         self.replay_path = replay_path
-        self.local_actor = local_actor
 
     @staticmethod
     def _error(code, message, status=409, **context):
         raise WorkflowServiceError(code, message, status, **context)
 
-    def _authorize(self, actor_id, run_id):
-        if not isinstance(actor_id, str) or not actor_id.strip():
-            self._error("unauthorized", "An authenticated actor is required.", 401)
+    def _load(self, run_id):
         try:
-            owner = self.repository.owner(run_id, self.local_actor)
-            require_owner(actor_id, owner)
             return self.repository.get_run(run_id)
-        except (KeyError, AccessError):
+        except KeyError:
             self._error("not_found", "Investigation not found.", 404, run_id=run_id)
 
     def _runner(self, run=None, config=None):
@@ -85,7 +80,6 @@ class InvestigationService:
     def _snapshot(self, run_id):
         native = self.repository.snapshot(run_id)
         run = {key: value for key, value in native["run"].items() if key not in {"report", "extraction", "replay"}}
-        run["owner_id"] = self.repository.owner(run_id, self.local_actor)
         return {
             "version": 1,
             "run": run,
@@ -140,19 +134,17 @@ class InvestigationService:
         ).hexdigest()
         return normalized, config, digest
 
-    def create(self, actor_id, request, key):
-        if not isinstance(actor_id, str) or not actor_id.strip():
-            self._error("unauthorized", "An authenticated actor is required.", 401)
+    def create(self, request, key):
         if not isinstance(key, str) or not key.strip() or len(key) > 1000:
             self._error("invalid_request", "A nonempty creation request key is required.", 422)
         normalized, config, digest = self._request(request, "replay" if self.replay_path else "live")
-        resource = "create:" + sha256(json.dumps([actor_id, key]).encode()).hexdigest()
+        resource = "create:" + sha256(json.dumps([OWNER, key]).encode()).hexdigest()
         with self.coordinator.claim(resource, code="creation_in_progress"):
-            previous = self.repository.creation(actor_id, key)
+            previous = self.repository.creation(OWNER, key)
             if previous:
                 if previous["digest"] != digest:
                     self._error("idempotency_conflict", "Creation key belongs to different report/options.")
-                return self.read(actor_id, previous["run_id"]), True
+                return self.read(previous["run_id"]), True
             run_id = uuid4().hex
             with self.coordinator.claim("run:" + run_id):
                 runner = self._runner(config=config)
@@ -162,24 +154,22 @@ class InvestigationService:
                     include_references=normalized["include_references"],
                     extended_types=normalized["extended_types"],
                     run_id=run_id,
-                    owner_id=actor_id,
+                    owner_id=OWNER,
                     creation_key=key,
                     payload_digest=digest,
                 )
             return self._snapshot(run_id), False
 
-    def read(self, actor_id, run_id):
-        self._authorize(actor_id, run_id)
+    def read(self, run_id):
+        self._load(run_id)
         return self._snapshot(run_id)
 
-    def list(self, actor_id, limit=50, offset=0, status=None):
-        if not isinstance(actor_id, str) or not actor_id.strip():
-            self._error("unauthorized", "An authenticated actor is required.", 401)
+    def list(self, limit=50, offset=0, status=None):
         if type(limit) is not int or not 1 <= limit <= 200 or type(offset) is not int or offset < 0:
             self._error("invalid_request", "Invalid pagination.", 422)
         if status is not None and status not in TERMINAL_STATUSES | {"extracting", "ready", "running"}:
             self._error("invalid_request", "Invalid investigation status.", 422)
-        runs = self.repository.owned_runs(actor_id, self.local_actor)
+        runs = self.repository.list_runs()
         if status:
             runs = [run for run in runs if run["status"] == status]
         runs.sort(key=lambda run: run["id"])
@@ -206,8 +196,8 @@ class InvestigationService:
             self._error("not_found", "Investigation node not found.", 404)
         return node
 
-    def methods(self, actor_id, run_id, node_id):
-        run = self._authorize(actor_id, run_id)
+    def methods(self, run_id, node_id):
+        run = self._load(run_id)
         node = self._node(run_id, node_id)
         missing = False
         try:
@@ -263,8 +253,8 @@ class InvestigationService:
         snapshot = self._snapshot(run_id)
         return {"step": step, "run": snapshot["run"], "graph": snapshot["graph"], "replayed": replayed}
 
-    def execute(self, actor_id, run_id, node_id, method_id, step_id, expected_revision):
-        self._authorize(actor_id, run_id)
+    def execute(self, run_id, node_id, method_id, step_id, expected_revision):
+        self._load(run_id)
         if not isinstance(step_id, str) or not step_id.strip():
             self._error("invalid_request", "A nonempty step request ID is required.", 422)
         if type(expected_revision) is not int or expected_revision < 0:
@@ -273,7 +263,7 @@ class InvestigationService:
         if previous and previous["status"] == "completed":
             return self._execution(run_id, previous, True)
         with self.coordinator.claim("run:" + run_id, code="step_in_progress"):
-            run = self._authorize(actor_id, run_id)
+            run = self._load(run_id)
             previous = self._previous(run_id, step_id, node_id, method_id)
             if previous and previous["status"] == "completed":
                 return self._execution(run_id, previous, True)
@@ -318,8 +308,8 @@ class InvestigationService:
                 self._error("internal_error", "Saved lookup could not be committed: " + str(exc), 500)
             return self._execution(run_id, step, False)
 
-    def step(self, actor_id, run_id, step_id, include_snapshots=False):
-        self._authorize(actor_id, run_id)
+    def step(self, run_id, step_id, include_snapshots=False):
+        self._load(run_id)
         native = self.repository.snapshot(run_id, include_evidence=include_snapshots)
         step = next((step for step in native["steps"] if step["id"] == step_id), None)
         if step is None:
@@ -330,10 +320,10 @@ class InvestigationService:
         }
         return {"step": step, "snapshots": snapshots}
 
-    def resume(self, actor_id, run_id):
-        self._authorize(actor_id, run_id)
+    def resume(self, run_id):
+        self._load(run_id)
         with self.coordinator.claim("run:" + run_id):
-            run = self._authorize(actor_id, run_id)
+            run = self._load(run_id)
             if run["status"] not in TERMINAL_STATUSES:
                 try:
                     self._runner(run).resume(run_id)
@@ -341,12 +331,12 @@ class InvestigationService:
                     self._error("internal_error", "Saved investigation could not be recovered: " + str(exc), 500)
             return self._snapshot(run_id)
 
-    def close(self, actor_id, run_id, action):
+    def close(self, run_id, action):
         if action not in {"finish", "cancel"}:
             self._error("invalid_request", "Close action must be finish or cancel.", 422)
-        self._authorize(actor_id, run_id)
+        self._load(run_id)
         with self.coordinator.claim("run:" + run_id):
-            run = self._authorize(actor_id, run_id)
+            run = self._load(run_id)
             target = "completed" if action == "finish" else "cancelled"
             if run["status"] in TERMINAL_STATUSES:
                 if run["status"] != target:
@@ -364,6 +354,6 @@ class InvestigationService:
             self.repository.save_run(run)
             return self._snapshot(run_id)
 
-    def export(self, actor_id, run_id, include_evidence=True):
-        self._authorize(actor_id, run_id)
+    def export(self, run_id, include_evidence=True):
+        self._load(run_id)
         return self.repository.snapshot(run_id, include_evidence=include_evidence)

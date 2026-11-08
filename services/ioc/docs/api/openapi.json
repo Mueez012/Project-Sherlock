@@ -1,0 +1,2226 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Project Sherlock investigations",
+    "version": "1",
+    "description": "Browser clients use the hub's /api/investigations routes, which forward to IOC-hunter unchanged. There are no users and no login. See FRONTEND_API_REFERENCE.md."
+  },
+  "paths": {
+    "/api/investigations": {
+      "post": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Create",
+        "operationId": "create_v1_investigations_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvestigation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationSnapshot"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationSnapshot"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "List Investigations",
+        "operationId": "list_investigations_v1_investigations_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(extracting|ready|running|completed|cancelled|failed)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationList"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/investigations/{run_id}": {
+      "get": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Read",
+        "operationId": "read_v1_investigations__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationSnapshot"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/investigations/{run_id}/nodes/{node_id}/methods": {
+      "get": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Methods",
+        "operationId": "methods_v1_investigations__run_id__nodes__node_id__methods_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Node Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeMethods"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/investigations/{run_id}/steps": {
+      "post": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Execute",
+        "operationId": "execute_v1_investigations__run_id__steps_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStep"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StepExecution"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StepExecution"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/investigations/{run_id}/steps/{step_id}": {
+      "get": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Step",
+        "operationId": "step_v1_investigations__run_id__steps__step_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "step_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Step Id"
+            }
+          },
+          {
+            "name": "include_snapshots",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Snapshots"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StepDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/investigations/{run_id}/resume": {
+      "post": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Resume",
+        "operationId": "resume_v1_investigations__run_id__resume_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationSnapshot"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/investigations/{run_id}/close": {
+      "post": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Close",
+        "operationId": "close_v1_investigations__run_id__close_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseInvestigation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationSnapshot"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/investigations/{run_id}/export": {
+      "get": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Export",
+        "operationId": "export_v1_investigations__run_id__export_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "include_evidence",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Include Evidence"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HubUnavailable"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Admission": {
+        "properties": {
+          "accepted": {
+            "type": "boolean",
+            "title": "Accepted"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "overlap_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Overlap Ids"
+          },
+          "reward": {
+            "type": "null",
+            "title": "Reward"
+          },
+          "reward_status": {
+            "type": "string",
+            "const": "not_evaluated",
+            "title": "Reward Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "accepted",
+          "reason",
+          "overlap_ids",
+          "reward_status"
+        ],
+        "title": "Admission"
+      },
+      "ApiError": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ApiError"
+      },
+      "CloseInvestigation": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "finish",
+              "cancel"
+            ],
+            "title": "Action"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "CloseInvestigation"
+      },
+      "CreateInvestigation": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 2000000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Source",
+            "default": "cti report"
+          },
+          "include_references": {
+            "type": "boolean",
+            "title": "Include References",
+            "default": false
+          },
+          "extended_types": {
+            "type": "boolean",
+            "title": "Extended Types",
+            "default": false
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "CreateInvestigation"
+      },
+      "CreateStep": {
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$",
+            "title": "Step Id"
+          },
+          "input_node_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$",
+            "title": "Input Node Id"
+          },
+          "method_id": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Method Id"
+          },
+          "expected_graph_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Graph Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "step_id",
+          "input_node_id",
+          "method_id",
+          "expected_graph_revision"
+        ],
+        "title": "CreateStep"
+      },
+      "EmptyRequest": {
+        "properties": {},
+        "additionalProperties": false,
+        "type": "object",
+        "title": "EmptyRequest"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "step_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Id"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "run_id",
+          "step_id",
+          "details"
+        ],
+        "title": "ErrorDetail"
+      },
+      "Extraction": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "original_text": {
+            "type": "string",
+            "title": "Original Text"
+          },
+          "retained_text": {
+            "type": "string",
+            "title": "Retained Text"
+          },
+          "excluded_sections": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Excluded Sections"
+          },
+          "sentences": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sentences"
+          },
+          "matches": {
+            "items": {
+              "items": {
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Matches"
+          },
+          "iocs": {
+            "items": {
+              "$ref": "#/components/schemas/IOC"
+            },
+            "type": "array",
+            "title": "Iocs"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/Passage"
+            },
+            "type": "array",
+            "title": "Passages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "original_text",
+          "retained_text",
+          "excluded_sections",
+          "sentences",
+          "matches",
+          "iocs",
+          "passages"
+        ],
+        "title": "Extraction"
+      },
+      "Graph": {
+        "properties": {
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/GraphNode"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/GraphEdge"
+            },
+            "type": "array",
+            "title": "Edges"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nodes",
+          "edges"
+        ],
+        "title": "Graph"
+      },
+      "GraphEdge": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "left": {
+            "type": "string",
+            "title": "Left"
+          },
+          "right": {
+            "type": "string",
+            "title": "Right"
+          },
+          "method_id": {
+            "type": "string",
+            "title": "Method Id"
+          },
+          "ontology_label": {
+            "type": "string",
+            "title": "Ontology Label"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Ids"
+          },
+          "lookup_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Lookup Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "left",
+          "right",
+          "method_id",
+          "ontology_label",
+          "evidence_ids",
+          "lookup_ids"
+        ],
+        "title": "GraphEdge"
+      },
+      "GraphNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "context": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Context"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "passage_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Passage Ids"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Ids"
+          },
+          "lookup_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Lookup Ids"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "report",
+              "lookup"
+            ],
+            "title": "Origin"
+          },
+          "used": {
+            "type": "boolean",
+            "title": "Used"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "value",
+          "context",
+          "sources",
+          "passage_ids",
+          "evidence_ids",
+          "lookup_ids",
+          "origin",
+          "used"
+        ],
+        "title": "GraphNode"
+      },
+      "IOC": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "context": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Context"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "type",
+          "context",
+          "source"
+        ],
+        "title": "IOC"
+      },
+      "InvestigationList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "limit",
+          "offset",
+          "total"
+        ],
+        "title": "InvestigationList"
+      },
+      "InvestigationListItem": {
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/RunMetadata"
+          },
+          "report": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Report"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run",
+          "report",
+          "counts"
+        ],
+        "title": "InvestigationListItem"
+      },
+      "InvestigationSnapshot": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Version"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunMetadata"
+          },
+          "report": {
+            "$ref": "#/components/schemas/Report"
+          },
+          "extraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Extraction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "graph": {
+            "$ref": "#/components/schemas/Graph"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/StepSummary"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "run",
+          "report",
+          "extraction",
+          "graph",
+          "steps"
+        ],
+        "title": "InvestigationSnapshot"
+      },
+      "Limits": {
+        "properties": {
+          "max_steps": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Steps",
+            "default": 20
+          },
+          "max_nodes": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Nodes",
+            "default": 1000
+          },
+          "max_seconds": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Seconds",
+            "default": 600.0
+          },
+          "max_pages": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Pages",
+            "default": 2
+          },
+          "max_outputs": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Outputs",
+            "default": 1000
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Limits"
+      },
+      "LookupRecord": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "method_id": {
+            "type": "string",
+            "title": "Method Id"
+          },
+          "input_ioc": {
+            "$ref": "#/components/schemas/IOC"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "outputs": {
+            "items": {
+              "$ref": "#/components/schemas/IOC"
+            },
+            "type": "array",
+            "title": "Outputs"
+          },
+          "evidence": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "accepted": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Accepted"
+          },
+          "rejected": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rejected"
+          },
+          "responses": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Responses"
+          },
+          "transport_errors": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Transport Errors"
+          },
+          "cache_hit": {
+            "type": "boolean",
+            "title": "Cache Hit"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          },
+          "error": {
+            "type": "string",
+            "title": "Error"
+          },
+          "outcome_reason": {
+            "type": "string",
+            "title": "Outcome Reason"
+          },
+          "partial_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Partial Reasons"
+          },
+          "started_at": {
+            "type": "string",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "title": "Finished At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "method_id",
+          "input_ioc",
+          "status",
+          "outputs",
+          "evidence",
+          "accepted",
+          "rejected",
+          "responses",
+          "transport_errors",
+          "cache_hit",
+          "complete",
+          "error",
+          "outcome_reason",
+          "partial_reasons",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "LookupRecord"
+      },
+      "MethodRow": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "input_type": {
+            "type": "string",
+            "title": "Input Type"
+          },
+          "output_type": {
+            "type": "string",
+            "title": "Output Type"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "operation": {
+            "type": "string",
+            "title": "Operation"
+          },
+          "unavailable_reason": {
+            "type": "string",
+            "title": "Unavailable Reason"
+          },
+          "baseline": {
+            "type": "boolean",
+            "title": "Baseline"
+          },
+          "implemented": {
+            "type": "boolean",
+            "title": "Implemented"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "availability": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Availability"
+          },
+          "selectable": {
+            "type": "boolean",
+            "title": "Selectable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "input_type",
+          "output_type",
+          "source",
+          "operation",
+          "unavailable_reason",
+          "baseline",
+          "implemented",
+          "description",
+          "availability",
+          "selectable"
+        ],
+        "title": "MethodRow"
+      },
+      "NodeMethods": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "node_id": {
+            "type": "string",
+            "title": "Node Id"
+          },
+          "execution_allowed": {
+            "type": "boolean",
+            "title": "Execution Allowed"
+          },
+          "execution_block_reason": {
+            "type": "string",
+            "title": "Execution Block Reason"
+          },
+          "methods": {
+            "items": {
+              "$ref": "#/components/schemas/MethodRow"
+            },
+            "type": "array",
+            "title": "Methods"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "node_id",
+          "execution_allowed",
+          "execution_block_reason",
+          "methods"
+        ],
+        "title": "NodeMethods"
+      },
+      "Passage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "sentence_index": {
+            "type": "integer",
+            "title": "Sentence Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "sentence_index"
+        ],
+        "title": "Passage"
+      },
+      "Report": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "original_text": {
+            "type": "string",
+            "title": "Original Text"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "ingested_at": {
+            "type": "string",
+            "title": "Ingested At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "original_text",
+          "sha256",
+          "ingested_at"
+        ],
+        "title": "Report"
+      },
+      "RunConfig": {
+        "properties": {
+          "max_steps": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Steps",
+            "default": 20
+          },
+          "max_nodes": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Nodes",
+            "default": 1000
+          },
+          "max_seconds": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Seconds",
+            "default": 600.0
+          },
+          "max_pages": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Pages",
+            "default": 2
+          },
+          "max_outputs": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Outputs",
+            "default": 1000
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "live",
+              "replay"
+            ],
+            "title": "Mode"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "title": "RunConfig"
+      },
+      "RunMetadata": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "extracting",
+              "ready",
+              "running",
+              "completed",
+              "cancelled",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "live",
+              "replay"
+            ],
+            "title": "Mode"
+          },
+          "policy": {
+            "type": "string",
+            "title": "Policy"
+          },
+          "config": {
+            "$ref": "#/components/schemas/RunConfig"
+          },
+          "graph_revision": {
+            "type": "integer",
+            "title": "Graph Revision"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "elapsed_seconds": {
+            "type": "number",
+            "title": "Elapsed Seconds"
+          },
+          "stop_reason": {
+            "type": "string",
+            "title": "Stop Reason"
+          },
+          "diagnostics": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Diagnostics"
+          },
+          "extraction_options": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Extraction Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "mode",
+          "policy",
+          "config",
+          "graph_revision",
+          "created_at",
+          "updated_at",
+          "elapsed_seconds",
+          "stop_reason",
+          "diagnostics",
+          "extraction_options"
+        ],
+        "title": "RunMetadata"
+      },
+      "SourceSnapshot": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "format": {
+            "type": "string",
+            "title": "Format"
+          },
+          "transport": {
+            "type": "string",
+            "title": "Transport"
+          },
+          "fetched_at": {
+            "type": "string",
+            "title": "Fetched At"
+          },
+          "status_code": {
+            "type": "integer",
+            "title": "Status Code"
+          },
+          "diagnostics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Diagnostics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "body",
+          "format",
+          "transport",
+          "fetched_at",
+          "status_code",
+          "diagnostics"
+        ],
+        "title": "SourceSnapshot"
+      },
+      "Step": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "input_node_id": {
+            "type": "string",
+            "title": "Input Node Id"
+          },
+          "method_id": {
+            "type": "string",
+            "title": "Method Id"
+          },
+          "lookup_id": {
+            "type": "string",
+            "title": "Lookup Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "title": "Finished At"
+          },
+          "outcome_status": {
+            "type": "string",
+            "title": "Outcome Status"
+          },
+          "admission": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Admission"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delta": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Delta"
+          },
+          "error": {
+            "type": "string",
+            "title": "Error"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "lookup": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LookupRecord"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sequence",
+          "input_node_id",
+          "method_id",
+          "lookup_id",
+          "status",
+          "started_at",
+          "finished_at",
+          "outcome_status",
+          "admission",
+          "delta",
+          "error",
+          "run_id",
+          "lookup"
+        ],
+        "title": "Step"
+      },
+      "StepDetail": {
+        "properties": {
+          "step": {
+            "$ref": "#/components/schemas/Step"
+          },
+          "snapshots": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SourceSnapshot"
+            },
+            "type": "object",
+            "title": "Snapshots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "step",
+          "snapshots"
+        ],
+        "title": "StepDetail"
+      },
+      "StepExecution": {
+        "properties": {
+          "step": {
+            "$ref": "#/components/schemas/Step"
+          },
+          "run": {
+            "$ref": "#/components/schemas/RunMetadata"
+          },
+          "graph": {
+            "$ref": "#/components/schemas/Graph"
+          },
+          "replayed": {
+            "type": "boolean",
+            "title": "Replayed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "step",
+          "run",
+          "graph",
+          "replayed"
+        ],
+        "title": "StepExecution"
+      },
+      "StepSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "input_node_id": {
+            "type": "string",
+            "title": "Input Node Id"
+          },
+          "method_id": {
+            "type": "string",
+            "title": "Method Id"
+          },
+          "lookup_id": {
+            "type": "string",
+            "title": "Lookup Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "title": "Finished At"
+          },
+          "outcome_status": {
+            "type": "string",
+            "title": "Outcome Status"
+          },
+          "admission": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Admission"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delta": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Delta"
+          },
+          "error": {
+            "type": "string",
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sequence",
+          "input_node_id",
+          "method_id",
+          "lookup_id",
+          "status",
+          "started_at",
+          "finished_at",
+          "outcome_status",
+          "admission",
+          "delta",
+          "error"
+        ],
+        "title": "StepSummary"
+      },
+      "HubUnavailable": {
+        "type": "object",
+        "title": "HubUnavailable",
+        "properties": {
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Hub development server; change to your deployment"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Existing Next.js development proxy"
+    }
+  ]
+}

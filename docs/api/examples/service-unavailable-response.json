@@ -1,9 +1,0 @@
-{
-  "error": {
-    "code": "ioc_service_unavailable",
-    "message": "The IOC service is unavailable.",
-    "run_id": null,
-    "step_id": null,
-    "details": {}
-  }
-}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "not_found",
+    "message": "Investigation not found.",
+    "run_id": "5d993f8359fd450e80b17aa7edf4aa2d",
+    "step_id": null,
+    "details": {}
+  }
+}

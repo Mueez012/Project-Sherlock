@@ -41,21 +41,6 @@ class _ExtractResponse(BaseModel):
     sentence_matches: list[list[tuple[str, str]]]
 
 
-class _NativeExtractionResponse(BaseModel):
-    original_text: str
-    sentences: list[str]
-    matches: list[list[tuple[str, str]]]
-    iocs: list[_NativeIOC]
-
-
-class NativeExtraction(BaseModel):
-    """IOC Hunter's authoritative sentence array and its retained indicators."""
-
-    original_text: str
-    sentences: list[str]
-    iocs: list[IOC]
-
-
 class IOCServiceExtractor:
     def __init__(
         self,
@@ -72,39 +57,6 @@ class IOCServiceExtractor:
 
     def _client(self, timeout_s: float) -> httpx.Client:
         return httpx.Client(base_url=self._base_url, timeout=timeout_s, transport=self._transport)
-
-    def extract_native(self, text: str) -> NativeExtraction:
-        """Extract first; callers pass these exact saved-basis sentences to TTP."""
-        try:
-            with self._client(self._timeout_s) as client:
-                response = client.post(EXTRACT_PATH, json={"text": text, "extended_types": self._extended_types})
-                response.raise_for_status()
-            body = _NativeExtractionResponse.model_validate_json(response.content)
-            if len(body.matches) != len(body.sentences):
-                raise ServiceError("ioc", "native matches and sentences have different lengths")
-            retained = {(ioc.type, ioc.value): [] for ioc in body.iocs}
-            for index, matches in enumerate(body.matches):
-                for pair in dict.fromkeys(matches):
-                    if pair in retained:
-                        retained[pair].append(index)
-            return NativeExtraction(
-                original_text=body.original_text,
-                sentences=body.sentences,
-                iocs=[
-                    IOC(
-                        type=ioc.type,
-                        value=ioc.value,
-                        sentence_indices=retained[(ioc.type, ioc.value)],
-                        context=ioc.context,
-                        source=ioc.source,
-                    )
-                    for ioc in body.iocs
-                ],
-            )
-        except httpx.HTTPError as exc:
-            raise ServiceError("ioc", f"{type(exc).__name__}: {exc}") from exc
-        except ValidationError as exc:
-            raise ServiceError("ioc", f"malformed answer: {exc.errors()[0]['msg']}") from exc
 
     def extract(self, sentences: list[str], text: str | None = None) -> list[IOC]:
         # Pre-split input (a D2 report sent as sentences) has no original text; one sentence per line keeps every

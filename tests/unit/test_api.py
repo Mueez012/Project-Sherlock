@@ -66,35 +66,8 @@ def test_real_ioc_with_stub_ttp_sends_the_original_text(monkeypatch):
     assert r.status_code == 200
     body = r.json()
     assert body["mode"] == "mixed"
-    assert seen["body"] == {"text": text, "extended_types": False}
-    assert body["sentences"] == IOC_FIXTURE["response"]["sentences"]
-    assert {i["value"]: i["sentence_indices"] for i in body["iocs"]}["185.220.101.4"] == [1, 6]
-
-
-def test_real_ioc_sentences_are_passed_unchanged_to_ttp(monkeypatch):
-    monkeypatch.setenv("TM_IOC_MODE", "real")
-    monkeypatch.setenv("TM_TTP_MODE", "real")
-    calls = []
-
-    def handler(request):
-        calls.append("ioc")
-        return httpx.Response(200, json=IOC_FIXTURE["response"])
-
-    transport = httpx.MockTransport(handler)
-    monkeypatch.setattr(
-        main, "IOCServiceExtractor", lambda url, timeout, **kw: IOCServiceExtractor(url, timeout, transport, **kw)
-    )
-
-    class TTP:
-        def predict(self, sentences):
-            calls.append(("ttp", sentences))
-            return []
-
-    monkeypatch.setattr(main, "TTPServiceExtractor", lambda *args: TTP())
-    response = client.post("/api/analyze", json={"text": IOC_FIXTURE["request"]["text"]})
-    assert response.status_code == 200
-    assert calls == ["ioc", ("ttp", IOC_FIXTURE["response"]["sentences"])]
-    assert response.json()["sentences"] == calls[1][1]
+    assert seen["body"] == {"text": text, "sentences": body["sentences"], "extended_types": False}
+    assert {i["value"]: i["sentence_indices"] for i in body["iocs"]}["185.220.101.4"] == [2, 7]
 
 
 def test_real_ttp_with_stub_ioc_is_mixed_mode(monkeypatch):
