@@ -19,6 +19,7 @@ const respond = (body: unknown, status: number) => new Response(JSON.stringify(b
 
 async function fill(user: ReturnType<typeof userEvent.setup>, text = "Mimikatz dumped LSASS.") {
   await user.type(screen.getByLabelText(/incident name/i), "Op");
+  await user.click(screen.getByRole("tab", { name: /paste text/i }));
   await user.type(screen.getByLabelText(/report text/i), text);
   await user.click(screen.getByRole("button", { name: /analyse report/i }));
 }
@@ -29,7 +30,38 @@ describe("AnalyzeDialog", () => {
     const { user } = setup();
     await user.click(screen.getByRole("button", { name: /analyse report/i }));
     expect(screen.getByText("Give the incident a name.")).toBeInTheDocument();
+    expect(screen.getByText("Choose a report file.")).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /paste text/i }));
+    await user.click(screen.getByRole("button", { name: /analyse report/i }));
     expect(screen.getByText("Paste some report text first.")).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("uploads a report file, keeps its name and the pages, and closes", async () => {
+    const text = "The actor ran Mimikatz on the host.";
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(respond({
+      mode: "stub", sentences: [text], ttps: [{ technique_id: "T1003", score: 1, sentence_index: 0 }], iocs: [],
+      cskg: null, attribution: null, text, spans: [{ start: 0, end: text.length, page: 1 }], declared_ttps: [], warnings: [],
+    }, 200));
+    const { user, onClose } = setup();
+    await user.type(screen.getByLabelText(/incident name/i), "Op");
+    await user.upload(screen.getByLabelText(/drop a report here/i), new File(["%PDF"], "report.pdf", { type: "application/pdf" }));
+    expect(screen.getByText("report.pdf")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /analyse report/i }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/analyze/file", expect.objectContaining({ method: "POST" }));
+    expect(onClose).toHaveBeenCalled();
+    const stored = parseResult(readStoredResult());
+    expect(stored?.document).toMatchObject({ filename: "report.pdf", pages: 1, text });
+  });
+
+  it("refuses an unsupported file before sending it", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    const user = userEvent.setup({ applyAccept: false });  // a dropped file skips the picker's type filter
+    render(<AnalyzeDialog open onClose={vi.fn()} />);
+    await user.type(screen.getByLabelText(/incident name/i), "Op");
+    await user.upload(screen.getByLabelText(/drop a report here/i), new File(["MZ"], "tool.exe"));
+    await user.click(screen.getByRole("button", { name: /analyse report/i }));
+    expect(screen.getByText(/files are not supported/)).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

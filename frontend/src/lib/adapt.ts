@@ -56,13 +56,16 @@ function evidenceFor(scores: Map<number, number>, sentences: Sentence[]): Eviden
     .sort(([ia, pa], [ib, pb]) => pb - pa || ia - ib)
     .map(([index, p]) => {
       const s = sentences[index];
-      return { sentence_index: index, text: s.text, probability: p, char_start: s.char_start, char_end: s.char_end, page: null };
+      return { sentence_index: index, text: s.text, probability: p, char_start: s.char_start, char_end: s.char_end, page: s.page ?? null };
     });
 }
 
 export interface AdaptInput {
-  /** The text the user sent. */
+  /** The text the user sent (for a file, the hub's answer carries the text it read instead). */
   text: string;
+  /** The uploaded file's name and size, if the report came as a file. */
+  filename?: string | null;
+  sizeBytes?: number | null;
   incidentName: string;
   response: AnalyzeResponse;
   /** Wall-clock time of the request, measured by the browser. */
@@ -70,13 +73,27 @@ export interface AdaptInput {
   id?: string;
 }
 
-export function toAnalysisResult({ text, incidentName, response, processingMs, id }: AdaptInput): AnalysisResult {
+/**
+ * Where each sentence is: the hub's own positions when it sends them (they index response.text), otherwise found by
+ * searching the text (older answers, pre-split input).
+ */
+function placeSentences(text: string, response: AnalyzeResponse) {
+  const spans = response.spans ?? null;
+  if (response.text != null && spans && spans.length === response.sentences.length) {
+    return { text: response.text, spans: spans.map((s) => [s.start, s.end] as [number, number]),
+      pages: spans.map((s) => s.page ?? null) };
+  }
   const located = locateSentences(text, response.sentences);
+  return { ...located, pages: response.sentences.map(() => null) };
+}
+
+export function toAnalysisResult({ text, incidentName, response, processingMs, id, filename, sizeBytes }: AdaptInput): AnalysisResult {
+  const located = placeSentences(text, response);
   const byLabel = bestPerSentence(response.ttps);
 
   const sentences: Sentence[] = response.sentences.map((s, index) => ({
-    index, text: s, char_start: located.spans[index][0], char_end: located.spans[index][1], page: null, skipped: null,
-    labels: [],
+    index, text: s, char_start: located.spans[index][0], char_end: located.spans[index][1], page: located.pages[index],
+    skipped: null, labels: [],
   }));
   for (const [label, scores] of byLabel) {
     for (const [index, p] of scores) sentences[index]?.labels.push({ id: label, p, passed: true });
@@ -150,15 +167,17 @@ export function toAnalysisResult({ text, incidentName, response, processingMs, i
   const warnings: string[] = [];
   if (response.mode === "stub") warnings.push(STUB_WARNING);
   else if (response.mode !== "real") warnings.push(MIXED_WARNING);
+  warnings.push(...(response.warnings ?? []));
+  const pages = located.pages.filter((p): p is number => p != null);
 
   return {
     id: id ?? `local-${Date.now()}`,
     incident_name: incidentName,
     processing_ms: processingMs,
     document: {
-      filename: null,
-      size_bytes: new TextEncoder().encode(located.text).length,
-      pages: null,
+      filename: filename ?? null,
+      size_bytes: sizeBytes ?? new TextEncoder().encode(located.text).length,
+      pages: pages.length ? Math.max(...pages) : null,
       n_sentences: sentences.length,
       n_sentences_analyzed: sentences.length,
       text: located.text,

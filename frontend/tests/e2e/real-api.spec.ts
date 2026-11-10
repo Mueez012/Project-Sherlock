@@ -14,6 +14,7 @@ test("@real analyse a report through the real hub", async ({ page, request }, in
   await page.goto("/");
   await page.getByRole("button", { name: "New analysis" }).click();
   await page.getByLabel("Incident name").fill("Real hub E2E");
+  await page.getByRole("tab", { name: "Paste text" }).click();
   await page.getByLabel("Report text").fill(REPORT);
   await page.getByRole("button", { name: /analyse report/i }).click();
   await expect(page).toHaveURL(/\/result$/);

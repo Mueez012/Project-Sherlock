@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, ERROR_MESSAGES, analyze, errorFromResponse, messageFor } from "./client";
+import { ApiError, ERROR_MESSAGES, analyze, analyzeFile, errorFromResponse, messageFor } from "./client";
 
 afterEach(() => { vi.restoreAllMocks(); });
 
@@ -42,5 +42,25 @@ describe("analyze", () => {
     const err = await analyze("A.").catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect((err as ApiError).code).toBe("network");
+  });
+});
+
+describe("file errors", () => {
+  it("reads the hub's file error codes", () => {
+    expect(errorFromResponse(422, { detail: "no_text_layer: the PDF has no text layer" }).message).toBe(ERROR_MESSAGES.no_text_layer);
+    expect(errorFromResponse(422, { detail: "unsupported_file: unsupported file type '.exe'" }).code).toBe("unsupported_file");
+    expect(errorFromResponse(413, { detail: "the file is larger than 20 MB" }).message).toBe(ERROR_MESSAGES.file_too_large);
+  });
+});
+
+describe("analyzeFile", () => {
+  it("posts the file as form data to /api/analyze/file", async () => {
+    const answer = { mode: "stub", sentences: [], ttps: [], iocs: [], text: "", spans: [] };
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(respond(answer, 200));
+    const file = new File(["The actor used PowerShell."], "report.txt", { type: "text/plain" });
+    await expect(analyzeFile(file)).resolves.toEqual(answer);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/api/analyze/file");
+    expect((init?.body as FormData).get("file")).toBe(file);
   });
 });

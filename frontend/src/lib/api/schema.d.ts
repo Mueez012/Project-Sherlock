@@ -4,6 +4,143 @@
  */
 
 export interface paths {
+    "/api/investigations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Investigations */
+        get: operations["list_investigations_api_investigations_get"];
+        put?: never;
+        /** Create */
+        post: operations["create_api_investigations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigations/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read */
+        get: operations["read_api_investigations__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigations/{run_id}/nodes/{node_id}/methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Methods */
+        get: operations["methods_api_investigations__run_id__nodes__node_id__methods_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigations/{run_id}/steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute */
+        post: operations["execute_api_investigations__run_id__steps_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigations/{run_id}/steps/{step_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Step */
+        get: operations["step_api_investigations__run_id__steps__step_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigations/{run_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume */
+        post: operations["resume_api_investigations__run_id__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigations/{run_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close */
+        post: operations["close_api_investigations__run_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/investigations/{run_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export */
+        get: operations["export_api_investigations__run_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -38,6 +175,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/analyze/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyze File
+         * @description A report file: PDF, DOCX, HTML, Markdown, TXT or a STIX 2.1 bundle, up to 20 MB.
+         */
+        post: operations["analyze_file_api_analyze_file_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -59,7 +216,13 @@ export interface components {
             /** Sentences */
             sentences?: string[] | null;
         };
-        /** AnalyzeResponse */
+        /**
+         * AnalyzeResponse
+         * @description sentences is the timeline: real sentences only, in order (headings, indicator lists and fragments are left
+         *     out). TTP sentence_index and IOC sentence_indices count into it. text is the text that spans index (the file's
+         *     extracted text, or the text sent); both are None for pre-split input. declared_ttps lists the ATT&CK ids a STIX
+         *     bundle declares, which the model never sees. warnings are the file reader's notes (e.g. page headers removed).
+         */
         AnalyzeResponse: {
             /** Mode */
             mode: string;
@@ -71,6 +234,14 @@ export interface components {
             iocs: components["schemas"]["IOC"][];
             cskg?: components["schemas"]["CSKG"] | null;
             attribution?: components["schemas"]["Attribution"] | null;
+            /** Text */
+            text?: string | null;
+            /** Spans */
+            spans?: components["schemas"]["SentenceSpan"][] | null;
+            /** Declared Ttps */
+            declared_ttps?: string[];
+            /** Warnings */
+            warnings?: string[];
         };
         /** Attribution */
         Attribution: {
@@ -78,6 +249,11 @@ export interface components {
             ranked: components["schemas"]["ActorScore"][];
             /** Model */
             model: string;
+        };
+        /** Body_analyze_file_api_analyze_file_post */
+        Body_analyze_file_api_analyze_file_post: {
+            /** File */
+            file: string;
         };
         /**
          * CSKG
@@ -109,9 +285,11 @@ export interface components {
          * IOC
          * @description One indicator of compromise.
          *
-         *     sentence_indices are the hub's sentence numbers: every sentence the indicator appears in, sorted. It is empty
-         *     for an indicator found by an online lookup rather than in the text. context and source are the extractor's
-         *     own; for IOC-hunter, context is the sentences of its own splitter where it found the indicator.
+         *     sentence_indices are timeline sentence numbers: every sentence the indicator appears in, sorted. An indicator
+         *     that appears only outside sentences (an indicator list, a heading) belongs to the nearest sentence before it,
+         *     the paper's positional dependency. It is empty for an indicator found by an online lookup rather than in the
+         *     text. context and source are the extractor's own; for IOC-hunter, context is the sentences where it found the
+         *     indicator.
          */
         IOC: {
             type: components["schemas"]["IOCType"];
@@ -155,6 +333,18 @@ export interface components {
          */
         NodeType: "IOC" | "TTP" | "SEQ";
         /**
+         * SentenceSpan
+         * @description Where a timeline sentence sits in the analysed text: text[start:end], and its page for a PDF.
+         */
+        SentenceSpan: {
+            /** Start */
+            start: number;
+            /** End */
+            end: number;
+            /** Page */
+            page?: number | null;
+        };
+        /**
          * TTPHit
          * @description One ATT&CK label found in one sentence: a technique (T1566) or a tactic (TA0001), never a sub-technique.
          */
@@ -188,6 +378,265 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_investigations_api_investigations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    create_api_investigations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    read_api_investigations__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    methods_api_investigations__run_id__nodes__node_id__methods_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                node_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    execute_api_investigations__run_id__steps_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    step_api_investigations__run_id__steps__step_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                step_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_api_investigations__run_id__resume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_api_investigations__run_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_api_investigations__run_id__export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_health_get: {
         parameters: {
             query?: never;
@@ -220,6 +669,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AnalyzeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyzeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyze_file_api_analyze_file_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_analyze_file_api_analyze_file_post"];
             };
         };
         responses: {

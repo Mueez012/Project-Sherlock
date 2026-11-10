@@ -113,3 +113,34 @@ describe("toAnalysisResult", () => {
     expect(adapt(response({ mode: "mixed" })).warnings).toEqual([MIXED_WARNING]);
   });
 });
+
+describe("positions from the hub", () => {
+  const fileText = "Technical Analysis\nThe actor sent spear-phishing emails.\nIndicators:\nevil[.]com\nThe loader ran PowerShell.";
+  const hubAnswer = {
+    mode: "real", sentences: ["The actor sent spear-phishing emails.", "The loader ran PowerShell."],
+    ttps: [{ technique_id: "T1566", score: 0.9, sentence_index: 0 }],
+    iocs: [{ type: "domain", value: "evil.com", sentence_indices: [0], context: [], source: "IOC-hunter" }],
+    cskg: null, attribution: null, text: fileText,
+    spans: ["The actor sent spear-phishing emails.", "The loader ran PowerShell."].map((s, i) => ({
+      start: fileText.indexOf(s), end: fileText.indexOf(s) + s.length, page: i + 1,
+    })),
+    declared_ttps: [], warnings: ["1 repeated page header/footer line(s) removed"],
+  } as AnalyzeResponse;
+
+  it("uses the hub's text and positions, pages, file name and the reader's notes", () => {
+    const result = toAnalysisResult({ text: "", incidentName: "Op", response: hubAnswer, processingMs: 5, filename: "r.pdf", sizeBytes: 2048 });
+    expect(result.document.text).toBe(fileText);
+    expect(result.sentences.map((s) => fileText.slice(s.char_start, s.char_end))).toEqual(hubAnswer.sentences);
+    expect(result.sentences.map((s) => s.page)).toEqual([1, 2]);
+    expect(result.document).toMatchObject({ filename: "r.pdf", size_bytes: 2048, pages: 2 });
+    expect(result.warnings).toContain("1 repeated page header/footer line(s) removed");
+    expect(result.techniques[0].evidence[0].page).toBe(1);
+  });
+
+  it("falls back to searching the text when the hub sends no positions", () => {
+    const older = { ...hubAnswer, spans: undefined, text: undefined } as AnalyzeResponse;
+    const result = toAnalysisResult({ text: fileText, incidentName: "Op", response: older, processingMs: 5 });
+    expect(result.sentences.map((s) => fileText.slice(s.char_start, s.char_end))).toEqual(hubAnswer.sentences);
+    expect(result.document.pages).toBeNull();
+  });
+});

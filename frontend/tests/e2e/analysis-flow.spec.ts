@@ -10,6 +10,7 @@ async function analyse(page: Page) {
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await dialog.getByLabel("Incident name").fill("E2E incident");
+  await dialog.getByRole("tab", { name: "Paste text" }).click();
   await dialog.getByLabel("Report text").fill(REPORT);
   await dialog.getByRole("button", { name: /analyse report/i }).click();
 }
