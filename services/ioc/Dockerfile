@@ -25,8 +25,14 @@ COPY pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install -r pyproject.toml --extra extraction --extra browser --extra mcp --extra api "setuptools>=68"
 
-# 2. Bookworm provides the system libraries supported by Playwright's installer.
-RUN playwright install --with-deps chromium \
+# 2. Chromium and its system libraries (Bookworm has the ones Playwright's installer supports). Playwright's own
+#    Node needs libatomic1 before it can run at all (since Playwright 1.65), so that one goes in first. Like the
+#    packages --with-deps installs, it follows Bookworm's security updates instead of a fixed version.
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libatomic1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && playwright install --with-deps chromium \
     && chmod -R a+rx /ms-playwright
 
 # 3. The code; setuptools (pyproject.toml's build backend) came with step 1, so this needs no network.
