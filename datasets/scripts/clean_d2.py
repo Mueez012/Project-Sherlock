@@ -186,17 +186,10 @@ groups = sorted(top25, key=lambda g: -counts[g])
 label = {g: k for k, g in enumerate(groups)}
 
 
-def sentences(
-    t,
-):  # split at line breaks, then after . ! ? followed by a space and a capital/digit/quote
-    out = []
-    for line in t.split("\n"):
-        out += [
-            s.strip()
-            for s in re.split(r"(?<=[.!?])\s+(?=[A-Z0-9\"“(])", line)
-            if s.strip()
-        ]
-    return out
+# The timeline: the hub's splitter, so D2 and live reports are cut identically (src/threatmamba/text.py: NLTK punkt,
+# real sentences only). Run from the repo with `uv run`, so threatmamba and its pinned nltk are importable.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
+from threatmamba.text import split_sentences as sentences  # noqa: E402
 
 
 OUT = "d2_model_ready"

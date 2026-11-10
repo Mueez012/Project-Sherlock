@@ -26,7 +26,7 @@ from pydantic import BaseModel, Field
 
 from .extraction import extract_report
 from .config import resolve_store_directory
-from .extraction.pipeline import create_sentencizer, find_sentence_iocs
+from .extraction.pipeline import find_sentence_iocs
 from .lookup import LookupClient
 from .methods import list_methods
 from .models import IOC
@@ -39,7 +39,6 @@ except PackageNotFoundError:
     VERSION = "0.0.0"
 
 app = FastAPI(title="IOC Hunter", version=VERSION)
-NLP = create_sentencizer()  # Reusable sentencizer for batch work.
 _client: LookupClient | None = None
 
 
@@ -80,7 +79,6 @@ def extract(req: ExtractRequest) -> dict:
             extract_report(
                 req.text,
                 source=req.source,
-                nlp=NLP,
                 include_references=req.include_references,
                 extended_types=req.extended_types,
             )

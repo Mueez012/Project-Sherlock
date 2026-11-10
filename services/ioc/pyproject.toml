@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
-extraction = ["ioc-finder>=7,<9", "spacy>=3.8,<4", "openpyxl>=3.1,<4"]
+extraction = ["ioc-finder>=7,<9", "nltk==3.10.3", "openpyxl>=3.1,<4"]  # nltk pinned: same splits as the hub
 browser = ["playwright>=1.45,<2"]
 mcp = ["mcp>=1.12,<2"]
 api = ["fastapi>=0.115", "uvicorn[standard]>=0.30"]
@@ -21,3 +21,6 @@ ioc-hunter-mcp = "ioc_hunter.mcp_server:main"
 
 [tool.setuptools.packages.find]
 include = ["ioc_hunter*"]
+
+[tool.setuptools.package-data]
+ioc_hunter = ["data/punkt_tab/README", "data/punkt_tab/english/*"]

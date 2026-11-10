@@ -3,11 +3,11 @@ r"""Interactive CTI -> sentences -> IOC matches -> IOC dataclass objects.
 Run from any directory with this project's Python environment:
     .venv\Scripts\python.exe -m ioc_hunter.interactive_extraction
 
-Uses spaCy (text processing), not Scapy (packet processing). No language-model
-download, LLM, external intelligence calls, or existing hunter code is needed.
-The context contains only original sentences that produced this IOC. URL
-punctuation follows IOCFinder's output; review the displayed matches because
-a terminal period can be ambiguous between prose and a legitimate URL path.
+Sentences are cut by ioc_hunter.text, the hub's splitter (NLTK punkt with stored
+data). No model download, LLM, external intelligence calls, or existing hunter
+code is needed. An IOC's context is the sentence it appeared in, or for an IOC
+in an indicator list, the nearest sentence before it. A URL's trailing full stop
+or comma is dropped (canonical_value), since it belongs to the sentence.
 """
 
 from __future__ import annotations

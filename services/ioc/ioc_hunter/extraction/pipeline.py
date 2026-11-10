@@ -1,8 +1,13 @@
-"""Reusable report extraction. No console I/O, network calls or graph state."""
+"""Reusable report extraction. No console I/O, network calls or graph state.
+
+Sentences are cut by ioc_hunter.text, a byte-identical copy of the hub's splitter (src/threatmamba/text.py), so a
+report is cut into exactly the same units here and in the hub.
+"""
 from dataclasses import dataclass
 from ipaddress import ip_address
 import re
 from ..models import IOC
+from ..text import attach, segment
 
 IOC_TYPES = {
     "domains": "domain", "ipv4s": "ipv4", "ipv6s": "ipv6",
@@ -23,11 +28,8 @@ TECHNICAL_TITLES = (
 
 
 def create_sentencizer():
-    import spacy
-
-    nlp = spacy.blank("en")
-    nlp.add_pipe("sentencizer")
-    return nlp
+    """Kept for existing callers. The shared splitter needs no model, so there is nothing to create."""
+    return None
 
 def heading_text(line: str) -> str:
     """Recognize explicit headings, including simple Markdown and numbering."""
@@ -85,26 +87,21 @@ def is_indicator_list_line(line: str) -> bool:
     return bool(re.fullmatch(rf"{token}(?:\s+\([^\n]*\))?[,;]?", value)
                 or re.fullmatch(r"(?:TOR:)?h(?:tt|xx)ps?://\S+", value, re.I))
 
-def split_sentences(report: str, nlp) -> list[str]:
-    """Use spaCy inside paragraphs; give standalone IOC rows their own context."""
-    nlp.max_length = max(nlp.max_length, len(report) + 1)
-    boundaries = {0, len(report)}
-    offset = 0
-    for line in report.splitlines(keepends=True):
-        if not line.strip() or is_indicator_list_line(line):
-            boundaries.update((offset, offset + len(line)))
-        # A URL at the end of a line must not absorb the next paragraph as context.
-        if re.search(r"\bh(?:tt|xx)ps?://\S+$", line.strip(), re.I):
-            boundaries.add(offset + len(line))
-        offset += len(line)
-    cuts = sorted(boundaries)
-    sentences = []
-    for start, end in zip(cuts, cuts[1:]):
-        block = report[start:end]
-        if block.strip():
-            sentences.extend(sentence.text.strip() for sentence in nlp(block).sents
-                             if sentence.text.strip())
-    return sentences
+def split_sentences(report: str, nlp=None) -> list[str]:
+    """Every unit of the report in order (sentences, headings, indicator lines), cut by the hub's splitter.
+
+    IOCs are found in every unit; only units of kind "sentence" form the hub's timeline. `nlp` is ignored.
+    """
+    return [unit.text for unit in segment(report)]
+
+
+def passage_contexts(report: str) -> list[str]:
+    """For each unit, the passage an IOC found in it takes as context (paper III-A1): the unit itself if it is a
+    sentence, otherwise the nearest sentence before it, as the hub attaches it to the timeline."""
+    units = segment(report)
+    sentences = [unit.text for unit in units if unit.kind == "sentence"]
+    return [unit.text if number is None else sentences[number] for unit, number in zip(units, attach(units))]
+
 
 def is_software_version(value: str, sentence: str) -> bool:
     """Suppress an IPv4-shaped value only when every occurrence is a version.
@@ -137,6 +134,9 @@ def canonical_value(kind: str, value: str) -> str:
     if kind in {"email", "cve"}:
         from ..models import normalize
         return normalize(kind, value)
+    if kind == "url":
+        # A URL at the end of a sentence picks up its full stop or comma ("from hxxp://x[.]net/a.bin.").
+        return value.rstrip(".,;:")
     # Preserve URL path/query case. IOCFinder handles defanging.
     return value
 
@@ -157,17 +157,21 @@ def find_sentence_iocs(sentences: list[str], *, extended: bool = False) -> list[
         results.append(sorted(matches))
     return results
 
-def build_iocs(sentences: list[str], matches: list[list[tuple[str, str]]], source: str) -> list[IOC]:
-    """Merge repeated IOCs within this report and append their matching sentences."""
-    if len(sentences) != len(matches):
+def build_iocs(sentences: list[str], matches: list[list[tuple[str, str]]], source: str,
+               contexts: list[str] | None = None) -> list[IOC]:
+    """Merge repeated IOCs within this report and append their context: the matching unit, or contexts[i] for
+    unit i when given (see passage_contexts)."""
+    contexts = sentences if contexts is None else contexts
+    if not len(sentences) == len(matches) == len(contexts):
         raise ValueError("Each sentence must have a corresponding match list.")
     objects: dict[tuple[str, str], IOC] = {}
-    for sentence, sentence_matches in zip(sentences, matches):
+    for context, sentence_matches in zip(contexts, matches):
         for kind, value in dict.fromkeys(sentence_matches):
             key = (kind, value)
             if key not in objects:
                 objects[key] = IOC(value=value, type=kind, source=source)
-            objects[key].context.append(sentence)
+            if context not in objects[key].context:
+                objects[key].context.append(context)
     return list(objects.values())
 
 @dataclass
@@ -186,13 +190,13 @@ def extract_report(report: str, *, source: str = "cti report", nlp=None,
                    extended_types: bool = False) -> ExtractionResult:
     """Run the same extraction stages used by interactive review, without prompts.
 
-    Pass a reusable sentencizer for batch work. Empty text returns an empty
+    `nlp` is ignored (kept for existing callers). Empty text returns an empty
     result; invalid non-string input raises ValueError.
     """
     if not isinstance(report, str):
         raise ValueError("Report must be text")
     body, excluded = (report, []) if include_references else filter_report_sections(report)
-    sentences = split_sentences(body, nlp if nlp is not None else create_sentencizer())
+    sentences = split_sentences(body)
     matches = find_sentence_iocs(sentences, extended=extended_types)
     return ExtractionResult(source, report, body, excluded, sentences, matches,
-                            build_iocs(sentences, matches, source))
+                            build_iocs(sentences, matches, source, passage_contexts(body)))

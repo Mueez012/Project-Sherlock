@@ -59,9 +59,11 @@ class IOCType(StrEnum):
 class IOC(BaseModel):
     """One indicator of compromise.
 
-    sentence_indices are the hub's sentence numbers: every sentence the indicator appears in, sorted. It is empty
-    for an indicator found by an online lookup rather than in the text. context and source are the extractor's
-    own; for IOC-hunter, context is the sentences of its own splitter where it found the indicator.
+    sentence_indices are timeline sentence numbers: every sentence the indicator appears in, sorted. An indicator
+    that appears only outside sentences (an indicator list, a heading) belongs to the nearest sentence before it,
+    the paper's positional dependency. It is empty for an indicator found by an online lookup rather than in the
+    text. context and source are the extractor's own; for IOC-hunter, context is the sentences where it found the
+    indicator.
     """
 
     type: IOCType
@@ -136,10 +138,28 @@ class AnalyzeRequest(BaseModel):
         return self
 
 
+class SentenceSpan(BaseModel):
+    """Where a timeline sentence sits in the analysed text: text[start:end], and its page for a PDF."""
+
+    start: int = Field(ge=0)
+    end: int = Field(ge=0)
+    page: int | None = Field(default=None, ge=1)
+
+
 class AnalyzeResponse(BaseModel):
+    """sentences is the timeline: real sentences only, in order (headings, indicator lists and fragments are left
+    out). TTP sentence_index and IOC sentence_indices count into it. text is the text that spans index (the file's
+    extracted text, or the text sent); both are None for pre-split input. declared_ttps lists the ATT&CK ids a STIX
+    bundle declares, which the model never sees. warnings are the file reader's notes (e.g. page headers removed).
+    """
+
     mode: str
     sentences: list[str]
     ttps: list[TTPHit]
     iocs: list[IOC]
     cskg: CSKG | None = None
     attribution: Attribution | None = None
+    text: str | None = None
+    spans: list[SentenceSpan] | None = None
+    declared_ttps: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)

@@ -16,7 +16,8 @@ def test_health():
 
 
 def test_analyze_end_to_end():
-    r = httpx.post(f"{BASE}/api/analyze", json={"text": "Spear-phishing email. Mimikatz dumped LSASS."}, timeout=30)
+    text = "A spear-phishing email reached the finance team. Then Mimikatz dumped LSASS credentials."
+    r = httpx.post(f"{BASE}/api/analyze", json={"text": text}, timeout=30)
     assert r.status_code == 200
     assert {"T1566", "T1003"} <= {t["technique_id"] for t in r.json()["ttps"]}
 

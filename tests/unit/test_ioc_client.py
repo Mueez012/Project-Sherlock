@@ -33,7 +33,7 @@ def test_every_indicator_gets_every_hub_sentence_it_appears_in():
         ("domain", "evil-mail.com"): [1, 5],
         ("domain", "update-check.net"): [2],
         ("ipv4", "185.220.101.4"): [2, 7],
-        ("url", "http://update-check.net/a.bin."): [2],
+        ("url", "http://update-check.net/a.bin"): [2],
         ("md5", "d41d8cd98f00b204e9800998ecf8427e"): [6],
     }
 

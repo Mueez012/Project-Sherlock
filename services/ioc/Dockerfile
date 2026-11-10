@@ -23,13 +23,13 @@ WORKDIR /app
 # 1. Dependencies only; re-runs only when pyproject.toml changes.
 COPY pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r pyproject.toml --extra extraction --extra browser --extra mcp --extra api
+    uv pip install -r pyproject.toml --extra extraction --extra browser --extra mcp --extra api "setuptools>=68"
 
 # 2. Bookworm provides the system libraries supported by Playwright's installer.
 RUN playwright install --with-deps chromium \
     && chmod -R a+rx /ms-playwright
 
-# 3. The code; setuptools is already installed (spaCy needs it), so this needs no network.
+# 3. The code; setuptools (pyproject.toml's build backend) came with step 1, so this needs no network.
 COPY ioc_hunter ./ioc_hunter
 RUN uv pip install --no-deps --no-build-isolation .
 

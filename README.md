@@ -40,9 +40,25 @@ npm run dev                                        # http://localhost:3000
 npm run lint && npm test && npm run contrast       # what the CI web job runs, plus npm run build
 ```
 
+### How a report is read
+
+A report comes in as pasted text (`POST /api/analyze`) or as a file (`POST /api/analyze/file`, up to 20 MB): PDF,
+DOCX, HTML, Markdown, TXT or a STIX 2.1 bundle. `src/threatmamba/documents.py` turns a file into text with one
+paragraph per line (wrapped PDF lines joined, page headers and footers removed, pages remembered); a PDF without a
+text layer is refused, as there is no OCR. For a STIX bundle, the ATT&CK ids it declares are never shown to the model.
+
+`src/threatmamba/text.py` then cuts the text once, the paper's single "sentence cutting" step. Each line is a
+paragraph (a wrapped sentence is joined back); NLTK punkt, pinned with its English data stored in the repo, splits
+paragraphs into sentences, never inside an indicator. Only real sentences become the timeline: headings, label lines,
+indicator lists and pieces under four words are left out. TTP extraction runs on the timeline sentences. IOC
+extraction reads the whole report, and an indicator found outside a sentence (for example in an indicator list)
+belongs to the nearest sentence before it. Every answer lists each sentence's position in the text, and its page
+for a PDF.
+
 ### The datasets
 
-The cleaned datasets are committed and are the source of truth; nothing rebuilds them.
+The cleaned datasets are committed and are the source of truth; nothing rebuilds them. D2's `sentences` are exactly
+what the splitter above produces, and CI checks it.
 
 ```
 datasets/
@@ -59,7 +75,8 @@ uv run python -m threatmamba.data.verify_datasets datasets
 ```
 
 To change a dataset on purpose, commit the new files and `SHA256SUMS` together:
-`cd datasets && sha256sum d1_model_ready/* d2_model_ready/* > SHA256SUMS`.
+`cd datasets && sha256sum d1_model_ready/* d2_model_ready/* > SHA256SUMS`. After a change to the splitter, re-cut
+D2's sentences first (nothing else in D2 changes): `uv run python datasets/scripts/resplit_d2.py`.
 
 ### Model files
 

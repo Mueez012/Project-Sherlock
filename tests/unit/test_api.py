@@ -36,7 +36,7 @@ def test_health_real_mode_reports_each_service(monkeypatch):
 def test_real_ttp_that_is_down_is_a_503_naming_it(monkeypatch):
     monkeypatch.setenv("TM_TTP_MODE", "real")
     monkeypatch.setenv("TM_TTP_URL", NOBODY)
-    r = client.post("/api/analyze", json={"text": "Spear-phishing email."})
+    r = client.post("/api/analyze", json={"text": "A spear-phishing email reached the finance team."})
     assert r.status_code == 503
     assert r.json()["detail"].startswith("ttp service unavailable")
 
@@ -44,7 +44,7 @@ def test_real_ttp_that_is_down_is_a_503_naming_it(monkeypatch):
 def test_real_ioc_that_is_down_is_a_503_naming_it(monkeypatch):
     monkeypatch.setenv("TM_IOC_MODE", "real")
     monkeypatch.setenv("TM_IOC_URL", NOBODY)
-    r = client.post("/api/analyze", json={"text": "Spear-phishing email."})
+    r = client.post("/api/analyze", json={"text": "A spear-phishing email reached the finance team."})
     assert r.status_code == 503
     assert r.json()["detail"].startswith("ioc service unavailable")
 
@@ -66,8 +66,12 @@ def test_real_ioc_with_stub_ttp_sends_the_original_text(monkeypatch):
     assert r.status_code == 200
     body = r.json()
     assert body["mode"] == "mixed"
-    assert seen["body"] == {"text": text, "sentences": body["sentences"], "extended_types": False}
-    assert {i["value"]: i["sentence_indices"] for i in body["iocs"]}["185.220.101.4"] == [2, 7]
+    # IOC-hunter reads the whole report and is asked about every unit, kept or not
+    assert seen["body"] == {"text": text, "sentences": IOC_FIXTURE["request"]["sentences"], "extended_types": False}
+    assert len(body["sentences"]) == 4  # the timeline: real sentences only
+    indices = {i["value"]: i["sentence_indices"] for i in body["iocs"]}
+    assert indices["185.220.101.4"] == [1, 3]
+    assert indices["d41d8cd98f00b204e9800998ecf8427e"] == [2]  # only in the indicator list: the sentence before it
 
 
 def test_real_ttp_with_stub_ioc_is_mixed_mode(monkeypatch):
@@ -88,10 +92,13 @@ def test_real_ttp_with_stub_ioc_is_mixed_mode(monkeypatch):
 
 
 def test_analyze_returns_contract_shape():
-    r = client.post("/api/analyze", json={"text": "Spear-phishing led to PowerShell. C2 was 10.0.0[.]1."})
+    text = "Spear-phishing led to PowerShell. The C2 server was 10.0.0[.]1."
+    r = client.post("/api/analyze", json={"text": text})
     assert r.status_code == 200
     body = r.json()
-    assert body["sentences"] == ["Spear-phishing led to PowerShell.", "C2 was 10.0.0[.]1."]
+    assert body["sentences"] == ["Spear-phishing led to PowerShell.", "The C2 server was 10.0.0[.]1."]
+    assert body["text"] == text
+    assert [text[s["start"] : s["end"]] for s in body["spans"]] == body["sentences"]
     assert {t["technique_id"] for t in body["ttps"]} == {"T1566", "T1059", "T1071"}
     assert body["iocs"][0]["value"] == "10.0.0.1"
     assert body["attribution"] is None

@@ -78,7 +78,7 @@ The following works end to end. Do not rebuild, move or redesign any of it.
 
 | Piece | Where | What it does |
 | --- | --- | --- |
-| Hub `/api/analyze` | `src/threatmamba/api/main.py` | Splits text with the hub's one splitter, sends those sentences to TTP and to IOC `/v1/extract`, returns sentences, TTPs and IOCs |
+| Hub `/api/analyze`, `/api/analyze/file` | `src/threatmamba/api/main.py`, `src/threatmamba/documents.py` | Reads text or a report file (PDF, DOCX, HTML, Markdown, TXT, STIX), cuts it with the hub's one splitter, sends the timeline sentences to TTP and every unit to IOC `/v1/extract`, returns the timeline, TTPs, IOCs and sentence positions |
 | Hub `/api/investigations/*` | `src/threatmamba/api/investigations.py` | Plain pass-through: forwards each request unchanged to `/v1/investigations/*` and returns the answer unchanged |
 | IOC extraction | `ioc_hunter/extraction/`, `POST /v1/extract` | Finds IOCs, applies its filters, and reports which hub sentence each IOC is in |
 | IOC one-call lookup | `ioc_hunter/lookup.py`, `POST /v1/lookup`, `GET /v1/methods` | RapidDNS, OTX, VirusTotal lookups with receipts, cache, 15 s pacing, daily budgets |
@@ -90,7 +90,7 @@ The following works end to end. Do not rebuild, move or redesign any of it.
 
 These decisions are settled. Do not reopen them in code or in docs:
 
-- **One sentence splitter**, the hub's (`src/threatmamba/text.py`), the one D2 was built with. `/api/analyze` and every dataset-scale run use it. Pre-split sentences are used unchanged.
+- **One sentence splitter**, the hub's (`src/threatmamba/text.py`: NLTK punkt, pinned, with its English data stored in the repo), the one D2 is built with. IOC Hunter uses a byte-identical copy (`ioc_hunter/text.py`); never edit the copy on its own. Only real sentences form the timeline; headings, label lines, indicator lists and fragments are left out, and an indicator found in them belongs to the nearest sentence before it. `/api/analyze` and every dataset-scale run use it. Pre-split sentences are used unchanged.
 - **No users.** No accounts, login, owners or `Authorization`. Every investigation belongs to one built-in owner (`OWNER = "local"` in `workflow/service.py`). The owner tables stay in the database, unused, for a later decision by the repo owner.
 - **Manual selection stays.** The person picks the IOC and the method. Automation is added beside it, never in place of it (section 6).
 - **Storage is the `ioc-data` volume.** No host-folder mounts.
@@ -107,8 +107,8 @@ Other code depends on these exact shapes. You may **add** optional request field
 
 **`POST /v1/extract`** is what `/api/analyze` calls.
 
-- Request: `{"text": "<report>", "sentences": ["<hub sentence 0>", ...], "extended_types": false}`.
-- The `sentences` are the hub's. Never re-split them, merge them, drop any or reorder them.
+- Request: `{"text": "<report>", "sentences": ["<hub unit 0>", ...], "extended_types": false}`.
+- The `sentences` are the hub's units of the report, in order: the timeline sentences and the lines left out of the timeline. The hub maps the answer onto its timeline itself. Never re-split them, merge them, drop any or reorder them.
 - Response fields the hub reads: `iocs` (each `{type, value, context, source}`), `excluded_sections` (each `{heading, text}`), and `sentence_matches`.
 - `sentence_matches` has exactly one entry per request sentence, in the same order. Each entry is a list of `[type, value]` pairs found in that sentence.
 - Errors keep FastAPI's `{"detail": ...}` format on this route.
@@ -278,15 +278,16 @@ Patch 12 kept the investigation engine whole and changed three things around it.
 
 **Before:** in real IOC mode the hub sent the text to IOC Hunter first, took IOC Hunter's spaCy sentences and passed those to TTP. Pre-split input was joined with newlines and split again.
 
-**Now:** the hub splits with its own splitter (the one D2 was built with), sends those sentences to TTP, and sends them to `/v1/extract`, which reports each IOC's sentences in `sentence_matches`. Pre-split input comes back unchanged.
+**Now:** the hub cuts the report with its own splitter (NLTK punkt, the one D2 is built with; real sentences only), sends the timeline sentences to TTP, and sends every unit to `/v1/extract`, which reports each IOC's units in `sentence_matches`; the hub places each IOC on the timeline. Pre-split input comes back unchanged.
 
-**Why:** CSKG and attribution train on D2, so every sentence index the pipeline produces must match D2's. On 180 real D2 reports, the hub splitter kept 292 of 292 indicators intact; spaCy kept 289 and glued headings onto the next sentence.
+**Why:** CSKG and attribution train on D2, so every sentence index the pipeline produces must match D2's. On all 3,285 D2 reports the hub splitter cuts none of 7,862 indicator tokens, whereas spaCy glued headings onto the next sentence and lost indicators.
 
 **What it means:** for the same report, sentence 5 in `/api/analyze` and sentence 5 in an investigation can be different sentences. So:
 
 - Inside an investigation, keep using the investigation's own sentences and passages for highlighting. Nothing changes there.
 - To connect an investigation to an analysis, or later to CSKG, join on the IOC (type, value), never on a sentence number.
-- If an IOC must be placed in D2/hub numbering, call `/v1/extract` with the report text and the hub's sentences and read `sentence_matches`. Do not change `/api/analyze` or the splitter for this (section 9, item 2).
+- If an IOC must be placed in D2/hub numbering, call `/v1/extract` with the report text and the hub's units and read `sentence_matches`. Do not change `/api/analyze` or the splitter for this (section 9, item 2).
+- IOC Hunter now cuts reports with `ioc_hunter/text.py`, a byte-identical copy of the hub's splitter and its data (tests on both sides fail if they differ; change the hub's and copy it, never edit the copy alone). An investigation's sentences and passages are the hub's units of the report; the hub's timeline is the units of kind "sentence". An IOC found only outside a sentence takes the nearest sentence before it as its context, the paper's "original text passage".
 
 ### 10.2 Users and accounts were removed
 

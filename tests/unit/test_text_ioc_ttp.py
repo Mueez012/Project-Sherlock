@@ -1,18 +1,74 @@
+import hashlib
+from pathlib import Path
+
+import pytest
+
 from threatmamba.contracts import IOCType
 from threatmamba.ioc import RegexIOCExtractor
-from threatmamba.text import split_sentences
+from threatmamba.text import PUNKT_DIR, attach, segment, split_sentences
 from threatmamba.ttp import KeywordTTPExtractor
 
+REPORT = """Operation Example: Technical Analysis
+The U.S. Treasury and Fig. 3 show the actor used e.g. PowerShell to fetch hxxp://evil[.]com/a.ps1 today. The loader
+contacted 185.12.45[.]201 over port 443.
+Indicators:
+evil[.]com
+185.12.45[.]201
+d41d8cd98f00b204e9800998ecf8427e"""
 
-def test_split_sentences_on_punctuation_and_newlines():
-    assert split_sentences("First one. Second one!\nThird") == ["First one.", "Second one!", "Third"]
+
+def test_only_real_sentences_enter_the_timeline():
+    assert split_sentences(REPORT) == [
+        "The U.S. Treasury and Fig. 3 show the actor used e.g. PowerShell to fetch hxxp://evil[.]com/a.ps1 today.",
+        "The loader contacted 185.12.45[.]201 over port 443.",
+    ]
+    assert [u.kind for u in segment(REPORT)] == ["heading", "sentence", "sentence", "fragment"] + ["ioc_list"] * 3
 
 
-def test_split_sentences_follows_the_d2_rules():
-    # no minimum length: a one-letter piece is kept, as in the D2 dataset
-    assert split_sentences("Now, see what happened. J\nWe got it.") == ["Now, see what happened.", "J", "We got it."]
-    # a full stop followed by a lowercase word or a digit straight after does not end a sentence
-    assert split_sentences("Version 2.0 shipped. then it broke.") == ["Version 2.0 shipped. then it broke."]
+def test_units_keep_their_exact_positions_and_never_cut_a_word():
+    for u in segment(REPORT):
+        assert REPORT[u.start : u.end].split() == u.text.split()
+        assert u.start == 0 or REPORT[u.start - 1].isspace()
+        assert u.end == len(REPORT) or REPORT[u.end].isspace()
+
+
+def test_indicators_outside_sentences_attach_to_the_nearest_sentence_before_them():
+    # the heading comes before any sentence, so it goes to the first one
+    assert attach(segment(REPORT)) == [0, 0, 1, 1, 1, 1, 1]
+    assert attach(segment("Indicators:\nevil[.]com")) == [None, None]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("The actor ran malware on the host. Then it left the network.", 2),  # an ordinary full stop
+        ("Version 2.0 of the tool shipped. then it broke completely.", 1),  # a lowercase word does not start one
+        ("The group, e.g. APT28, used it. The group, i.e. Fancy Bear, left.", 2),  # e.g. / i.e. do not end one
+        ("See Fig. 4 for the full chain. No. 5 was the last stage here.", 2),
+        ("The actor came back in May.\nThe attacker wrote the payload\nin Go and packed it with UPX.", 2),  # joined
+        ("The actor came back in May.\nThe attacker wrote the payload\nAPT28 then used it on the network.", 3),
+    ],
+)
+def test_sentence_rules(text, expected):
+    assert len(split_sentences(text)) == expected
+
+
+def test_the_stored_punkt_data_is_unchanged():
+    """The splitter's data is part of the dataset contract: if it changed, D2's sentences would no longer match."""
+    expected = {
+        "abbrev_types.txt": "92a3e070f43d9b4c5534758ca40ad7343b04e7e29bfe0c2eb658a39445a4f779",
+        "collocations.tab": "8e2da1225e4dd2cc9dba261ee231ccb134859e21b46006e7f472c5ee269af0cf",
+        "ortho_context.tab": "4bbcca25ed3d3f06c02402abf8419b9f033b8adc06e7b482eca4e45f81a5dc4c",
+        "sent_starters.txt": "f3f8535483e1dba487241b764945168123bca3209a9645e59acd1225dc76edac",
+    }
+    assert {f: hashlib.sha256((PUNKT_DIR / f).read_bytes()).hexdigest() for f in expected} == expected
+
+
+def test_ioc_hunter_cuts_with_an_identical_copy():
+    ioc = Path(__file__).resolve().parents[2] / "services" / "ioc" / "ioc_hunter"
+    assert (ioc / "text.py").read_bytes() == (PUNKT_DIR.parents[2] / "text.py").read_bytes()
+    for f in PUNKT_DIR.iterdir():
+        assert (ioc / "data" / "punkt_tab" / "english" / f.name).read_bytes() == f.read_bytes()
 
 
 def test_ioc_extractor_refangs_and_types():

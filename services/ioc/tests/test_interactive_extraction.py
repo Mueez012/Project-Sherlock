@@ -104,7 +104,8 @@ class ExtractionTests(unittest.TestCase):
 
     def test_soft_wrapped_prose_keeps_sentence_context(self):
         text = "The payload contacted\n192.0.2.10 to fetch its configuration."
-        self.assertEqual(self.extract(text)[0].context, [text])
+        # The shared splitter rejoins the wrapped sentence; its context is that sentence with the line break as a space.
+        self.assertEqual(self.extract(text)[0].context, [" ".join(text.split())])
 
     def test_software_versions_are_not_ip_indicators(self):
         for text in ["Flash Player ActiveX 28.0.0.137 and earlier versions.",
