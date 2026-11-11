@@ -36,17 +36,35 @@
 /* ---- graph */
 
 .graph-wrap {
+  position: relative;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--bg);
   padding: var(--space-3);
 }
 
+.graph-tools {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
 .ioc-graph {
   display: block;
   width: 100%;
-  height: clamp(280px, 50vh, 460px);
+  height: clamp(340px, 62vh, 620px);
+  touch-action: none; /* a drag on the graph pans it instead of scrolling the page */
 }
+
+.graph-pan { fill: transparent; cursor: grab; }
+.ioc-graph.dragging .graph-pan { cursor: grabbing; }
 
 .graph-edge {
   stroke: var(--border-control);
