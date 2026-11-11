@@ -44,16 +44,18 @@ npm run lint && npm test && npm run contrast       # what the CI web job runs, p
 
 A report comes in as pasted text (`POST /api/analyze`) or as a file (`POST /api/analyze/file`, up to 20 MB): PDF,
 DOCX, HTML, Markdown, TXT or a STIX 2.1 bundle. `src/threatmamba/documents.py` turns a file into text with one
-paragraph per line (wrapped PDF lines joined, page headers and footers removed, pages remembered); a PDF without a
-text layer is refused, as there is no OCR. For a STIX bundle, the ATT&CK ids it declares are never shown to the model.
+region per line and says what each line is: text, heading or table row. PDFs are read with Artifex's layout model
+(pymupdf4llm + pymupdf-layout): page headers and footers are dropped, tables come back as rows (cells joined with
+" | "), a paragraph split by a page break is joined, and a hash wrapped inside a table cell is put back together. A
+PDF without a text layer is refused, as there is no OCR. For a STIX bundle, the ATT&CK ids it declares are never shown
+to the model.
 
-`src/threatmamba/text.py` then cuts the text once, the paper's single "sentence cutting" step. Each line is a
-paragraph (a wrapped sentence is joined back); NLTK punkt, pinned with its English data stored in the repo, splits
-paragraphs into sentences, never inside an indicator. Only real sentences become the timeline: headings, label lines,
-indicator lists and pieces under four words are left out. TTP extraction runs on the timeline sentences. IOC
-extraction reads the whole report, and an indicator found outside a sentence (for example in an indicator list)
-belongs to the nearest sentence before it. Every answer lists each sentence's position in the text, and its page
-for a PDF.
+`src/threatmamba/text.py` then cuts the text once, the paper's single "sentence cutting" step: NLTK punkt, pinned
+with its English data stored in the repo, never cutting inside an indicator. Only real sentences become the timeline
+(paper section III-A): headings, table rows, indicator lists, labels and short pieces without sentence punctuation
+are left out. TTP extraction runs on the timeline sentences. IOC extraction reads the whole report, table rows
+included, and an indicator found outside a sentence belongs to the nearest sentence before it. Every answer lists each
+sentence's position in the text, and its page for a PDF.
 
 ### The datasets
 

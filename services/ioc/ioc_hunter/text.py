@@ -7,7 +7,8 @@ fragments are left out of it; indicators found in them are still extracted and a
 position (attach()), which the paper calls "positional dependencies in the original text".
 
 Input: text with one paragraph per line (blank lines allowed). Pasted text and D2 reports already look like this;
-threatmamba.documents turns PDF, DOCX, HTML, Markdown, STIX and TXT files into it.
+threatmamba.documents turns PDF, DOCX, HTML, Markdown, STIX and TXT files into it, and also says what each line is
+(regions): a heading or a table row never becomes a timeline sentence, whatever its words.
 
 1. Paragraphs: every line is a paragraph, except a wrapped sentence: a line of 3 or more words that stops without
    closing punctuation and is not a heading, followed by a line that starts with a plain lowercase word, or with an
@@ -18,9 +19,12 @@ threatmamba.documents turns PDF, DOCX, HTML, Markdown, STIX and TXT files into i
    does not fall on whitespace (it would cut a defanged indicator such as 185.12.45[.]201), one before a lowercase
    letter (no sentence starts that way), and one after an abbreviation that never ends a sentence (NEVER_FINAL;
    punkt would split "i.e. Fancy Bear" because "fancy" is usually lowercase).
-3. Kinds: a unit is a "sentence" unless it has fewer than 4 words ("fragment"), is mostly indicators ("ioc_list"), or
-   is a heading line ("heading"). These are the rules the TTP service uses for its own documents
-   (services/ttp/ttp_extraction/inference/segment.py).
+3. Kinds: a unit is a "sentence" unless its region says "heading" or "table_row", or it has fewer than 4 words
+   ("fragment"), is mostly indicators ("ioc_list"), is a heading line or letter-spaced title ("heading"), does not
+   start like a sentence, or is a short piece (under SHORT_WORDS words) that does not end like one ("fragment": web
+   headlines, labels, table cells). The first rules are those of the TTP service's own documents
+   (services/ttp/ttp_extraction/inference/segment.py); the last two were measured on D2 (they drop scraped headlines
+   and related-article links, about 9% of D2's former sentences).
 
 Positions (start, end) index the text exactly as given. A unit's text is that slice with whitespace collapsed.
 datasets/scripts/clean_d2.py writes D2's `sentences` with split_sentences(); the datasets CI job fails if they differ.
@@ -31,6 +35,7 @@ data; tests in both places fail if the copies ever differ.
 from __future__ import annotations
 
 import re
+from bisect import bisect_right
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -49,6 +54,7 @@ EXTRA_ABBREVIATIONS = frozenset(
 NEVER_FINAL = frozenset({"e.g.", "i.e.", "fig.", "figs.", "no.", "nos.", "vs.", "approx.", "al.", "cf.", "ca."})
 
 MIN_WORDS = 4
+SHORT_WORDS = 10
 MAX_IOC_SHARE = 0.6
 MAX_HEADING_WORDS = 12
 SENTENCE_END = tuple('.!?:;"”’)]')
@@ -68,7 +74,9 @@ _IOC = re.compile(
 )
 _PUNCT = ".,;:()[]{}<>\"'"
 _WS = re.compile(r"\s+")
-_CONTINUES = re.compile(r"[a-z]+[,;:]?(\s|$)")  # a wrapped sentence continues with a plain lowercase word
+_CONTINUES = re.compile(r"[a-z]+[,;:.!?)]*(\s|$)")  # a wrapped sentence continues with a plain lowercase word
+_STARTS = re.compile(r"""^[•\-*]?\s*["'“‘(\[]?[A-Z0-9]""")  # a sentence starts with a capital, a digit or a quote
+_ENDS = re.compile(r"""[.!?]["'”’)\]]*$""")
 
 
 @dataclass(frozen=True)
@@ -78,7 +86,7 @@ class Unit:
     start: int
     end: int
     text: str
-    kind: str  # "sentence", "heading", "ioc_list" or "fragment"
+    kind: str  # "sentence", "heading", "table_row", "ioc_list" or "fragment"
 
 
 def _read_tab(name: str) -> list[list[str]]:
@@ -115,13 +123,22 @@ def _is_heading(text: str, first: bool) -> bool:
     return first or title_case or text.endswith(":")
 
 
+def _letter_spaced(text: str) -> bool:
+    """A title set in spaced capitals: "E X E C U T I V E  S U M M A R Y"."""
+    words = text.split()
+    return len(words) >= 4 and sum(len(w) == 1 for w in words) / len(words) >= 0.7
+
+
 def _kind(text: str, whole_line: bool, first: bool) -> str:
+    words = len(text.split())
     if ioc_share(text) > MAX_IOC_SHARE:
         return "ioc_list"
-    if len(text.split()) < MIN_WORDS:
+    if words < MIN_WORDS:
         return "fragment"
-    if whole_line and _is_heading(text, first):
+    if _letter_spaced(text) or (whole_line and _is_heading(text, first)):
         return "heading"
+    if not _STARTS.match(text) or (words < SHORT_WORDS and not _ENDS.search(text)):
+        return "fragment"
     return "sentence"
 
 
@@ -174,8 +191,10 @@ def _sentence_spans(paragraph: str) -> list[tuple[int, int]]:
     return spans
 
 
-def segment(text: str) -> list[Unit]:
-    """Every unit of the text in order, with its position and kind."""
+def segment(text: str, regions: list[tuple[int, int, str]] | None = None) -> list[Unit]:
+    """Every unit of the text in order, with its position and kind. regions, from threatmamba.documents, give each
+    line's kind; a unit in a "heading" or "table_row" line takes that kind."""
+    starts = [r[0] for r in regions or []]
     units: list[Unit] = []
     for p_start, p_end in _paragraphs(text):
         raw = text[p_start:p_end]
@@ -184,13 +203,17 @@ def segment(text: str) -> list[Unit]:
         for s, e in spans:
             piece = _WS.sub(" ", raw[s:e]).strip()
             if piece:
-                units.append(Unit(p_start + s, p_start + e, piece, _kind(piece, whole_line, first=not units)))
+                kind = _kind(piece, whole_line, first=not units)
+                region = regions[bisect_right(starts, p_start + s) - 1] if regions else None
+                if region and region[2] in ("heading", "table_row") and region[0] <= p_start + s < region[1]:
+                    kind = region[2]
+                units.append(Unit(p_start + s, p_start + e, piece, kind))
     return units
 
 
-def split_sentences(text: str) -> list[str]:
+def split_sentences(text: str, regions: list[tuple[int, int, str]] | None = None) -> list[str]:
     """The timeline: the text of every unit that is a real sentence, in order."""
-    return [u.text for u in segment(text) if u.kind == "sentence"]
+    return [u.text for u in segment(text, regions) if u.kind == "sentence"]
 
 
 def attach(units: list[Unit]) -> list[int | None]:

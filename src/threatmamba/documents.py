@@ -1,10 +1,14 @@
-"""Report files -> text with one paragraph per line, the input threatmamba.text expects.
+"""Report files -> text with one paragraph per line, plus what each line is (threatmamba.text uses both).
 
-Adapted from the TTP service's reader (services/ttp/ttp_extraction/inference/document.py), with the same libraries
-and versions, so reports read the same way everywhere. Differences: every format ends up with one paragraph per line
-(PDF lines wrapped inside a text block are joined back into their paragraph, a heading line is kept on its own),
-HTML is read per block element so links and bold words do not break a sentence, and there is no OCR: a PDF without a
-text layer is refused with a clear message.
+Every line of the text is a region: "text" (a paragraph or list item), "heading", or "table_row" (one table row, its
+cells joined with " | "). Headings and table rows never become timeline sentences; indicators in them still count.
+
+PDFs are read with Artifex's layout model (pymupdf4llm + pymupdf-layout, pinned to our PyMuPDF): it labels every
+region of a page (text, list item, section header, table, page header, page footer), so page headers and footers are
+dropped by label, tables come back as rows of cells, and a paragraph split by a page break is joined again. Two
+repairs follow: a hash wrapped inside a table cell is put back together, and a CVE id keeps its hyphens. There is no
+OCR: a PDF without a text layer is refused with a clear message. DOCX and HTML tables and headings are typed the same
+way from the file's own structure.
 
 Supported: .pdf, .docx, .html/.htm, .md, .txt and STIX 2.1 bundles (.json). For STIX, the ATT&CK ids the bundle
 declares are never put in the text (the model must not see the answer); they are returned as `declared_ttps`.
@@ -16,11 +20,10 @@ import io
 import json
 import re
 import unicodedata
-from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from threatmamba.text import SENTENCE_END, _is_heading
+from threatmamba.text import SENTENCE_END
 
 EXTENSIONS = {
     ".pdf": "application/pdf",
@@ -52,6 +55,7 @@ class Document:
     page_starts: list[int] = field(default_factory=list)  # PDFs: character offset where each page begins
     warnings: list[str] = field(default_factory=list)
     declared_ttps: list[str] = field(default_factory=list)
+    regions: list[tuple[int, int, str]] = field(default_factory=list)  # (start, end, kind) of every line; see above
 
     def page_of(self, offset: int) -> int | None:
         """1-based page number of a character offset (None for files without pages)."""
@@ -81,17 +85,41 @@ def clean_text(text: str) -> str:
     return "\n".join(line for line in (_SPACES.sub(" ", line).strip() for line in text.split("\n")) if line)
 
 
-def join_wrapped(lines: list[str]) -> list[str]:
-    """Lines of one PDF text block -> its paragraphs: wrapped lines are joined; a heading line (the block's first
-    line, or a line after a finished sentence, that looks like a title) stays on its own."""
-    out: list[str] = []
-    for line in lines:
-        standalone = (not out or out[-1].endswith(SENTENCE_END)) and _is_heading(line, first=False)
-        if out and not standalone and not out[-1].endswith(SENTENCE_END) and not _is_heading(out[-1], first=False):
-            out[-1] += " " + line
-        else:
-            out.append(line)
-    return out
+_CVE = re.compile(r"\bCVE-(\d{4})(\d{4,7})\b")
+_HEX = re.compile(r"[0-9a-fA-F]+")
+_CELL_HYPHEN = re.compile(r"([A-Za-z])- ([a-z])")
+_MARKUP = re.compile(r"\*\*|__|`|<br\s*/?>")
+
+
+def repair(text: str) -> str:
+    """CVE-2021-40444 that lost a hyphen at a line break, in any text."""
+    return _CVE.sub(r"CVE-\1-\2", text)
+
+
+def table_cell(text: str) -> str:
+    """One table cell as a single line: a word or hash wrapped inside the cell is joined again."""
+    text = _CELL_HYPHEN.sub(r"\1\2", " ".join(text.split()))  # "individ- uals" -> "individuals" (also "b7ad- be8ae4")
+    parts = text.split()
+    if len(parts) > 1 and all(_HEX.fullmatch(p) for p in parts) and len("".join(parts)) in (32, 40, 64):
+        return "".join(parts)  # a SHA-256/SHA-1/MD5 split over the cell's lines
+    return text
+
+
+def build(lines: list[tuple], media_type: str, **extra) -> Document:
+    """Typed lines (kind, text[, page]) -> the Document: one line per region, with each region's position and, for
+    PDFs, where each page begins."""
+    text, regions, page_starts = "", [], []
+    for kind, line, *page in lines:
+        line = repair(clean_text(line).replace("\n", " "))
+        if not line:
+            continue
+        if text:
+            text += "\n"
+        while page and len(page_starts) < page[0]:
+            page_starts.append(len(text))
+        regions.append((len(text), len(text) + len(line), kind))
+        text += line
+    return Document(text, media_type, regions=regions, page_starts=page_starts, **extra)
 
 
 # ------------------------------------------------------------------ readers
@@ -109,8 +137,35 @@ def decode_text(data: bytes) -> tuple[str, list[str]]:
         return str(best), [f"text was not UTF-8; decoded as {best.encoding}"]
 
 
+def _pdf_lines(chunk: dict) -> list[tuple[str, str]]:
+    """One page from pymupdf4llm -> typed lines, page header and footer dropped."""
+    from bs4 import BeautifulSoup
+
+    out: list[tuple[str, str]] = []
+    for box in chunk["page_boxes"]:
+        start, end = box["pos"]
+        raw, kind = chunk["text"][start:end], box["class"]
+        if kind in ("page-header", "page-footer", "picture"):
+            continue
+        if kind == "table":
+            for row in BeautifulSoup(raw, "html.parser").find_all("tr"):
+                cells = [table_cell(cell.get_text(" ")) for cell in row.find_all(["td", "th"])]
+                if any(cells):
+                    out.append(("table_row", " | ".join(c for c in cells if c)))
+            continue
+        line = _MARKUP.sub(" ", raw)
+        line = re.sub(r"^\s*(#+|[-*•])\s+", "", line.strip())  # heading marks and bullets
+        line = " ".join(line.split())
+        if line:
+            out.append(("heading" if kind == "section-header" else "text", line))
+    return out
+
+
 def read_pdf(data: bytes) -> Document:
     import pymupdf
+    import pymupdf.layout  # noqa: F401  (switches pymupdf4llm to Artifex's layout model)
+    import pymupdf4llm
+    from pymupdf4llm.helpers.document_layout import OCRMode
 
     try:
         pdf = pymupdf.open(stream=data, filetype="pdf")
@@ -118,30 +173,21 @@ def read_pdf(data: bytes) -> Document:
         raise DocumentError("unsupported_file", f"the PDF could not be opened ({exc.__class__.__name__})") from exc
     if pdf.needs_pass:
         raise DocumentError("unsupported_file", "the PDF is password protected")
-    pages: list[list[str]] = []
-    for page in pdf:
-        paragraphs: list[str] = []
-        for block in page.get_text("blocks", sort=True):
-            if block[6] == 0:  # 0 = a text block
-                lines = clean_text(block[4]).split("\n")
-                paragraphs += join_wrapped([line for line in lines if line])
-        pages.append(paragraphs)
-    n_pages, warnings = len(pages), []
-    if sum(len(p) for page in pages for p in page) < MIN_CHARS_PER_PDF_PAGE * max(n_pages, 1):
+    if sum(len(page.get_text().strip()) for page in pdf) < MIN_CHARS_PER_PDF_PAGE * max(pdf.page_count, 1):
         raise DocumentError("no_text_layer", "the PDF has no text layer (it looks scanned); OCR is not supported")
-    if n_pages >= 3:  # repeated page headers and footers: short lines on more than half of the pages
-        counts = Counter(p for page in pages for p in set(page) if len(p) < 120)
-        repeated = {p for p, c in counts.items() if c > n_pages / 2}
-        if repeated:
-            pages = [[p for p in page if p not in repeated] for page in pages]
-            warnings.append(f"{len(repeated)} repeated page header/footer line(s) removed")
-    text, starts = "", []
-    for page in pages:
-        if text and page:
-            text += "\n"
-        starts.append(len(text))
-        text += "\n".join(page)
-    return Document(text, EXTENSIONS[".pdf"], page_starts=starts, warnings=warnings)
+    chunks = pymupdf4llm.to_markdown(pdf, page_chunks=True, use_ocr=OCRMode.NEVER, table_output="html")
+    lines: list[tuple[str, str, int]] = []
+    for number, chunk in enumerate(chunks, start=1):
+        page = [(kind, line, number) for kind, line in _pdf_lines(chunk)]
+        # A paragraph cut by the page break continues on the next page: join it ("thus by-" + "passing ...").
+        if lines and page and lines[-1][0] == page[0][0] == "text" and page[0][1][:1].islower():
+            kind, prev, prev_page = lines[-1]
+            if not prev.endswith(SENTENCE_END):
+                joined = prev[:-1] + page[0][1] if re.search(r"[A-Za-z]-$", prev) else f"{prev} {page[0][1]}"
+                lines[-1] = (kind, joined, prev_page)
+                page = page[1:]
+        lines += page
+    return build(lines, EXTENSIONS[".pdf"])
 
 
 def read_plain(data: bytes, markdown: bool = False) -> Document:
@@ -154,7 +200,8 @@ def read_plain(data: bytes, markdown: bool = False) -> Document:
         text = re.sub(r"^\s*[-*+]\s+", "", text, flags=re.M)  # bullets
         text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", text)  # links and images -> their label
         text = re.sub(r"(\*\*|__|`)", "", text)
-    return Document(clean_text(text), EXTENSIONS[".md" if markdown else ".txt"], warnings=warnings)
+    media = EXTENSIONS[".md" if markdown else ".txt"]
+    return build([("text", line) for line in clean_text(text).split("\n")], media, warnings=warnings)
 
 
 def read_html(data: bytes) -> Document:
@@ -165,9 +212,15 @@ def read_html(data: bytes) -> Document:
     for tag in soup(["script", "style", "noscript", "nav", "header", "footer", "aside", "form", "svg", "iframe"]):
         tag.decompose()
     root = soup.find("article") or soup.find("main") or soup.body or soup
-    blocks = [el for el in root.find_all(_BLOCK_TAGS) if el.find(_BLOCK_TAGS) is None]  # innermost blocks
-    paragraphs = [el.get_text(" ", strip=True) for el in blocks] or [root.get_text(" ", strip=True)]
-    return Document(clean_text("\n".join(paragraphs)), EXTENSIONS[".html"], warnings=warnings)
+    lines: list[tuple[str, str]] = []
+    for el in root.find_all([*_BLOCK_TAGS, "tr"]):
+        if el.name == "tr":
+            cells = [table_cell(c.get_text(" ")) for c in el.find_all(["td", "th"])]
+            lines.append(("table_row", " | ".join(c for c in cells if c)))
+        elif el.find_parent("tr") is None and el.find([*_BLOCK_TAGS, "tr"]) is None:  # innermost blocks
+            kind = "heading" if el.name in ("h1", "h2", "h3", "h4", "h5", "h6") else "text"
+            lines.append((kind, el.get_text(" ", strip=True)))
+    return build(lines or [("text", root.get_text(" ", strip=True))], EXTENSIONS[".html"], warnings=warnings)
 
 
 def read_docx(data: bytes) -> Document:
@@ -177,11 +230,14 @@ def read_docx(data: bytes) -> Document:
         document = docx.Document(io.BytesIO(data))
     except Exception as exc:
         raise DocumentError("unsupported_file", f"the DOCX could not be opened ({exc.__class__.__name__})") from exc
-    paragraphs = [p.text.replace("\n", " ") for p in document.paragraphs]
+    lines: list[tuple[str, str]] = []
+    for p in document.paragraphs:
+        style = (p.style.name if p.style is not None else "").lower()
+        lines.append(("heading" if style.startswith(("heading", "title")) else "text", p.text))
     for table in document.tables:
         for row in table.rows:
-            paragraphs.append(" | ".join(cell.text.replace("\n", " ") for cell in row.cells))
-    return Document(clean_text("\n".join(paragraphs)), EXTENSIONS[".docx"])
+            lines.append(("table_row", " | ".join(table_cell(cell.text) for cell in row.cells if cell.text.strip())))
+    return build(lines, EXTENSIONS[".docx"])
 
 
 def read_stix(data: bytes) -> Document:
@@ -203,7 +259,7 @@ def read_stix(data: bytes) -> Document:
             for ref in obj.get("external_references", []):
                 if ref.get("source_name") == "mitre-attack" and ref.get("external_id"):
                     declared.add(ref["external_id"])
-    return Document(clean_text("\n".join(paragraphs)), EXTENSIONS[".json"], declared_ttps=sorted(declared))
+    return build([("text", p) for p in paragraphs], EXTENSIONS[".json"], declared_ttps=sorted(declared))
 
 
 def extract_text(data: bytes, filename: str) -> Document:

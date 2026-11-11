@@ -91,9 +91,9 @@ def _onto_timeline(iocs: list[IOC], timeline: list[int | None]) -> list[IOC]:
 
 
 def _analyze_text(
-    text: str, page_of: Callable[[int], int | None] | None = None, declared_ttps=(), warnings=()
+    text: str, page_of: Callable[[int], int | None] | None = None, declared_ttps=(), warnings=(), regions=None
 ) -> AnalyzeResponse:
-    units = segment(text)
+    units = segment(text, regions)
     timeline = attach(units)
     kept = [u for u in units if u.kind == "sentence"]
     sentences = [u.text for u in kept]
@@ -143,7 +143,7 @@ async def analyze_file(file: UploadFile) -> AnalyzeResponse:
         raise HTTPException(status_code=422, detail=f"{e.code}: {e}") from e
     if len(doc.text) > MAX_DOCUMENT_CHARS:
         raise HTTPException(status_code=413, detail=f"the file's text is longer than {MAX_DOCUMENT_CHARS:,} characters")
-    return await run_in_threadpool(_analyze_text, doc.text, doc.page_of, doc.declared_ttps, doc.warnings)
+    return await run_in_threadpool(_analyze_text, doc.text, doc.page_of, doc.declared_ttps, doc.warnings, doc.regions)
 
 
 @app.get("/", include_in_schema=False)

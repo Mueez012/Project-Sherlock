@@ -45,8 +45,12 @@ def test_indicators_outside_sentences_attach_to_the_nearest_sentence_before_them
         ("Version 2.0 of the tool shipped. then it broke completely.", 1),  # a lowercase word does not start one
         ("The group, e.g. APT28, used it. The group, i.e. Fancy Bear, left.", 2),  # e.g. / i.e. do not end one
         ("See Fig. 4 for the full chain. No. 5 was the last stage here.", 2),
+        ("E X E C U T I V E  S U M M A R Y", 0),  # a letter-spaced title
+        ("Hackers use leaked ransomware to attack banks", 0),  # a short headline without sentence punctuation
+        ("We assess that the group has ties with pro-Russian\ngroups.", 1),  # a wrap that ends a sentence
+        ("victims clicking on malicious files contained within ISO files.", 0),  # does not start like a sentence
         ("The actor came back in May.\nThe attacker wrote the payload\nin Go and packed it with UPX.", 2),  # joined
-        ("The actor came back in May.\nThe attacker wrote the payload\nAPT28 then used it on the network.", 3),
+        ("The actor came back in May.\nThe attacker wrote the payload\nAPT28 then used it on the network.", 2),
     ],
 )
 def test_sentence_rules(text, expected):
