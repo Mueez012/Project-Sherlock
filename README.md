@@ -51,16 +51,19 @@ PDF without a text layer is refused, as there is no OCR. For a STIX bundle, the 
 to the model.
 
 `src/threatmamba/text.py` then cuts the text once, the paper's single "sentence cutting" step: NLTK punkt, pinned
-with its English data stored in the repo, never cutting inside an indicator. Only real sentences become the timeline
-(paper section III-A): headings, table rows, indicator lists, labels and short pieces without sentence punctuation
-are left out. TTP extraction runs on the timeline sentences. IOC extraction reads the whole report, table rows
-included, and an indicator found outside a sentence belongs to the nearest sentence before it. Every answer lists each
-sentence's position in the text, and its page for a PDF.
+with its English data stored in the repo, never cutting inside an indicator. Hard-wrapped text (TXT exports, text
+pasted from a PDF) is joined back at its margin first. Only real sentences become the timeline (paper section III-A):
+headings, table rows, indicator lists, labels and short pieces without sentence punctuation are left out. TTP
+extraction runs on the timeline sentences. IOC extraction reads the whole report, table rows included; an indicator
+belongs to exactly the sentences it appears in (none if it is only in a table row or list), and its context is the
+sentence, row or line where it appears. Every answer lists each sentence's position in the text, and its page for a
+PDF.
 
 ### The datasets
 
 The cleaned datasets are committed and are the source of truth; nothing rebuilds them. D2's `sentences` are exactly
-what the splitter above produces, and CI checks it.
+what the splitter above produces, and `spans` are their exact positions in `text` (`text[start:end]`); CI checks
+both.
 
 ```
 datasets/

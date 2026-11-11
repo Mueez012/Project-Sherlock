@@ -35,7 +35,7 @@ from threatmamba.settings import (
     ttp_timeout_s,
     ttp_url,
 )
-from threatmamba.text import attach, segment
+from threatmamba.text import Unit, attach, segment
 from threatmamba.ttp import KeywordTTPExtractor, TTPExtractor
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
@@ -81,12 +81,16 @@ def _service_error(e: ServiceError) -> HTTPException:
     return HTTPException(status_code=503, detail=f"{e.service} service unavailable: {e.detail}")
 
 
-def _onto_timeline(iocs: list[IOC], timeline: list[int | None]) -> list[IOC]:
-    """IOC unit numbers -> timeline sentence numbers (see threatmamba.text.attach)."""
+def _onto_timeline(iocs: list[IOC], units: list[Unit], timeline: list[int | None]) -> list[IOC]:
+    """The extractor reports the units an indicator appears in. Its sentence_indices become the timeline sentences
+    among them (none if it appears only in table rows, headings or list lines), and its context becomes exactly those
+    units' text, the paper's "original text passage in which they appeared"."""
     out = []
     for ioc in iocs:
-        numbers = sorted({timeline[i] for i in ioc.sentence_indices if timeline[i] is not None})
-        out.append(ioc.model_copy(update={"sentence_indices": numbers}))
+        found = sorted(set(ioc.sentence_indices))
+        numbers = sorted({timeline[i] for i in found if timeline[i] is not None})
+        context = list(dict.fromkeys(units[i].text for i in found)) or ioc.context
+        out.append(ioc.model_copy(update={"sentence_indices": numbers, "context": context}))
     return out
 
 
@@ -106,7 +110,7 @@ def _analyze_text(
         mode=_mode(),
         sentences=sentences,
         ttps=ttps,
-        iocs=_onto_timeline(iocs, timeline),
+        iocs=_onto_timeline(iocs, units, timeline),
         cskg=None,
         attribution=attribute(None),
         text=text,

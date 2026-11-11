@@ -73,6 +73,8 @@ export interface Indicator {
   type: string;
   value: string;
   sentence_indices: number[];
+  /** Every place it appears (its sentences, table rows or lines); the only location when sentence_indices is empty. */
+  context?: string[];
 }
 
 export interface DocumentInfo {

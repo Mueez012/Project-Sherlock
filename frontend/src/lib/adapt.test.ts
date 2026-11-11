@@ -83,7 +83,7 @@ describe("toAnalysisResult", () => {
   });
 
   it("keeps every sentence an indicator appears in, and puts indicators with no sentence last", () => {
-    expect(adapt().indicators).toEqual([
+    expect((adapt().indicators ?? []).map(({ type, value, sentence_indices }) => ({ type, value, sentence_indices }))).toEqual([
       { type: "ipv4", value: "10.0.0.1", sentence_indices: [1, 4] },
       { type: "domain", value: "found-by-lookup.example", sentence_indices: [] },
     ]);

@@ -2,18 +2,20 @@
 
 Paper, section III-A: one "sentence cutting" step feeds both IOC and TTP extraction; the order of sentences is the
 temporal sequence; every temporal node is built from its sentence's TTPs (Eq. 6), and the TTP model is trained on
-single sentences (D1). So only real sentences enter the timeline. Headings, label lines, indicator lists and other
-fragments are left out of it; indicators found in them are still extracted and attach to the nearest sentence by
-position (attach()), which the paper calls "positional dependencies in the original text".
+single sentences (D1). So only real sentences enter the timeline. Headings, table rows, label lines, indicator lists
+and other fragments are left out of it. Indicators found in them are still extracted; they belong to no timeline
+sentence (attach()), and their context is the line they appear in, the paper's "original text passage".
 
 Input: text with one paragraph per line (blank lines allowed). Pasted text and D2 reports already look like this;
 threatmamba.documents turns PDF, DOCX, HTML, Markdown, STIX and TXT files into it, and also says what each line is
 (regions): a heading or a table row never becomes a timeline sentence, whatever its words.
 
-1. Paragraphs: every line is a paragraph, except a wrapped sentence: a line of 3 or more words that stops without
-   closing punctuation and is not a heading, followed by a line that starts with a plain lowercase word, or with an
-   indicator and then a lowercase word ("The payload contacted" / "192.0.2.10 to fetch its configuration."). Those
-   two lines are joined.
+1. Paragraphs: every line is a paragraph, except a wrapped sentence, which is joined back:
+   - in hard-wrapped text (most lines end near one width, as in TXT exports and text pasted from a PDF), a line that
+     reaches that margin continues on the next line, unless the next line is a list item or an indicator list;
+   - anywhere, a line of 3 or more words that stops without closing punctuation and is not a heading continues on a
+     next line that starts with a plain lowercase word, or with an indicator and then a lowercase word.
+   A hyphen at the break is kept ("pro-" + "Russian" -> "pro-Russian", "update-" + "check.net" -> "update-check.net").
 2. Sentences: NLTK punkt (nltk pinned in pyproject.toml, its English data stored in data/punkt_tab so splits never
    change under us, plus EXTRA_ABBREVIATIONS) splits each paragraph. Three of punkt's splits are undone: one that
    does not fall on whitespace (it would cut a defanged indicator such as 185.12.45[.]201), one before a lowercase
@@ -26,7 +28,8 @@ threatmamba.documents turns PDF, DOCX, HTML, Markdown, STIX and TXT files into i
    (services/ttp/ttp_extraction/inference/segment.py); the last two were measured on D2 (they drop scraped headlines
    and related-article links, about 9% of D2's former sentences).
 
-Positions (start, end) index the text exactly as given. A unit's text is that slice with whitespace collapsed.
+Positions (start, end) index the text exactly as given. A unit's text is that slice with whitespace collapsed, a
+hyphen at a joined line break kept without a space, and a leading bullet symbol left out.
 datasets/scripts/clean_d2.py writes D2's `sentences` with split_sentences(); the datasets CI job fails if they differ.
 services/ioc/ioc_hunter/text.py is a byte-identical copy (IOC Hunter's container cannot import the hub), with the same
 data; tests in both places fail if the copies ever differ.
@@ -75,6 +78,9 @@ _IOC = re.compile(
 _PUNCT = ".,;:()[]{}<>\"'"
 _WS = re.compile(r"\s+")
 _CONTINUES = re.compile(r"[a-z]+[,;:.!?)]*(\s|$)")  # a wrapped sentence continues with a plain lowercase word
+_ITEM = re.compile(r"\s*([•▪◦‣●○■□–*-]|\d{1,2}[.)])\s")  # a list item: bullet, dash or "1." / "2)"
+_BULLET = re.compile(r"[•▪◦‣●○■□–*-]\s+")
+_BREAK_HYPHEN = re.compile(r"(?<=[A-Za-z0-9])-\n(?=\S)")
 _STARTS = re.compile(r"""^[•\-*]?\s*["'“‘(\[]?[A-Z0-9]""")  # a sentence starts with a capital, a digit or a quote
 _ENDS = re.compile(r"""[.!?]["'”’)\]]*$""")
 
@@ -142,8 +148,22 @@ def _kind(text: str, whole_line: bool, first: bool) -> str:
     return "sentence"
 
 
+def _wrap_width(lengths: list[int]) -> int | None:
+    """The margin of hard-wrapped text, or None. Wrapped text never runs past its margin: of 6 or more lines, almost
+    none (5% at most) exceed the usual width (40-140 characters) by more than 15%, and 30% or more come close to it.
+    D2 reports and pasted web text, where each line is a whole paragraph of any length, do not look like that."""
+    if len(lengths) < 6:
+        return None
+    width = sorted(lengths)[int(0.9 * (len(lengths) - 1))]
+    if not 40 <= width <= 140:
+        return None
+    longer = sum(n > 1.15 * width for n in lengths)
+    close = sum(n >= 0.85 * width for n in lengths)
+    return width if longer <= 0.05 * len(lengths) and close >= 0.3 * len(lengths) else None
+
+
 def _paragraphs(text: str) -> list[tuple[int, int]]:
-    """(start, end) of each paragraph: one per line, a mid-sentence line wrap joined to the next line."""
+    """(start, end) of each paragraph: one per line, a wrapped sentence joined back (see the module docstring)."""
     lines: list[tuple[int, int] | None] = []
     pos = 0
     for line in text.split("\n"):
@@ -154,18 +174,22 @@ def _paragraphs(text: str) -> list[tuple[int, int]]:
         else:
             lines.append(None)  # a blank line always ends a paragraph
         pos += len(line) + 1
+    width = _wrap_width([e - s for s, e in (x for x in lines if x)])
     out: list[tuple[int, int]] = []
-    joinable = False
+    joinable = at_margin = False
     for span in lines:
         if span is None:
-            joinable = False
+            joinable = at_margin = False
             continue
-        if joinable and _continues(text[span[0] : span[1]]):
+        line = text[span[0] : span[1]]
+        wrapped = at_margin and not _ITEM.match(line) and ioc_share(line) <= MAX_IOC_SHARE
+        if out and (wrapped or (joinable and _continues(line))):
             out[-1] = (out[-1][0], span[1])
         else:
             out.append(span)
         last = text[out[-1][0] : out[-1][1]].split("\n")[-1]
         joinable = len(last.split()) >= 3 and not last.endswith(SENTENCE_END) and not _is_heading(last, first=False)
+        at_margin = width is not None and len(last) >= 0.7 * width
     return out
 
 
@@ -201,7 +225,10 @@ def segment(text: str, regions: list[tuple[int, int, str]] | None = None) -> lis
         spans = _sentence_spans(raw.replace("\n", " "))  # same length, so offsets stay aligned
         whole_line = len(spans) == 1 and "\n" not in raw
         for s, e in spans:
-            piece = _WS.sub(" ", raw[s:e]).strip()
+            bullet = _BULLET.match(raw, s)
+            if bullet and bullet.end() < e:
+                s = bullet.end()  # the sentence starts at its words, not at the list marker
+            piece = _WS.sub(" ", _BREAK_HYPHEN.sub("-", raw[s:e])).strip()
             if piece:
                 kind = _kind(piece, whole_line, first=not units)
                 region = regions[bisect_right(starts, p_start + s) - 1] if regions else None
@@ -217,17 +244,11 @@ def split_sentences(text: str, regions: list[tuple[int, int, str]] | None = None
 
 
 def attach(units: list[Unit]) -> list[int | None]:
-    """For each unit, the timeline sentence it belongs to: itself if it is a sentence, otherwise the nearest sentence
-    before it (or, at the very start, the first one after it). None only when the text has no sentence at all."""
+    """For each unit, its timeline sentence number if it is a sentence, otherwise None. An indicator belongs only to
+    the sentences it appears in; one found only in a table row, heading or list line belongs to no sentence."""
     numbers: list[int | None] = []
     n = 0
     for u in units:
         numbers.append(n if u.kind == "sentence" else None)
         n += u.kind == "sentence"
-    first = next((x for x in numbers if x is not None), None)
-    out: list[int | None] = []
-    last = None
-    for number in numbers:
-        last = number if number is not None else last
-        out.append(last if last is not None else first)
-    return out
+    return numbers

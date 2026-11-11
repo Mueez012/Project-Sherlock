@@ -59,7 +59,7 @@ def test_pdf_is_read_by_its_layout_headers_footers_dropped_pages_known():
     assert doc.page_of(0) == 1
 
 
-def test_pdf_tables_are_rows_outside_the_timeline_and_their_indicators_attach():
+def test_pdf_tables_are_rows_outside_the_timeline_and_belong_to_no_sentence():
     doc = extract_text(make_pdf([BODY], table=True), "report.pdf")
     rows = [doc.text[s:e] for s, e, kind in doc.regions if kind == "table_row"]
     assert rows == [" | ".join(row) for row in ROWS]
@@ -67,7 +67,7 @@ def test_pdf_tables_are_rows_outside_the_timeline_and_their_indicators_attach():
     assert [u.text for u in units if u.kind == "sentence"] == split_sentences(doc.text, doc.regions)
     assert not any("Doppelganger" in s for s in split_sentences(doc.text, doc.regions))
     row = next(i for i, u in enumerate(units) if u.text.startswith("conlfex"))
-    assert attach(units)[row] == 1  # the table's indicators belong to the last sentence before the table
+    assert units[row].kind == "table_row" and attach(units)[row] is None  # no false link to a nearby sentence
 
 
 def test_a_paragraph_cut_by_a_page_break_is_joined():
@@ -134,7 +134,7 @@ def test_html_table_rows_are_one_line_each():
 def test_markdown_and_txt():
     md = "# Report\n\nThe actor used **Cobalt Strike** beacons for command and control.\n\n```\ncode here\n```\n"
     assert extract_text(md.encode(), "notes.md").text == (
-        "Report\nThe actor used Cobalt Strike beacons for command and control."
+        "Report\n\nThe actor used Cobalt Strike beacons for command and control."  # the paragraph break is kept
     )
     latin1 = "Le groupe a utilisé PowerShell pour télécharger la charge utile.".encode("latin-1")
     doc = extract_text(latin1, "notes.txt")
@@ -183,3 +183,29 @@ def test_upload_route_errors():
     )
     big = b"a" * (20 * 1024 * 1024 + 1)
     assert client.post("/api/analyze/file", files={"file": ("big.txt", big, "text/plain")}).status_code == 413
+
+
+def test_layout_markup_is_removed_but_names_paths_and_urls_keep_their_underscores():
+    from threatmamba.documents import _plain
+
+    assert _plain("<u>https://a.example/c_d_e</u>").strip() == "https://a.example/c_d_e"
+    assert _plain("**Exotic Lily** used _spear phishing_ via ~~old~~ `cmd.exe`") == (
+        "Exotic Lily used spear phishing via old cmd.exe"
+    )
+    assert _plain("dropped user_data.dll, __init__.py and C:\\Users\\_tmp_\\a.exe") == (
+        "dropped user_data.dll, __init__.py and C:\\Users\\_tmp_\\a.exe"
+    )
+
+
+def test_a_hard_wrapped_txt_file_keeps_its_paragraphs_and_whole_sentences():
+    import textwrap
+
+    paragraph = (
+        "The Exotic Lily group used spear-phishing emails sent from look-alike domains to reach finance staff at "
+        "targets in Western Europe. Windows hosts were then infected with Bumblebee, which contacted 185.12.45[.]201 "
+        "for its configuration before PowerShell launched Cobalt Strike on 12 hosts."
+    )
+    txt = "Initial Access\n\n" + textwrap.fill(paragraph, 72) + "\n\n" + textwrap.fill(paragraph, 72) + "\n"
+    doc = extract_text(txt.encode(), "report.txt")
+    assert "\n\n" in doc.text  # paragraph breaks survive
+    assert split_sentences(doc.text, doc.regions) == split_sentences(paragraph) * 2

@@ -18,7 +18,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from threatmamba.contracts import D2Report
-from threatmamba.text import split_sentences
+from threatmamba.text import segment
 
 SPLITS = ("train", "valid", "test")
 D1_ROWS = 12406  # paper Table II
@@ -136,7 +136,8 @@ def check_d2(d2: Path, check: Checks) -> None:
                 ids[r.report_id] += 1
                 per_split[split][r.group] += 1
                 wrong_label += label_of.get(r.group) != r.label
-                if r.sentences != split_sentences(r.text):
+                timeline = [u for u in segment(r.text) if u.kind == "sentence"]
+                if r.sentences != [u.text for u in timeline] or r.spans != [(u.start, u.end) for u in timeline]:
                     split_differs.append(r.report_id)
     per_group = sum(per_split.values(), Counter())
     check(invalid == 0, f"D2 every line is a valid D2Report ({invalid} invalid)")
@@ -152,7 +153,7 @@ def check_d2(d2: Path, check: Checks) -> None:
     )
     check(
         not split_differs,
-        f"D2 sentences == threatmamba.text.split_sentences(text) ({len(split_differs)} differ: {split_differs[:5]})",
+        f"D2 sentences and spans == threatmamba.text (live splitter) ({len(split_differs)} differ: {split_differs[:5]})",
     )
     print(f"     D2 reports: {sum(per_group.values())}  split: { {s: sum(per_split[s].values()) for s in SPLITS} }")
 

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from ipaddress import ip_address
 import re
 from ..models import IOC
-from ..text import attach, segment
+from ..text import segment
 
 IOC_TYPES = {
     "domains": "domain", "ipv4s": "ipv4", "ipv6s": "ipv6",
@@ -95,14 +95,6 @@ def split_sentences(report: str, nlp=None) -> list[str]:
     return [unit.text for unit in segment(report)]
 
 
-def passage_contexts(report: str) -> list[str]:
-    """For each unit, the passage an IOC found in it takes as context (paper III-A1): the unit itself if it is a
-    sentence, otherwise the nearest sentence before it, as the hub attaches it to the timeline."""
-    units = segment(report)
-    sentences = [unit.text for unit in units if unit.kind == "sentence"]
-    return [unit.text if number is None else sentences[number] for unit, number in zip(units, attach(units))]
-
-
 def is_software_version(value: str, sentence: str) -> bool:
     """Suppress an IPv4-shaped value only when every occurrence is a version.
 
@@ -159,8 +151,8 @@ def find_sentence_iocs(sentences: list[str], *, extended: bool = False) -> list[
 
 def build_iocs(sentences: list[str], matches: list[list[tuple[str, str]]], source: str,
                contexts: list[str] | None = None) -> list[IOC]:
-    """Merge repeated IOCs within this report and append their context: the matching unit, or contexts[i] for
-    unit i when given (see passage_contexts)."""
+    """Merge repeated IOCs within this report and append their context: the text of every unit they appear in (a
+    sentence, a table row or a line: the paper's "original text passage"), or contexts[i] for unit i when given."""
     contexts = sentences if contexts is None else contexts
     if not len(sentences) == len(matches) == len(contexts):
         raise ValueError("Each sentence must have a corresponding match list.")
@@ -199,4 +191,4 @@ def extract_report(report: str, *, source: str = "cti report", nlp=None,
     sentences = split_sentences(body)
     matches = find_sentence_iocs(sentences, extended=extended_types)
     return ExtractionResult(source, report, body, excluded, sentences, matches,
-                            build_iocs(sentences, matches, source, passage_contexts(body)))
+                            build_iocs(sentences, matches, source))

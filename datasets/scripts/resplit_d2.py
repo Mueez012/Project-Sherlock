@@ -1,4 +1,4 @@
-"""Rewrite the `sentences` field of every D2 report with the hub's splitter (threatmamba.text.split_sentences).
+"""Rewrite the `sentences` and `spans` fields of every D2 report with the hub's splitter (threatmamba.text).
 
 The splitter decides the timeline (real sentences only, see src/threatmamba/text.py); D2 must hold exactly what it
 produces, and the datasets CI job checks that. Every other field and byte stays as it is. Run from the repo root:
@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
-from threatmamba.text import split_sentences  # noqa: E402
+from threatmamba.text import segment  # noqa: E402
 
 D2 = ROOT / "datasets" / "d2_model_ready"
 
@@ -23,7 +23,9 @@ def main(out_dir: Path = D2) -> None:
         lines = (D2 / f"{part}.jsonl").read_text(encoding="utf-8").splitlines()
         records = [json.loads(line) for line in lines]
         for record in records:
-            record["sentences"] = split_sentences(record["text"])
+            timeline = [u for u in segment(record["text"]) if u.kind == "sentence"]
+            record["sentences"] = [u.text for u in timeline]
+            record["spans"] = [[u.start, u.end] for u in timeline]  # exact positions, so nobody has to search for them
         text = "".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records)
         (out_dir / f"{part}.jsonl").write_text(text, encoding="utf-8", newline="\n")
         print(f"{part}: {len(records)} reports, {sum(len(r['sentences']) for r in records)} sentences")

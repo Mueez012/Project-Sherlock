@@ -70,8 +70,11 @@ def test_real_ioc_with_stub_ttp_sends_the_original_text(monkeypatch):
     assert seen["body"] == {"text": text, "sentences": IOC_FIXTURE["request"]["sentences"], "extended_types": False}
     assert len(body["sentences"]) == 4  # the timeline: real sentences only
     indices = {i["value"]: i["sentence_indices"] for i in body["iocs"]}
+    contexts = {i["value"]: i["context"] for i in body["iocs"]}
     assert indices["185.220.101.4"] == [1, 3]
-    assert indices["d41d8cd98f00b204e9800998ecf8427e"] == [2]  # only in the indicator list: the sentence before it
+    # only in the indicator list: no timeline sentence, and its context is that list line, not a nearby sentence
+    assert indices["d41d8cd98f00b204e9800998ecf8427e"] == []
+    assert contexts["d41d8cd98f00b204e9800998ecf8427e"] == ["d41d8cd98f00b204e9800998ecf8427e"]
 
 
 def test_real_ttp_with_stub_ioc_is_mixed_mode(monkeypatch):

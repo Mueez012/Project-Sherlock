@@ -461,3 +461,5 @@
 
 /* Long indicator values (URLs, hashes) wrap instead of widening the table. */
 .indicator-value { overflow-wrap: anywhere; }
+
+.passage { font-family: var(--font-sans); color: var(--text-secondary); font-variant-numeric: normal; }

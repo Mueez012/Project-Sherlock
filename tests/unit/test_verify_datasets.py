@@ -5,7 +5,7 @@ import hashlib
 import json
 
 from threatmamba.data.verify_datasets import main
-from threatmamba.text import split_sentences
+from threatmamba.text import segment
 
 TACTICS = [f"TA{i:04d}" for i in range(1, 15)]
 TECHNIQUES = [f"T{1000 + i}" for i in range(1, 190)]
@@ -41,11 +41,12 @@ def _write_d2(d2, bad_sentences=False):
         with open(d2 / f"{split}.jsonl", "w", encoding="utf-8") as fh:
             for g in groups:
                 text = f"{g['group']} sent a lure. J\nThen it ran PowerShell."
-                sentences = split_sentences(text)
+                timeline = [u for u in segment(text) if u.kind == "sentence"]
+                sentences, spans = [u.text for u in timeline], [[u.start, u.end] for u in timeline]
                 if bad_sentences and rid == 2:
                     sentences = [text]
                 rec = {"report_id": rid, "group": g["group"], "label": g["label"], "cut_by_excel": False}
-                fh.write(json.dumps({**rec, "text": text, "sentences": sentences}) + "\n")
+                fh.write(json.dumps({**rec, "text": text, "sentences": sentences, "spans": spans}) + "\n")
                 rid += 1
 
 
@@ -82,7 +83,19 @@ def test_a_changed_file_fails_the_checksum(tmp_path, capsys):
 def test_sentences_that_disagree_with_the_hub_splitter_fail(tmp_path, capsys):
     root, n = _datasets(tmp_path, bad_sentences=True)
     assert main([str(root), "--d1-rows", str(n)]) == 1
-    assert "FAIL D2 sentences == threatmamba.text.split_sentences(text) (1 differ: [2])" in capsys.readouterr().out
+    assert "FAIL D2 sentences and spans == threatmamba.text (live splitter) (1 differ: [2])" in capsys.readouterr().out
+
+
+def test_spans_that_disagree_with_the_hub_splitter_fail(tmp_path, capsys):
+    root, n = _datasets(tmp_path)
+    d2 = root / "d2_model_ready" / "train.jsonl"
+    lines = d2.read_text().splitlines()
+    first = json.loads(lines[0])
+    first["spans"][0] = [first["spans"][0][0] + 1, first["spans"][0][1]]  # off by one character
+    d2.write_text("\n".join([json.dumps(first), *lines[1:]]) + "\n")
+    _write_sums(root)
+    assert main([str(root), "--d1-rows", str(n)]) == 1
+    assert "FAIL D2 sentences and spans" in capsys.readouterr().out
 
 
 def test_a_technique_missing_from_test_fails(tmp_path, capsys):

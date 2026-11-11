@@ -32,9 +32,9 @@ def test_units_keep_their_exact_positions_and_never_cut_a_word():
         assert u.end == len(REPORT) or REPORT[u.end].isspace()
 
 
-def test_indicators_outside_sentences_attach_to_the_nearest_sentence_before_them():
-    # the heading comes before any sentence, so it goes to the first one
-    assert attach(segment(REPORT)) == [0, 0, 1, 1, 1, 1, 1]
+def test_only_sentences_are_timeline_steps_other_lines_belong_to_none():
+    # heading, two sentences, then a label and an indicator list: those belong to no timeline sentence
+    assert attach(segment(REPORT)) == [None, 0, 1, None, None, None, None]
     assert attach(segment("Indicators:\nevil[.]com")) == [None, None]
 
 
@@ -95,3 +95,43 @@ def test_ttp_keyword_extractor_maps_sentences():
     hits = KeywordTTPExtractor().predict(["A spear-phishing email arrived.", "Nothing here.", "PowerShell ran."])
     assert {(h.technique_id, h.sentence_index) for h in hits} == {("T1566", 0), ("T1059", 2)}
     assert all(0 <= h.score <= 1 for h in hits)
+
+
+WRAPPED_PARAGRAPH = (
+    "The Exotic Lily group used spear-phishing emails sent from look-alike domains such as update-check[.]net to reach "
+    "finance staff at APT28-style targets in Western Europe. Windows hosts were then infected with Bumblebee, which "
+    "contacted 185.12.45[.]201 for its configuration and pro-Russian infrastructure for later stages of the attack. "
+    "Microsoft Defender flagged the loader only after 2 days, when PowerShell launched Cobalt Strike on 12 hosts."
+)
+
+
+@pytest.mark.parametrize("width", [60, 72, 100])
+def test_hard_wrapped_text_gives_the_same_timeline_as_unwrapped(width):
+    """TXT exports and text pasted from a PDF break lines at a margin, often before a capital, a digit or an
+    indicator; the timeline must not change."""
+    import textwrap
+
+    heading = "Initial Access"
+    plain = f"{heading}\n{WRAPPED_PARAGRAPH}\nIndicators:\n- update-check[.]net"
+    wrapped = f"{heading}\n\n{textwrap.fill(WRAPPED_PARAGRAPH, width)}\n\nIndicators:\n- update-check[.]net"
+    assert split_sentences(wrapped) == split_sentences(plain)
+    assert len(split_sentences(wrapped)) == 3
+    assert "update-check[.]net" in split_sentences(wrapped)[0]  # a hyphen at a break is kept, never deleted
+
+
+def test_hyphen_at_a_line_break_is_kept_and_bullets_are_trimmed():
+    text = (
+        "The loader downloaded its payload from update-\ncheck[.]net over HTTPS on port 443 that day.\n"
+        "• Their operations have resulted in ransomware infections."
+    )
+    sentences = split_sentences(text)
+    assert sentences == [
+        "The loader downloaded its payload from update-check[.]net over HTTPS on port 443 that day.",
+        "Their operations have resulted in ransomware infections.",
+    ]
+
+
+def test_one_paragraph_per_line_text_is_not_treated_as_wrapped():
+    # D2 and pasted web text: each line is a paragraph; a line without a full stop must not swallow the next one
+    lines = [WRAPPED_PARAGRAPH] * 3 + ["Hackers use leaked ransomware to attack banks"] + [WRAPPED_PARAGRAPH] * 3
+    assert len(split_sentences("\n".join(lines))) == 18

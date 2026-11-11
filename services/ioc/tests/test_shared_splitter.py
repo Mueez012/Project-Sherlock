@@ -28,11 +28,12 @@ class SharedSplitterTests(unittest.TestCase):
             hub_file = HUB / "data" / "punkt_tab" / "english" / name
             self.assertEqual((PUNKT_DIR / name).read_bytes(), hub_file.read_bytes())
 
-    def test_an_indicator_in_a_list_takes_the_sentence_before_it_as_context(self):
+    def test_an_indicator_takes_the_line_it_appears_in_as_context(self):
         report = "The loader contacted 192.0.2.10 over port 443.\nIndicators:\nevil[.]com\n"
         result = extract_report(report)
         contexts = {ioc.value: ioc.context for ioc in result.iocs}
-        self.assertEqual(contexts["evil.com"], ["The loader contacted 192.0.2.10 over port 443."])
+        self.assertEqual(contexts["evil.com"], ["evil[.]com"])  # its own line, not a nearby sentence
+        self.assertEqual(contexts["192.0.2.10"], ["The loader contacted 192.0.2.10 over port 443."])
         self.assertEqual([u.kind for u in segment(report)], ["sentence", "fragment", "ioc_list"])
         self.assertEqual(result.sentences, ["The loader contacted 192.0.2.10 over port 443.", "Indicators:", "evil[.]com"])
 

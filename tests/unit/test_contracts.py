@@ -13,6 +13,7 @@ RECORD = {
         "I was recently doing an external penetration test.",
         "One among them that I really liked is Nishang.",
     ],
+    "spans": [[0, 31], [32, 59]],
 }
 
 
@@ -21,7 +22,7 @@ def test_d2_record_parses():
     assert (r.group, r.label, len(r.sentences)) == ("Waterbug", 1, 2)
 
 
-@pytest.mark.parametrize("field,bad", [("label", 25), ("report_id", 0), ("text", ""), ("sentences", [])])
+@pytest.mark.parametrize("field,bad", [("label", 25), ("report_id", 0), ("text", ""), ("sentences", []), ("spans", [])])
 def test_d2_record_rejects_bad_values(field, bad):
     with pytest.raises(ValidationError):
         D2Report.model_validate({**RECORD, field: bad})

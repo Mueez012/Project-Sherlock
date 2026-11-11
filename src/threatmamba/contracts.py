@@ -22,6 +22,9 @@ class D2Report(BaseModel):
     cut_by_excel: bool
     text: str = Field(min_length=1)
     sentences: list[str] = Field(min_length=1, description="the report split by threatmamba.text.split_sentences")
+    spans: list[tuple[int, int]] = Field(
+        min_length=1, description="where each sentence is in text: text[start:end] (character positions, end exclusive)"
+    )
 
 
 class IOCType(StrEnum):
@@ -59,11 +62,10 @@ class IOCType(StrEnum):
 class IOC(BaseModel):
     """One indicator of compromise.
 
-    sentence_indices are timeline sentence numbers: every sentence the indicator appears in, sorted. An indicator
-    that appears only outside sentences (an indicator list, a heading) belongs to the nearest sentence before it,
-    the paper's positional dependency. It is empty for an indicator found by an online lookup rather than in the
-    text. context and source are the extractor's own; for IOC-hunter, context is the sentences where it found the
-    indicator.
+    sentence_indices are timeline sentence numbers: every sentence the indicator appears in, sorted. They are empty
+    when it appears only outside sentences (a table row, a heading, a list line) or was found by an online lookup.
+    context is the text of every place it appears: its sentences, table rows or lines (the paper's "original text
+    passage"). source names the extractor.
     """
 
     type: IOCType

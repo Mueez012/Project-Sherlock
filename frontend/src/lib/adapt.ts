@@ -147,15 +147,18 @@ export function toAnalysisResult({ text, incidentName, response, processingMs, i
   const indicatorMap = new Map<string, Indicator>();
   for (const ioc of response.iocs) {
     const key = `${ioc.type}\u0000${ioc.value}`;
-    const entry = indicatorMap.get(key) ?? { type: ioc.type, value: ioc.value, sentence_indices: [] };
+    const entry = indicatorMap.get(key) ?? { type: ioc.type, value: ioc.value, sentence_indices: [], context: [] };
     for (const index of ioc.sentence_indices ?? []) {
       if (!entry.sentence_indices.includes(index)) entry.sentence_indices.push(index);
+    }
+    for (const passage of ioc.context ?? []) {
+      if (!entry.context?.includes(passage)) entry.context?.push(passage);
     }
     indicatorMap.set(key, entry);
   }
   const indicators = [...indicatorMap.values()]
     .map((i) => ({ ...i, sentence_indices: [...i.sentence_indices].sort((a, b) => a - b) }))
-    // Indicators found by lookup have no sentence; they go last.
+    // Indicators only in table rows or lists (no sentence) go last.
     .sort((a, b) => (a.sentence_indices[0] ?? Infinity) - (b.sentence_indices[0] ?? Infinity)
       || a.type.localeCompare(b.type) || a.value.localeCompare(b.value));
 

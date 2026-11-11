@@ -189,7 +189,7 @@ label = {g: k for k, g in enumerate(groups)}
 # The timeline: the hub's splitter, so D2 and live reports are cut identically (src/threatmamba/text.py: NLTK punkt,
 # real sentences only). Run from the repo with `uv run`, so threatmamba and its pinned nltk are importable.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src"))
-from threatmamba.text import split_sentences as sentences  # noqa: E402
+from threatmamba.text import segment  # noqa: E402
 
 
 OUT = "d2_model_ready"
@@ -207,7 +207,8 @@ for i, x in enumerate(final):
                 "label": label[x["group"]],
                 "cut_by_excel": x["line"] in cut,
                 "text": x["text"],
-                "sentences": sentences(x["text"]),
+                "sentences": [u.text for u in segment(x["text"]) if u.kind == "sentence"],
+                "spans": [[u.start, u.end] for u in segment(x["text"]) if u.kind == "sentence"],
             },
             ensure_ascii=False,
         )
@@ -229,7 +230,7 @@ print(
     f"groups.json (25 groups, label 0-24)"
 )
 print(
-    "    One report per line: report_id (line in CTI2Attacker.csv), group, label, cut_by_excel, text, sentences."
+    "    One report per line: report_id (line in CTI2Attacker.csv), group, label, cut_by_excel, text, sentences, spans."
 )
 print(
     f"    {sum(1 for x in final if x['line'] in cut)} reports contain a cell cut by Excel (cut_by_excel = true)."

@@ -72,23 +72,33 @@ _QUOTES = str.maketrans(
     {"‘": "'", "’": "'", "‚": "'", "‛": "'", "“": '"', "”": '"', "„": '"', "″": '"', "–": "-", "—": "-", "−": "-"}
     | {"\u00a0": " ", "\u200b": "", "\ufeff": "", "\u00ad": ""}
 )
-_HYPHEN_BREAK = re.compile(r"(\w)-\n(\w)")
 _SPACES = re.compile(r"[ \t\f\v]+")
 
 
 def clean_text(text: str) -> str:
-    """Normalise quotes, dashes and spaces, join words hyphenated across a line break, drop empty lines.
-    Line breaks are kept. Defanged indicators such as hxxp:// and example[.]com stay exactly as they are."""
+    """Normalise quotes, dashes and spaces, drop empty lines. Line breaks are kept, and so is a hyphen at a line break
+    (the splitter joins "update-" + "check.net" into update-check.net; deleting it would corrupt the indicator).
+    Defanged indicators such as hxxp:// and example[.]com stay exactly as they are."""
     text = unicodedata.normalize("NFC", text).translate(_QUOTES)
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-    text = _HYPHEN_BREAK.sub(r"\1\2", text)
     return "\n".join(line for line in (_SPACES.sub(" ", line).strip() for line in text.split("\n")) if line)
 
 
 _CVE = re.compile(r"\bCVE-(\d{4})(\d{4,7})\b")
 _HEX = re.compile(r"[0-9a-fA-F]+")
 _CELL_HYPHEN = re.compile(r"([A-Za-z])- ([a-z])")
-_MARKUP = re.compile(r"\*\*|__|`|<br\s*/?>")
+# Inline styles the layout converter writes: <sup>/<u>/<mark>/<br> tags, **bold**, _italic_, ~~strike~~, `mono`.
+# The words inside stay. Italics open after a space or bracket and close before a space or punctuation, so
+# underscores in names, paths and URLs (user_data.dll, __init__.py, C:\\Users\\_tmp_\\a.exe) are kept.
+_TAGS = re.compile(r"</?(?:sup|sub|u|mark|b|i|s|em|strong|span|br)\b[^>]*>", re.I)
+_PAIRED = re.compile(r"\*\*(.+?)\*\*|~~(.+?)~~|`([^`]+)`|(?<![^\s(])_(?=[^\s_])(.+?)(?<=[^\s_])_(?![^\s.,;:!?)])")
+
+
+def _plain(markdown: str) -> str:
+    text = _TAGS.sub(" ", markdown)
+    for _ in range(3):  # nested styles (bold italic)
+        text = _PAIRED.sub(lambda m: next(g for g in m.groups() if g is not None), text)
+    return text.replace("**", "")
 
 
 def repair(text: str) -> str:
@@ -107,14 +117,19 @@ def table_cell(text: str) -> str:
 
 def build(lines: list[tuple], media_type: str, **extra) -> Document:
     """Typed lines (kind, text[, page]) -> the Document: one line per region, with each region's position and, for
-    PDFs, where each page begins."""
+    PDFs, where each page begins. A ("blank", "") line keeps a paragraph break as an empty line."""
     text, regions, page_starts = "", [], []
+    blank = False
     for kind, line, *page in lines:
+        if kind == "blank":
+            blank = bool(text)
+            continue
         line = repair(clean_text(line).replace("\n", " "))
         if not line:
             continue
         if text:
-            text += "\n"
+            text += "\n\n" if blank else "\n"
+        blank = False
         while page and len(page_starts) < page[0]:
             page_starts.append(len(text))
         regions.append((len(text), len(text) + len(line), kind))
@@ -153,7 +168,7 @@ def _pdf_lines(chunk: dict) -> list[tuple[str, str]]:
                 if any(cells):
                     out.append(("table_row", " | ".join(c for c in cells if c)))
             continue
-        line = _MARKUP.sub(" ", raw)
+        line = _plain(raw)
         line = re.sub(r"^\s*(#+|[-*•])\s+", "", line.strip())  # heading marks and bullets
         line = " ".join(line.split())
         if line:
@@ -201,7 +216,8 @@ def read_plain(data: bytes, markdown: bool = False) -> Document:
         text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", text)  # links and images -> their label
         text = re.sub(r"(\*\*|__|`)", "", text)
     media = EXTENSIONS[".md" if markdown else ".txt"]
-    return build([("text", line) for line in clean_text(text).split("\n")], media, warnings=warnings)
+    lines = [("text", line) if line.strip() else ("blank", "") for line in text.replace("\r\n", "\n").split("\n")]
+    return build(lines, media, warnings=warnings)
 
 
 def read_html(data: bytes) -> Document:
