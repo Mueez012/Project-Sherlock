@@ -12,14 +12,14 @@ from fastapi import APIRouter, HTTPException, Request, Response
 
 from threatmamba.clients.errors import ServiceError
 from threatmamba.clients.investigations import IOCInvestigationClient
-from threatmamba.settings import ioc_timeout_s, ioc_url
+from threatmamba.settings import ioc_investigation_timeout_s, ioc_url
 
 router = APIRouter(prefix="/api/investigations", tags=["investigations"])
 HUB_PREFIX, IOC_PREFIX = "/api/investigations", "/v1/investigations"
 
 
 def _client() -> IOCInvestigationClient:
-    return IOCInvestigationClient(ioc_url(), ioc_timeout_s())
+    return IOCInvestigationClient(ioc_url(), ioc_investigation_timeout_s())
 
 
 def _part(value: str) -> str:

@@ -9,6 +9,7 @@ import "../styles/base.css";
 import "../styles/components.css";
 import "../styles/landing.css";
 import "../styles/analysis.css";
+import "../styles/investigation.css";
 
 export const metadata: Metadata = {
   title: "Sherklock Honed: CTI report to ATT&CK",

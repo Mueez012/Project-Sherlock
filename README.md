@@ -116,8 +116,10 @@ stored in the persistent `ioc-data` volume. Optional `OTX_API_KEY` and `VT_API_K
 Saved IOC investigations (pick an IOC and a lookup method by hand, run it, grow the IOC graph, resume, export) are
 served by IOC-hunter and reached through the hub at `/api/investigations`; the hub forwards each request unchanged.
 The reference is `services/ioc/docs/api/`. IOC-hunter's terminal workflow uses the same saved investigations when
-run inside the container, for example `docker compose exec ioc ioc-hunter runs`. The website uses IOC extraction;
-investigation and lookup screens are not built yet.
+run inside the container, for example `docker compose exec ioc ioc-hunter runs`. On the website's result page,
+"Investigate these indicators" starts an investigation from the analysed text and opens it in place (graph,
+lookups, evidence, finish, JSON download); `/investigations` lists and reopens saved ones. A lookup can take minutes,
+so the hub waits up to `TM_IOC_INVESTIGATION_TIMEOUT_S` (default 600 s) on these routes.
 
 Settings (modes, ports, the emails-and-CVEs switch) live in `.env`: copy `.env.example` to `.env` and edit it;
 compose reads it automatically and git ignores it.

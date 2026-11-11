@@ -10,13 +10,15 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "contrast": "node scripts/check-contrast.mjs",
-    "gen:api": "openapi-typescript ${API_ORIGIN:-http://127.0.0.1:8000}/openapi.json -o src/lib/api/schema.d.ts"
+    "gen:api": "openapi-typescript ${API_ORIGIN:-http://127.0.0.1:8000}/openapi.json -o src/lib/api/schema.d.ts",
+    "gen:investigations": "openapi-typescript ../services/ioc/docs/api/openapi.json -o src/lib/api/investigations.schema.d.ts"
   },
   "dependencies": {
     "@fontsource-variable/geist-mono": "5.3.0",
     "@fontsource-variable/inter": "5.3.0",
     "@gsap/react": "2.1.2",
     "@phosphor-icons/react": "2.1.10",
+    "d3-force": "3.0.0",
     "gsap": "3.15.0",
     "next": "16.4.2",
     "react": "19.2.8",
@@ -29,6 +31,7 @@
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.7",
+    "@types/d3-force": "3.0.10",
     "@types/node": "26.4.1",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
@@ -42,5 +45,10 @@
     "typescript": "6.0.3",
     "vite": "8.3.4",
     "vitest": "5.0.4"
+  },
+  "overrides": {
+    "d3-dispatch": "3.0.1",
+    "d3-quadtree": "3.0.1",
+    "d3-timer": "3.0.1"
   }
 }

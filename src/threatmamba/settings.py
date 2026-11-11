@@ -40,6 +40,11 @@ def ioc_timeout_s() -> float:
     return float(os.environ.get("TM_IOC_TIMEOUT_S", "120"))
 
 
+def ioc_investigation_timeout_s() -> float:
+    """Investigation requests wait for a whole lookup (provider pacing, a browser): up to a run's 600 s budget."""
+    return float(os.environ.get("TM_IOC_INVESTIGATION_TIMEOUT_S", "600"))
+
+
 def ioc_extended_types() -> bool:
     """TM_IOC_EXTENDED_TYPES: IOC-hunter also extracts emails and CVEs. Off by default, as in IOC-hunter."""
     return os.environ.get("TM_IOC_EXTENDED_TYPES", "false").strip().lower() in {"1", "true", "yes", "on"}

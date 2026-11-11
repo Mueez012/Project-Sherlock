@@ -1,0 +1,212 @@
+/* The investigation workspace (src/features/investigation). Every colour comes from tokens.css. */
+
+.investigation-start {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.workspace { display: grid; gap: var(--space-4); }
+
+.workspace-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workspace-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.workspace-side { display: grid; gap: var(--space-4); }
+
+/* ---- graph */
+
+.graph-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg);
+  padding: var(--space-3);
+}
+
+.ioc-graph {
+  display: block;
+  width: 100%;
+  height: clamp(280px, 50vh, 460px);
+}
+
+.graph-edge {
+  stroke: var(--border-control);
+  stroke-width: 1.5;
+  transition: stroke var(--duration) var(--ease);
+}
+
+.graph-edge.fresh { stroke: var(--accent); stroke-width: 2.5; }
+
+.graph-node { cursor: pointer; outline: none; }
+
+.graph-node circle {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 2;
+  transition: stroke var(--duration) var(--ease);
+}
+
+.graph-node.lookup circle { fill: var(--surface-raised); stroke: var(--accent); stroke-width: 2.5; }
+.graph-node.used circle { stroke-dasharray: 3 2; stroke: var(--text-secondary); }
+
+.graph-node.selected circle,
+.graph-node:focus-visible circle { stroke: var(--text); stroke-width: 3.5; stroke-dasharray: none; }
+.graph-node.fresh circle { stroke: var(--success); stroke-width: 3.5; }
+
+.graph-node text {
+  fill: var(--text-secondary);
+  font: var(--text-xs) / 1 var(--font-mono);
+  pointer-events: none;
+}
+
+.graph-node.selected text { fill: var(--text); }
+
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.graph-legend li { display: flex; gap: var(--space-2); align-items: center; }
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+
+.swatch.lookup { background: var(--surface-raised); border: 2px solid var(--accent); }
+.swatch.used { background: transparent; border: 2px dashed var(--text-secondary); }
+
+.graph-table { margin-top: var(--space-3); }
+.graph-table summary { cursor: pointer; font-size: var(--text-sm); color: var(--accent-text); }
+.graph-table .table-scroll { margin-top: var(--space-2); }
+
+/* ---- side panel */
+
+.node-panel {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+}
+
+.node-panel.empty { justify-items: start; color: var(--text-secondary); }
+.node-panel h3 { margin: 0; font-size: var(--text-md); overflow-wrap: anywhere; }
+
+.panel-subhead { margin: var(--space-2) 0 0; font-size: var(--text-md); }
+
+.method-group { display: grid; gap: var(--space-1); }
+.method-source { margin: 0; color: var(--text-secondary); font-weight: 600; }
+
+.method-list { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+
+.method-list li {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+}
+
+.method-list li > div { display: grid; gap: 2px; }
+.method-name { display: inline-flex; gap: var(--space-1); align-items: center; font-size: var(--text-sm); }
+
+.small-button { min-height: 32px; padding: 0 var(--space-3); font-size: var(--text-sm); }
+
+.passages summary { cursor: pointer; font-size: var(--text-sm); color: var(--accent-text); }
+.passages ul { margin: var(--space-2) 0 0; padding-left: var(--space-4); font-size: var(--text-sm); }
+
+.running-note,
+.step-result {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.step-result { display: grid; gap: var(--space-1); }
+.step-result p { margin: 0; }
+.step-result.problem { border-left-color: var(--warning); }
+.step-result .admitted { color: var(--text); font-weight: 600; }
+
+.output-list { margin: 0; padding-left: var(--space-4); font-size: var(--text-sm); }
+
+.warn-text { color: var(--text); font-weight: 600; }
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---- evidence dialog and history */
+
+.evidence { display: grid; gap: var(--space-3); max-width: min(880px, 92vw); }
+
+.evidence-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+}
+
+.evidence-facts dt { color: var(--text-secondary); }
+.evidence-facts dd { margin: 0; overflow-wrap: anywhere; }
+.evidence summary { cursor: pointer; overflow-wrap: anywhere; }
+
+.evidence-pre {
+  max-height: 360px;
+  overflow: auto;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  color: var(--text);
+  font: var(--text-xs) / var(--leading-ui) var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.inline-field { display: flex; gap: var(--space-3); align-items: center; max-width: 320px; }
+
+@media (width <= 1024px) {
+  .workspace-grid { grid-template-columns: minmax(0, 1fr); }
+}

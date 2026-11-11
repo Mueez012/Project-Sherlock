@@ -121,3 +121,11 @@ def test_the_hub_lists_every_investigation_route():
         "/api/investigations/{run_id}/close",
         "/api/investigations/{run_id}/export",
     }
+
+
+def test_investigations_wait_for_a_whole_lookup(monkeypatch):
+    """A lookup can take minutes; analyses keep their own, shorter IOC timeout."""
+    monkeypatch.delenv("TM_IOC_INVESTIGATION_TIMEOUT_S", raising=False)
+    assert investigations._client().timeout_s == 600.0
+    monkeypatch.setenv("TM_IOC_INVESTIGATION_TIMEOUT_S", "900")
+    assert investigations._client().timeout_s == 900.0

@@ -1,6 +1,6 @@
 "use client";
 
-import { Crosshair, Plus } from "@phosphor-icons/react";
+import { Crosshair, Graph, Plus } from "@phosphor-icons/react";
 import Link from "next/link";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -26,6 +26,7 @@ export function SiteHeader({ onNewAnalysis, links = true }: { onNewAnalysis: () 
           </div>
         )}
         <div className="nav-actions">
+          <Link className="button ghost" href="/investigations"><Graph aria-hidden="true" /> <span className="hide-sm">Investigations</span></Link>
           <ThemeToggle />
           <button type="button" className="button primary" onClick={onNewAnalysis} aria-label="New analysis">
             <Plus aria-hidden="true" weight="bold" /> <span className="hide-sm">New analysis</span>

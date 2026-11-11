@@ -24,7 +24,7 @@ export default function ResultPage() {
       <SiteHeader onNewAnalysis={open} links={false} />
       <main className="app-main" id="main">
         {result ? (
-          <ResultView key={result.id} result={result} onNewAnalysis={open} />
+          <ResultView key={result.id} result={result} onNewAnalysis={open} investigable />
         ) : (
           <section className="card empty-state">
             <MagnifyingGlass size={32} aria-hidden="true" />

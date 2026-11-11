@@ -12,6 +12,8 @@ interface Props {
   result: AnalysisResult;
   /** Technique whose evidence sentences should be highlighted and scrolled to. */
   focusTechnique: string | null;
+  /** Sentences to highlight instead (an indicator's sentences, from the investigation). */
+  focusSentences?: number[] | null;
   /** Changes every time the user asks to show a technique, so the same one can pulse again. */
   focusNonce: number;
 }
@@ -20,7 +22,7 @@ interface Props {
  * Same length, so char_start / char_end offsets stay valid. */
 const unwrap = (text: string) => text.replaceAll("\n", " ");
 
-export function ReportViewer({ result, focusTechnique, focusNonce }: Props) {
+export function ReportViewer({ result, focusTechnique, focusSentences = null, focusNonce }: Props) {
   const [active, setActive] = useState<Sentence | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const segments = useMemo(() => segmentText(result.document.text, result.sentences), [result]);
@@ -35,15 +37,16 @@ export function ReportViewer({ result, focusTechnique, focusNonce }: Props) {
     return map;
   }, [result]);
   const focusSet = useMemo(() => {
+    if (focusSentences) return new Set(focusSentences);
     const t = result.techniques.find((x) => x.id === focusTechnique);
     const fromSentences = result.sentences
       .filter((s) => s.labels.some((l) => l.id === focusTechnique && l.passed))
       .map((s) => s.index);
     return new Set([...(t?.evidence.map((e) => e.sentence_index) ?? []), ...fromSentences]);
-  }, [result, focusTechnique]);
+  }, [result, focusTechnique, focusSentences]);
 
   useEffect(() => {
-    if (!focusTechnique || !container.current) return;
+    if ((!focusTechnique && !focusSentences?.length) || !container.current) return;
     const first = container.current.querySelector<HTMLElement>(".sentence.focus");
     if (!first) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -53,7 +56,7 @@ export function ReportViewer({ result, focusTechnique, focusNonce }: Props) {
       void el.offsetWidth;          // restart the CSS animation
       el.classList.add("pulse");
     });
-  }, [focusTechnique, focusNonce]);
+  }, [focusTechnique, focusSentences, focusNonce]);
 
   const open = (s: Sentence) => setActive((cur) => (cur?.index === s.index ? null : s));
   const onKey = (event: KeyboardEvent, s: Sentence) => {

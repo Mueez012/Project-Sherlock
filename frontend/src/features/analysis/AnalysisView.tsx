@@ -5,17 +5,33 @@ import { useState } from "react";
 
 import type { AnalysisResult } from "@/types/analysis";
 
+import { InvestigationSection } from "@/features/investigation/InvestigationSection";
+
 import { IndicatorList } from "./IndicatorList";
 import { ReportViewer } from "./ReportViewer";
 import { SummaryBar } from "./SummaryBar";
 import { TacticMatrix } from "./TacticMatrix";
 import { TechniqueTable } from "./TechniqueTable";
 
-export function ResultView({ result, onNewAnalysis }: { result: AnalysisResult; onNewAnalysis: () => void }) {
+interface ResultViewProps {
+  result: AnalysisResult;
+  onNewAnalysis: () => void;
+  /** Offer the investigation of this report's indicators (not on the offline sample, which has no backend run). */
+  investigable?: boolean;
+}
+
+export function ResultView({ result, onNewAnalysis, investigable = false }: ResultViewProps) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [sentences, setSentences] = useState<number[] | null>(null);
   const [nonce, setNonce] = useState(0);
   const show = (techniqueId: string) => {
     setSelected(techniqueId);
+    setSentences(null);
+    setNonce((n) => n + 1);
+  };
+  const showSentences = (indices: number[]) => {
+    setSelected(null);
+    setSentences(indices);
     setNonce((n) => n + 1);
   };
 
@@ -43,7 +59,8 @@ export function ResultView({ result, onNewAnalysis }: { result: AnalysisResult; 
         </>
       )}
       {result.indicators && <IndicatorList indicators={result.indicators} />}
-      <ReportViewer result={result} focusTechnique={selected} focusNonce={nonce} />
+      {investigable && <InvestigationSection result={result} onShowSentences={showSentences} />}
+      <ReportViewer result={result} focusTechnique={selected} focusSentences={sentences} focusNonce={nonce} />
     </div>
   );
 }
