@@ -43,12 +43,17 @@ npm run lint && npm test && npm run contrast       # what the CI web job runs, p
 ### How a report is read
 
 A report comes in as pasted text (`POST /api/analyze`) or as a file (`POST /api/analyze/file`, up to 20 MB): PDF,
-DOCX, HTML, Markdown, TXT or a STIX 2.1 bundle. `src/threatmamba/documents.py` turns a file into text with one
-region per line and says what each line is: text, heading or table row. PDFs are read with Artifex's layout model
-(pymupdf4llm + pymupdf-layout): page headers and footers are dropped, tables come back as rows (cells joined with
-" | "), a paragraph split by a page break is joined, and a hash wrapped inside a table cell is put back together. A
-PDF without a text layer is refused, as there is no OCR. For a STIX bundle, the ATT&CK ids it declares are never shown
-to the model.
+DOCX, HTML, Markdown, TXT or a STIX 2.1 bundle. `src/threatmamba/documents.py` turns a file into text with one region
+per line and says what each line is: text, list item, heading or table row. Every format keeps the report's own
+characters (quotes, dashes), as pasted text and D2 do, so a report gives the same sentences however it arrives.
+
+PDFs: Artifex's layout model (pymupdf4llm + pymupdf-layout) labels each region of a page; regions are read column by
+column, and each region's text is built from the PDF's own lines. A hyphen at a line end is joined when it is
+typesetting hyphenation ("individ-uals") and kept in compounds ("credit-card") and anything that is not a plain word
+(indicators, CVE ids); ligatures are expanded; a paragraph broken by a column or page break is joined again; only
+repeated page headers and footers (or page numbers) are dropped; tables come back as rows of cells, and a hash
+wrapped inside a cell is put back together. A PDF without a text layer is refused, as there is no OCR. For a STIX
+bundle, the ATT&CK ids it declares are never shown to the model.
 
 `src/threatmamba/text.py` then cuts the text once, the paper's single "sentence cutting" step: NLTK punkt, pinned
 with its English data stored in the repo, never cutting inside an indicator. Hard-wrapped text (TXT exports, text
@@ -56,8 +61,12 @@ pasted from a PDF) is joined back at its margin first. Only real sentences becom
 headings, table rows, indicator lists, labels and short pieces without sentence punctuation are left out. TTP
 extraction runs on the timeline sentences. IOC extraction reads the whole report, table rows included; an indicator
 belongs to exactly the sentences it appears in (none if it is only in a table row or list), and its context is the
-sentence, row or line where it appears. Every answer lists each sentence's position in the text, and its page for a
-PDF.
+sentence, row or line where it appears. In a table, a cell that is a complete sentence (an ATT&CK table's procedure
+column) joins the timeline; ids, labels, dates and indicators do not. Every answer lists each sentence's position in
+the text, and its page for a PDF.
+
+`uv run python scripts/check_splitting.py` checks that the same real D2 reports give the same timeline as CRLF text,
+hard-wrapped TXT, HTML, DOCX and one- and two-column PDFs; CI runs a small version of it.
 
 ### The datasets
 

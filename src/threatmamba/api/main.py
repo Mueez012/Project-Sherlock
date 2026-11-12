@@ -81,15 +81,24 @@ def _service_error(e: ServiceError) -> HTTPException:
     return HTTPException(status_code=503, detail=f"{e.service} service unavailable: {e.detail}")
 
 
-def _onto_timeline(iocs: list[IOC], units: list[Unit], timeline: list[int | None]) -> list[IOC]:
+def _passage(text: str, unit: Unit) -> str:
+    """Where an indicator appears: its sentence or line, or for a table cell the whole row (its passage)."""
+    if unit.kind != "table_row":
+        return unit.text
+    start = text.rfind("\n", 0, unit.start) + 1
+    end = text.find("\n", unit.end)
+    return text[start : end if end >= 0 else len(text)]
+
+
+def _onto_timeline(iocs: list[IOC], units: list[Unit], timeline: list[int | None], text: str) -> list[IOC]:
     """The extractor reports the units an indicator appears in. Its sentence_indices become the timeline sentences
-    among them (none if it appears only in table rows, headings or list lines), and its context becomes exactly those
-    units' text, the paper's "original text passage in which they appeared"."""
+    among them (none if it appears only in table cells, headings or list lines), and its context becomes exactly
+    those passages, the paper's "original text passage in which they appeared"."""
     out = []
     for ioc in iocs:
         found = sorted(set(ioc.sentence_indices))
         numbers = sorted({timeline[i] for i in found if timeline[i] is not None})
-        context = list(dict.fromkeys(units[i].text for i in found)) or ioc.context
+        context = list(dict.fromkeys(_passage(text, units[i]) for i in found)) or ioc.context
         out.append(ioc.model_copy(update={"sentence_indices": numbers, "context": context}))
     return out
 
@@ -110,7 +119,7 @@ def _analyze_text(
         mode=_mode(),
         sentences=sentences,
         ttps=ttps,
-        iocs=_onto_timeline(iocs, units, timeline),
+        iocs=_onto_timeline(iocs, units, timeline, text),
         cskg=None,
         attribution=attribute(None),
         text=text,

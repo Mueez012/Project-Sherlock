@@ -21,7 +21,13 @@ threatmamba.documents turns PDF, DOCX, HTML, Markdown, STIX and TXT files into i
    does not fall on whitespace (it would cut a defanged indicator such as 185.12.45[.]201), one before a lowercase
    letter (no sentence starts that way), and one after an abbreviation that never ends a sentence (NEVER_FINAL;
    punkt would split "i.e. Fancy Bear" because "fancy" is usually lowercase).
-3. Kinds: a unit is a "sentence" unless its region says "heading" or "table_row", or it has fewer than 4 words
+3. Kinds. Structure decides first, when a reader supplies it (regions): a heading is never a sentence, and a list
+   item or table row is never merged with the lines around it; in a table row each cell is judged on its own, and
+   only a cell that is a complete sentence (starts like one, ends like one) joins the timeline, so an ATT&CK table's
+   procedure column counts while its ids, labels and dates do not. List items follow the same rules as any text, so
+   a report gives the same timeline as an HTML list or as bulleted plain text (a bullet headline in a scraped web page
+   and a bullet phrase look alike; neither is a sentence without sentence punctuation). Otherwise the unit's shape
+   decides: a unit is a "sentence" unless it has fewer than 4 words
    ("fragment"), is mostly indicators ("ioc_list"), is a heading line or letter-spaced title ("heading"), does not
    start like a sentence, or is a short piece (under SHORT_WORDS words) that does not end like one ("fragment": web
    headlines, labels, table cells). The first rules are those of the TTP service's own documents
@@ -29,7 +35,8 @@ threatmamba.documents turns PDF, DOCX, HTML, Markdown, STIX and TXT files into i
    and related-article links, about 9% of D2's former sentences).
 
 Positions (start, end) index the text exactly as given. A unit's text is that slice with whitespace collapsed, a
-hyphen at a joined line break kept without a space, and a leading bullet symbol left out.
+hyphen at a joined line break kept without a space, a URL cut by hard wrapping joined back without a space, and a
+leading bullet symbol left out.
 datasets/scripts/clean_d2.py writes D2's `sentences` with split_sentences(); the datasets CI job fails if they differ.
 services/ioc/ioc_hunter/text.py is a byte-identical copy (IOC Hunter's container cannot import the hub), with the same
 data; tests in both places fail if the copies ever differ.
@@ -81,6 +88,8 @@ _CONTINUES = re.compile(r"[a-z]+[,;:.!?)]*(\s|$)")  # a wrapped sentence continu
 _ITEM = re.compile(r"\s*([•▪◦‣●○■□–*-]|\d{1,2}[.)])\s")  # a list item: bullet, dash or "1." / "2)"
 _BULLET = re.compile(r"[•▪◦‣●○■□–*-]\s+")
 _BREAK_HYPHEN = re.compile(r"(?<=[A-Za-z0-9])-\n(?=\S)")
+# A line that ends inside a URL: the URL has not closed with a bracket or punctuation.
+_URL_END = re.compile(r"""(?:(?:https?|hxxps?|ftp)://|www\.)\S*[^\s).,;:!?\]'"”’]$""")
 _STARTS = re.compile(r"""^[•\-*]?\s*["'“‘(\[]?[A-Z0-9]""")  # a sentence starts with a capital, a digit or a quote
 _ENDS = re.compile(r"""[.!?]["'”’)\]]*$""")
 
@@ -141,11 +150,19 @@ def _kind(text: str, whole_line: bool, first: bool) -> str:
         return "ioc_list"
     if words < MIN_WORDS:
         return "fragment"
-    if _letter_spaced(text) or (whole_line and _is_heading(text, first)):
+    if _letter_spaced(text):
+        return "heading"
+    if whole_line and _is_heading(text, first):
         return "heading"
     if not _STARTS.match(text) or (words < SHORT_WORDS and not _ENDS.search(text)):
         return "fragment"
     return "sentence"
+
+
+def _cell_kind(text: str) -> str:
+    """A table cell joins the timeline only as a complete sentence: 4+ words, starting and ending like one."""
+    complete = len(text.split()) >= MIN_WORDS and _STARTS.match(text) and _ENDS.search(text)
+    return "sentence" if complete and ioc_share(text) <= MAX_IOC_SHARE and not _letter_spaced(text) else "table_row"
 
 
 def _wrap_width(lengths: list[int]) -> int | None:
@@ -162,8 +179,13 @@ def _wrap_width(lengths: list[int]) -> int | None:
     return width if longer <= 0.05 * len(lengths) and close >= 0.3 * len(lengths) else None
 
 
-def _paragraphs(text: str) -> list[tuple[int, int]]:
-    """(start, end) of each paragraph: one per line, a wrapped sentence joined back (see the module docstring)."""
+def _paragraphs(
+    text: str, fixed: frozenset[int] = frozenset(), url_breaks: set[int] | None = None
+) -> list[tuple[int, int]]:
+    """(start, end) of each paragraph: one per line, a wrapped sentence joined back (see the module docstring).
+    Lines starting at a position in fixed (headings, list items, table rows from a reader) are never joined.
+    url_breaks collects the line breaks that cut a URL: in hard-wrapped text, a line ending inside a URL that runs
+    into the margin, continued by a line that does not start with a capital."""
     lines: list[tuple[int, int] | None] = []
     pos = 0
     for line in text.split("\n"):
@@ -176,17 +198,27 @@ def _paragraphs(text: str) -> list[tuple[int, int]]:
         pos += len(line) + 1
     width = _wrap_width([e - s for s, e in (x for x in lines if x)])
     out: list[tuple[int, int]] = []
-    joinable = at_margin = False
+    joinable = at_margin = in_url = False
     for span in lines:
         if span is None:
-            joinable = at_margin = False
+            joinable = at_margin = in_url = False
             continue
         line = text[span[0] : span[1]]
         wrapped = at_margin and not _ITEM.match(line) and ioc_share(line) <= MAX_IOC_SHARE
-        if out and (wrapped or (joinable and _continues(line))):
+        standalone = span[0] in fixed or (out and out[-1][0] in fixed)
+        if out and not standalone and (wrapped or (joinable and _continues(line))):
+            previous = text[out[-1][0] : out[-1][1]].split("\n")[-1]
+            # A URL cut at the margin, possibly over several lines: the line ends inside a URL (or is one unbroken
+            # piece of a URL cut above), reaches the margin, and the next line does not start a sentence.
+            inside = bool(_URL_END.search(previous)) or (in_url and " " not in previous)
+            in_url = wrapped and url_breaks is not None and inside and len(previous) >= 0.9 * width
+            in_url = in_url and not line[:1].isupper()
+            if in_url:
+                url_breaks.add(span[0] - 1)  # the break inside the URL
             out[-1] = (out[-1][0], span[1])
         else:
             out.append(span)
+            in_url = False
         last = text[out[-1][0] : out[-1][1]].split("\n")[-1]
         joinable = len(last.split()) >= 3 and not last.endswith(SENTENCE_END) and not _is_heading(last, first=False)
         at_margin = width is not None and len(last) >= 0.7 * width
@@ -218,24 +250,45 @@ def _sentence_spans(paragraph: str) -> list[tuple[int, int]]:
 def segment(text: str, regions: list[tuple[int, int, str]] | None = None) -> list[Unit]:
     """Every unit of the text in order, with its position and kind. regions, from threatmamba.documents, give each
     line's kind; a unit in a "heading" or "table_row" line takes that kind."""
-    starts = [r[0] for r in regions or []]
+    regions = regions or []
+    starts = [r[0] for r in regions]
+    fixed = frozenset(start for start, _, kind in regions if kind != "text")
     units: list[Unit] = []
-    for p_start, p_end in _paragraphs(text):
+    url_breaks: set[int] = set()
+    for p_start, p_end in _paragraphs(text, fixed, url_breaks):
+        i = bisect_right(starts, p_start) - 1
+        region = regions[i][2] if i >= 0 and regions[i][0] <= p_start < regions[i][1] else None
         raw = text[p_start:p_end]
+        if region == "table_row":
+            for c_start, c_end in _cell_spans(raw):
+                for s, e in _sentence_spans(raw[c_start:c_end]):
+                    piece = _WS.sub(" ", raw[c_start + s : c_start + e]).strip()
+                    if piece:
+                        units.append(Unit(p_start + c_start + s, p_start + c_start + e, piece, _cell_kind(piece)))
+            continue
         spans = _sentence_spans(raw.replace("\n", " "))  # same length, so offsets stay aligned
         whole_line = len(spans) == 1 and "\n" not in raw
         for s, e in spans:
             bullet = _BULLET.match(raw, s)
             if bullet and bullet.end() < e:
                 s = bullet.end()  # the sentence starts at its words, not at the list marker
-            piece = _WS.sub(" ", _BREAK_HYPHEN.sub("-", raw[s:e])).strip()
+            raw_piece = "".join(c for k, c in enumerate(raw[s:e], start=p_start + s) if k not in url_breaks)
+            piece = _WS.sub(" ", _BREAK_HYPHEN.sub("-", raw_piece)).strip()
             if piece:
-                kind = _kind(piece, whole_line, first=not units)
-                region = regions[bisect_right(starts, p_start + s) - 1] if regions else None
-                if region and region[2] in ("heading", "table_row") and region[0] <= p_start + s < region[1]:
-                    kind = region[2]
+                kind = "heading" if region == "heading" else _kind(piece, whole_line, not units)
                 units.append(Unit(p_start + s, p_start + e, piece, kind))
     return units
+
+
+def _cell_spans(row: str) -> list[tuple[int, int]]:
+    """(start, end) of each cell of a table row written as "cell | cell | cell"."""
+    spans, start = [], 0
+    for part in row.split(" | "):
+        if part.strip():
+            lead = len(part) - len(part.lstrip())
+            spans.append((start + lead, start + len(part.rstrip())))
+        start += len(part) + 3
+    return spans
 
 
 def split_sentences(text: str, regions: list[tuple[int, int, str]] | None = None) -> list[str]:

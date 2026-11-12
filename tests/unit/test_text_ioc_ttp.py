@@ -135,3 +135,16 @@ def test_one_paragraph_per_line_text_is_not_treated_as_wrapped():
     # D2 and pasted web text: each line is a paragraph; a line without a full stop must not swallow the next one
     lines = [WRAPPED_PARAGRAPH] * 3 + ["Hackers use leaked ransomware to attack banks"] + [WRAPPED_PARAGRAPH] * 3
     assert len(split_sentences("\n".join(lines))) == 18
+
+
+def test_a_url_longer_than_the_line_is_joined_back_in_wrapped_text():
+    import textwrap
+
+    url = "http://kwvhrdibgmmpkhkidrby4mccwqpds5za6uo2thcw5gz75qncv7rbhyad.onion"
+    paragraph = f"The ransom note tells victims to visit {url} and enter their personal ID to see the demand."
+    wrapped = "\n\n".join([textwrap.fill(paragraph, 50)] * 3)
+    assert all(url in s for s in split_sentences(wrapped))
+    # a complete URL at the end of an ordinary line is not glued to the next word
+    assert split_sentences("It downloads https://t.co/2hay2UVnxo\nand a file called hrms.exe from the server.") == [
+        "It downloads https://t.co/2hay2UVnxo and a file called hrms.exe from the server."
+    ]

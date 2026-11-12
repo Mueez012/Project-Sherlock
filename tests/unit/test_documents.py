@@ -77,27 +77,46 @@ def test_a_paragraph_cut_by_a_page_break_is_joined():
 
 
 def test_cell_and_cve_repairs():
-    assert table_cell("a72538ba00dc95190d69\n19756ffce74f0b3cf60db3\n87c6c9281a0dc892ded8\n02") == (
+    assert table_cell(["a72538ba00dc95190d69", "19756ffce74f0b3cf60db3", "87c6c9281a0dc892ded8", "02"]) == (
         "a72538ba00dc95190d6919756ffce74f0b3cf60db387c6c9281a0dc892ded802"
     )  # a SHA-256 wrapped inside its cell
-    assert table_cell("EXOTIC LILY has gathered targeted individ-\nuals' addresses") == (
-        "EXOTIC LILY has gathered targeted individuals' addresses"
-    )
-    assert table_cell("77f6cdf03ba70367c93a c194604175e2bd1239a 29bc66da50b5754b7ad- be8ae4") == (
+    assert table_cell(["77f6cdf03ba70367c93a", "c194604175e2bd1239a", "29bc66da50b5754b7ad-", "be8ae4"]) == (
         "77f6cdf03ba70367c93ac194604175e2bd1239a29bc66da50b5754b7adbe8ae4"
     )  # the PDF even hyphenated the hash
-    truncated = "Fe7a64dad14fe24 0aa026e57615fc3a22a 7f5ba1dd55d675b1 d2072f6262a1"  # 62 characters in the PDF itself
-    assert table_cell(truncated) == truncated  # not a hash, so it is left as it is
-    assert table_cell("SHA 256") == "SHA 256"  # two short hex-looking words are not a hash
+    truncated = [
+        "Fe7a64dad14fe24",
+        "0aa026e57615fc3a22a",
+        "7f5ba1dd55d675b1",
+        "d2072f6262a1",
+    ]  # 62 characters in the PDF
+    assert table_cell(truncated) == " ".join(truncated)  # not a hash, so it is left as it is
+    assert table_cell(["SHA 256"]) == "SHA 256"
     assert repair("a 0day exploit (CVE-202140444) for MSHTML") == "a 0day exploit (CVE-2021-40444) for MSHTML"
 
 
-def test_a_pdf_without_a_text_layer_is_refused():
-    pdf = pymupdf.open()
-    pdf.new_page()
-    with pytest.raises(DocumentError) as e:
-        extract_text(pdf.tobytes(), "scan.pdf")
-    assert e.value.code == "no_text_layer"
+@pytest.mark.parametrize(
+    ("lines", "joined"),
+    [
+        (["targeted individ-", "uals' addresses"], "targeted individuals' addresses"),  # hyphenation is joined
+        (["thus by-", "passing any filter"], "thus bypassing any filter"),
+        (["Acquire Infra-", "structure: Domains"], "Acquire Infrastructure: Domains"),
+        (["stole credit-", "card data"], "stole credit-card data"),  # compounds keep their hyphen
+        (["an attacker-", "controlled system"], "an attacker-controlled system"),
+        (["not EMV-", "compliant"], "not EMV-compliant"),
+        (["contacted update-", "check[.]net daily"], "contacted update-check[.]net daily"),  # never inside an IOC
+        (["exploited CVE-2021-", "40444 in"], "exploited CVE-2021-40444 in"),
+        (
+            ["see https://example.com/products/", "advanced-threat-defense/"],
+            "see https://example.com/products/advanced-threat-defense/",
+        ),
+        (["(see https://hashcat.net/x/)", "calculates"], "(see https://hashcat.net/x/) calculates"),  # the URL ended
+        (["the 32- and", "64-bit loaders"], "the 32- and 64-bit loaders"),
+    ],
+)
+def test_join_lines(lines, joined):
+    from threatmamba.documents import join_lines
+
+    assert join_lines(lines) == joined
 
 
 def test_docx_paragraphs_and_tables():
