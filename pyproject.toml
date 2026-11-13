@@ -3,7 +3,7 @@ name = "threatmamba"
 dynamic = ["version"]
 description = "ThreatMAMBA reproduction: CTI text -> TTPs + IOCs -> CSKG -> threat actor attribution"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11.5,<3.13"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
