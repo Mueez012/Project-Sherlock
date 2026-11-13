@@ -228,3 +228,37 @@ def test_a_hard_wrapped_txt_file_keeps_its_paragraphs_and_whole_sentences():
     doc = extract_text(txt.encode(), "report.txt")
     assert "\n\n" in doc.text  # paragraph breaks survive
     assert split_sentences(doc.text, doc.regions) == split_sentences(paragraph) * 2
+
+
+def test_a_table_cell_is_trusted_only_if_its_lines_occur_one_after_another_in_the_pdf():
+    from bs4 import BeautifulSoup
+
+    from threatmamba.documents import _cells
+
+    source = [
+        "EXOTIC LILY has gained execution",
+        "through victims clicking on",
+        "malicious LNK files contained",
+        "Execution",
+    ]
+
+    def row(cell: str):
+        return BeautifulSoup(f"<tr><td>{cell}</td></tr>", "html.parser").tr
+
+    assert [ok for _, ok in _cells(row("EXOTIC LILY has gained execution<br>through victims clicking on"), source)] == [
+        True
+    ]
+    lost_a_line = row("EXOTIC LILY has gained execution<br>malicious LNK files contained")  # a line went elsewhere
+    assert [ok for _, ok in _cells(lost_a_line, source)] == [False]
+    mixed = row("EXOTIC LILY has gained execution Execution")  # words taken from another column
+    assert [ok for _, ok in _cells(mixed, source)] == [False]
+
+
+def test_an_unverified_cell_never_enters_the_timeline():
+    from threatmamba.text import segment
+
+    text = "EXOTIC LILY has used malicious links to lure users. | EXOTIC LILY has gained execution victims tained."
+    second = text.index(" | ") + 3
+    regions = [(0, len(text), "table_row"), (second, len(text), "unverified_cell")]
+    kinds = [(u.text[:30], u.kind) for u in segment(text, regions)]
+    assert kinds == [("EXOTIC LILY has used malicious", "sentence"), ("EXOTIC LILY has gained executi", "table_row")]

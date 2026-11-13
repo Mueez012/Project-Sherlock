@@ -250,7 +250,8 @@ def _sentence_spans(paragraph: str) -> list[tuple[int, int]]:
 def segment(text: str, regions: list[tuple[int, int, str]] | None = None) -> list[Unit]:
     """Every unit of the text in order, with its position and kind. regions, from threatmamba.documents, give each
     line's kind; a unit in a "heading" or "table_row" line takes that kind."""
-    regions = regions or []
+    cell_marks = [r for r in regions or [] if r[2] == "unverified_cell"]
+    regions = [r for r in regions or [] if r[2] != "unverified_cell"]
     starts = [r[0] for r in regions]
     fixed = frozenset(start for start, _, kind in regions if kind != "text")
     units: list[Unit] = []
@@ -260,11 +261,14 @@ def segment(text: str, regions: list[tuple[int, int, str]] | None = None) -> lis
         region = regions[i][2] if i >= 0 and regions[i][0] <= p_start < regions[i][1] else None
         raw = text[p_start:p_end]
         if region == "table_row":
+            unverified = {start for start, _, _ in cell_marks if p_start <= start < p_end}
             for c_start, c_end in _cell_spans(raw):
+                trusted = p_start + c_start not in unverified
                 for s, e in _sentence_spans(raw[c_start:c_end]):
                     piece = _WS.sub(" ", raw[c_start + s : c_start + e]).strip()
                     if piece:
-                        units.append(Unit(p_start + c_start + s, p_start + c_start + e, piece, _cell_kind(piece)))
+                        kind = _cell_kind(piece) if trusted else "table_row"
+                        units.append(Unit(p_start + c_start + s, p_start + c_start + e, piece, kind))
             continue
         spans = _sentence_spans(raw.replace("\n", " "))  # same length, so offsets stay aligned
         whole_line = len(spans) == 1 and "\n" not in raw

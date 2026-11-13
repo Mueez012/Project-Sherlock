@@ -1,7 +1,9 @@
 """Report files -> text with one paragraph per line, plus what each line is (threatmamba.text uses both).
 
 Every line of the text is a region: "text" (a paragraph), "list_item", "heading", or "table_row" (one table row, its
-cells joined with " | "). threatmamba.text decides from these which pieces are timeline sentences.
+cells joined with " | "). threatmamba.text decides from these which pieces are timeline sentences. A PDF table cell
+whose lines do not occur in the PDF's own text (the layout model misplaced a column border and mixed words from
+several columns) is also marked "unverified_cell": it can never become a timeline sentence.
 
 Every format keeps the report's own characters (curly quotes, dashes), exactly as pasted text and D2 do, so a report
 gives the same sentences whichever way it arrives; only invisible characters (soft hyphen, zero-width space, byte
@@ -183,7 +185,13 @@ def build(lines: list[tuple], media_type: str, **extra) -> Document:
         if kind == "blank":
             blank = bool(text)
             continue
-        line = repair(clean_text(line).replace("\n", " "))
+        cells = line if isinstance(line, list) else None  # a table row as [(cell, verified)]
+        if cells is not None:
+            cells = [(repair(clean_text(c).replace("\n", " ")), ok) for c, ok in cells]
+            cells = [(c, ok) for c, ok in cells if c]
+            line = " | ".join(c for c, _ in cells)
+        else:
+            line = repair(clean_text(line).replace("\n", " "))
         if not line:
             continue
         if text:
@@ -192,6 +200,12 @@ def build(lines: list[tuple], media_type: str, **extra) -> Document:
         while page and len(page_starts) < page[0]:
             page_starts.append(len(text))
         regions.append((len(text), len(text) + len(line), kind))
+        if cells is not None:  # cells that occur nowhere in the PDF never become timeline sentences
+            at = len(text)
+            for c, ok in cells:
+                if not ok:
+                    regions.append((at, at + len(c), "unverified_cell"))
+                at += len(c) + 3
         text += line
     return Document(text, media_type, regions=regions, page_starts=page_starts, **extra)
 
@@ -211,12 +225,22 @@ def decode_text(data: bytes) -> tuple[str, list[str]]:
         return str(best), [f"text was not UTF-8; decoded as {best.encoding}"]
 
 
-def _cells(row) -> list[str]:
-    """The cells of one HTML table row, each as one line."""
+def _consecutive(lines: list[str], source: list[str]) -> bool:
+    """Do these lines occur one after another in source, with nothing left out in between?"""
+    n = len(lines)
+    return n == 0 or any(source[i : i + n] == lines for i in range(len(source) - n + 1))
+
+
+def _cells(row, source: list[str] | None = None) -> list[tuple[str, bool]]:
+    """The cells of one HTML table row, each as (one line, verified). With source (the PDF's own lines of the table,
+    whitespace collapsed), a cell is verified only if its lines occur there one after another: the layout model can
+    put a column border in the wrong place, and a cell that lost lines to a neighbour, or took words from one, does
+    not occur in the PDF as it is."""
     out = []
     for cell in row.find_all(["td", "th"]):
-        lines = [_plain(line) for line in cell.get_text("\n").split("\n")]
-        out.append(table_cell(lines))
+        lines = [" ".join(_plain(line).split()) for line in cell.get_text("\n").split("\n")]
+        lines = [line for line in lines if line]
+        out.append((table_cell(lines), source is None or _consecutive(lines, source)))
     return out
 
 
@@ -277,17 +301,19 @@ def _pdf_boxes(chunk: dict, page) -> list[dict]:
     from bs4 import BeautifulSoup
 
     flags = pymupdf.TEXTFLAGS_DICT & ~pymupdf.TEXT_PRESERVE_LIGATURES & ~pymupdf.TEXT_DEHYPHENATE  # "ﬁ" -> "fi"
-    out = []
+    out: list[dict] = []
     for box in chunk["page_boxes"]:
         kind, rect = box["class"], pymupdf.Rect(box["bbox"])
         if kind == "picture":
             continue
         if kind == "table":
             start, end = box["pos"]
+            text = page.get_text("text", clip=rect, flags=flags)
+            source = [" ".join(line.split()) for line in text.split("\n") if line.strip()]
             for row in BeautifulSoup(chunk["text"][start:end], "html.parser").find_all("tr"):
-                cells = [c for c in _cells(row) if c]
+                cells = [(text, ok) for text, ok in _cells(row, source) if text]
                 if cells:
-                    out.append({"kind": "table_row", "text": " | ".join(cells), "rect": rect})
+                    out.append({"kind": "table_row", "text": cells, "rect": rect})
             continue
         clip = page.get_text("dict", clip=rect, flags=flags)
         lines = [
@@ -330,12 +356,8 @@ def read_pdf(data: bytes) -> Document:
     def key(text: str) -> str:
         return re.sub(r"\d+", "#", text.lower())
 
-    seen = Counter(
-        key(b["text"])
-        for page in pages
-        for b in {key(x["text"]): x for x in page}.values()
-        if b["kind"] in ("page-header", "page-footer")
-    )
+    furniture = ("page-header", "page-footer")
+    seen = Counter(key(t) for page in pages for t in {b["text"] for b in page if b["kind"] in furniture})
     for page in pages:
         for b in page:
             if b["kind"] in ("page-header", "page-footer"):
