@@ -1,6 +1,6 @@
 {
   "description": "Synthetic fixture data generated through the actual Hub and IOC HTTP routes; no live provider calls.",
-  "documentation_date": "2026-11-07",
+  "documentation_date": "2026-11-11",
   "redactions": {
     "export-response.json": [
       "run.replay.manifest: absolute server path replaced"
@@ -16,11 +16,11 @@
       "request_file": "create-request.json",
       "response_file": "create-response.json",
       "request_headers": {
-        "Idempotency-Key": "7055ba5f104841c18ba233011be817c6"
+        "Idempotency-Key": "e2725b22057a476488e99138869dbb51"
       },
       "response_headers": {
         "content-type": "application/json",
-        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1"
+        "location": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51"
       },
       "response_schema": {
         "$ref": "#/components/schemas/InvestigationSnapshot"
@@ -29,7 +29,7 @@
     {
       "name": "methods",
       "method": "GET",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/nodes/e124110e6ed903393fb178c54d8b0b56/methods",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/nodes/e124110e6ed903393fb178c54d8b0b56/methods",
       "openapi_path": "/api/investigations/{run_id}/nodes/{node_id}/methods",
       "status": 200,
       "request_file": null,
@@ -45,7 +45,7 @@
     {
       "name": "methodless",
       "method": "GET",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/nodes/1ccbc4fb258c050bfd7459ccc75139ab/methods",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/nodes/1ccbc4fb258c050bfd7459ccc75139ab/methods",
       "openapi_path": "/api/investigations/{run_id}/nodes/{node_id}/methods",
       "status": 200,
       "request_file": null,
@@ -61,7 +61,7 @@
     {
       "name": "step",
       "method": "POST",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/steps",
       "openapi_path": "/api/investigations/{run_id}/steps",
       "status": 201,
       "request_file": "step-request.json",
@@ -69,7 +69,7 @@
       "request_headers": {},
       "response_headers": {
         "content-type": "application/json",
-        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps/65106ed7b69a483fb841c0f10f20417a"
+        "location": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/steps/1e019b7418a547ae9b8e16987a04cd84"
       },
       "response_schema": {
         "$ref": "#/components/schemas/StepExecution"
@@ -78,7 +78,7 @@
     {
       "name": "nonadmitted-step",
       "method": "POST",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/steps",
       "openapi_path": "/api/investigations/{run_id}/steps",
       "status": 201,
       "request_file": "nonadmitted-step-request.json",
@@ -86,7 +86,7 @@
       "request_headers": {},
       "response_headers": {
         "content-type": "application/json",
-        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps/662c78c28953485b803f0b66a0156346"
+        "location": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/steps/c85689e7e9d0405da3f856befed19b56"
       },
       "response_schema": {
         "$ref": "#/components/schemas/StepExecution"
@@ -95,7 +95,7 @@
     {
       "name": "snapshot",
       "method": "GET",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51",
       "openapi_path": "/api/investigations/{run_id}",
       "status": 200,
       "request_file": null,
@@ -127,7 +127,7 @@
     {
       "name": "step-replay",
       "method": "POST",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/steps",
       "openapi_path": "/api/investigations/{run_id}/steps",
       "status": 200,
       "request_file": "step-replay-request.json",
@@ -135,7 +135,7 @@
       "request_headers": {},
       "response_headers": {
         "content-type": "application/json",
-        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps/65106ed7b69a483fb841c0f10f20417a"
+        "location": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/steps/1e019b7418a547ae9b8e16987a04cd84"
       },
       "response_schema": {
         "$ref": "#/components/schemas/StepExecution"
@@ -144,7 +144,7 @@
     {
       "name": "step-detail",
       "method": "GET",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps/65106ed7b69a483fb841c0f10f20417a?include_snapshots=true",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/steps/1e019b7418a547ae9b8e16987a04cd84?include_snapshots=true",
       "openapi_path": "/api/investigations/{run_id}/steps/{step_id}",
       "status": 200,
       "request_file": null,
@@ -160,7 +160,7 @@
     {
       "name": "resume",
       "method": "POST",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/resume",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/resume",
       "openapi_path": "/api/investigations/{run_id}/resume",
       "status": 200,
       "request_file": "resume-request.json",
@@ -176,7 +176,7 @@
     {
       "name": "stale-revision",
       "method": "POST",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/steps",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/steps",
       "openapi_path": "/api/investigations/{run_id}/steps",
       "status": 409,
       "request_file": "stale-revision-request.json",
@@ -198,7 +198,7 @@
       "request_file": "validation-error-request.json",
       "response_file": "validation-error-response.json",
       "request_headers": {
-        "Idempotency-Key": "c463e764c09a4e5d82d503f378c9d60f"
+        "Idempotency-Key": "d9ac6333d8c24bf3960599044548642f"
       },
       "response_headers": {
         "content-type": "application/json"
@@ -210,7 +210,7 @@
     {
       "name": "not-found",
       "method": "GET",
-      "path": "/api/investigations/2d484a0b52c64283b3e0d318b3a4f58f",
+      "path": "/api/investigations/472baba172ae40fb888b6a99e89e6682",
       "openapi_path": "/api/investigations/{run_id}",
       "status": 404,
       "request_file": null,
@@ -260,7 +260,7 @@
     {
       "name": "service-unavailable",
       "method": "GET",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51",
       "openapi_path": "/api/investigations/{run_id}",
       "status": 503,
       "request_file": null,
@@ -276,7 +276,7 @@
     {
       "name": "close",
       "method": "POST",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/close",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/close",
       "openapi_path": "/api/investigations/{run_id}/close",
       "status": 200,
       "request_file": "close-request.json",
@@ -292,7 +292,7 @@
     {
       "name": "export",
       "method": "GET",
-      "path": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1/export?include_evidence=true",
+      "path": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51/export?include_evidence=true",
       "openapi_path": "/api/investigations/{run_id}/export",
       "status": 200,
       "request_file": null,
@@ -300,7 +300,7 @@
       "request_headers": {},
       "response_headers": {
         "content-type": "application/json",
-        "content-disposition": "attachment; filename=\"investigation-53e4e31e846a4e45a43555a17326bfe1.json\""
+        "content-disposition": "attachment; filename=\"investigation-77dfc273a74943bf9ef9f2bd46e61a51.json\""
       },
       "response_schema": {}
     },
@@ -313,11 +313,11 @@
       "request_file": "creation-replay-request.json",
       "response_file": "creation-replay-response.json",
       "request_headers": {
-        "Idempotency-Key": "7055ba5f104841c18ba233011be817c6"
+        "Idempotency-Key": "e2725b22057a476488e99138869dbb51"
       },
       "response_headers": {
         "content-type": "application/json",
-        "location": "/api/investigations/53e4e31e846a4e45a43555a17326bfe1"
+        "location": "/api/investigations/77dfc273a74943bf9ef9f2bd46e61a51"
       },
       "response_schema": {
         "$ref": "#/components/schemas/InvestigationSnapshot"
@@ -332,11 +332,11 @@
       "request_file": "failed-create-request.json",
       "response_file": "failed-create-response.json",
       "request_headers": {
-        "Idempotency-Key": "67260e16d1da49549b832db6337dee0f"
+        "Idempotency-Key": "8d7b4afea1d5486ab589a5a4b079846f"
       },
       "response_headers": {
         "content-type": "application/json",
-        "location": "/api/investigations/af0cc56f87b4467b8915271837437616"
+        "location": "/api/investigations/0af34d84eeae448ebd0087b7a63a2dca"
       },
       "response_schema": {
         "$ref": "#/components/schemas/InvestigationSnapshot"
@@ -351,11 +351,11 @@
       "request_file": "challenge-create-request.json",
       "response_file": "challenge-create-response.json",
       "request_headers": {
-        "Idempotency-Key": "cae093123e1144d6bbd9834aada497c8"
+        "Idempotency-Key": "4329fc4efcca4ac6a534ec7b9de59c9e"
       },
       "response_headers": {
         "content-type": "application/json",
-        "location": "/api/investigations/8a53edee00034817ba7be1d5a2a8b205"
+        "location": "/api/investigations/fee9c545f07a4787b99f472b5e7bf388"
       },
       "response_schema": {
         "$ref": "#/components/schemas/InvestigationSnapshot"
@@ -364,7 +364,7 @@
     {
       "name": "provider-failure",
       "method": "POST",
-      "path": "/api/investigations/8a53edee00034817ba7be1d5a2a8b205/steps",
+      "path": "/api/investigations/fee9c545f07a4787b99f472b5e7bf388/steps",
       "openapi_path": "/api/investigations/{run_id}/steps",
       "status": 201,
       "request_file": "provider-failure-request.json",
@@ -372,7 +372,7 @@
       "request_headers": {},
       "response_headers": {
         "content-type": "application/json",
-        "location": "/api/investigations/8a53edee00034817ba7be1d5a2a8b205/steps/156921a44bb34d18af9a14091c8f7fc6"
+        "location": "/api/investigations/fee9c545f07a4787b99f472b5e7bf388/steps/098be0a7c5ad4827b7a998dd2d810425"
       },
       "response_schema": {
         "$ref": "#/components/schemas/StepExecution"
@@ -381,7 +381,7 @@
     {
       "name": "cancel",
       "method": "POST",
-      "path": "/api/investigations/8a53edee00034817ba7be1d5a2a8b205/close",
+      "path": "/api/investigations/fee9c545f07a4787b99f472b5e7bf388/close",
       "openapi_path": "/api/investigations/{run_id}/close",
       "status": 200,
       "request_file": "cancel-request.json",

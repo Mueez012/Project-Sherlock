@@ -6,7 +6,7 @@ alone is insufficient. Temporal and TTP edges belong to their own pipelines.
 """
 from dataclasses import dataclass, field
 from urllib.parse import urlsplit
-from .models import IOC, identity, normalize
+from .models import HASH_LENGTHS, IOC, identity, normalize
 from .method_spec import MethodSpec
 from .evidence import Evidence
 from .ontology import allows_ioc_edge, relationship
@@ -85,10 +85,81 @@ def validate_edge(input_ioc: IOC, output_ioc: IOC, method: MethodSpec, evidence:
             ip = normalize(left[0], facts["ip"])
             country = normalize("geo_location", facts["country"])
             supported = left == (left[0], ip) and right == ("geo_location", country)
-        elif evidence.fact_type == "url_link" and method.operation == "url_details":
+        elif evidence.fact_type == "url_link" and method.operation in {"url_details", "http_scans"}:
             supported = (left == ("url", normalize("url", facts["from_url"]))
                          and right == ("url", normalize("url", facts["to_url"]))
-                         and facts["kind"] in {"redirect", "outgoing_link"})
+                         and facts["kind"] in ({"redirect"} if method.operation == "http_scans"
+                                                else {"redirect", "outgoing_link"}))
+        elif evidence.fact_type == "url_filename" and method.operation == "url_details":
+            supported = (left == ("url", normalize("url", facts["url"]))
+                         and right == ("filename", normalize("filename", facts["filename"]))
+                         and isinstance(facts["header"], str) and bool(facts["header"].strip()))
+        elif evidence.fact_type == "file_behavior" and method.operation == "file_behavior":
+            supported = (left[0] in HASH_LENGTHS and right[0] == "command_api"
+                         and facts["field"] in {"command_executions", "calls_highlighted", "invokes"}
+                         and right[1] == normalize("command_api", facts["value"]))
+        elif evidence.fact_type == "whois_email" and method.operation == "whois":
+            supported = (left == ("domain", normalize("domain", facts["domain"]))
+                         and right == ("email", normalize("email", facts["email"]))
+                         and facts["field"] in {"email", "emails"})
+        elif evidence.fact_type == "dns_discovery" and method.operation == "dns_discovery":
+            original = identity(IOC(facts["input_value"], facts["input_type"]))
+            domain = normalize("domain", facts["domain"])
+            query_domain = normalize("domain", facts["query_value"])
+            kind = "ipv6" if facts["record_type"] == "AAAA" else "ipv4"
+            address = normalize(kind, facts["ip"])
+            row_is_dns = (facts["record_type"] in {"A", "AAAA"}
+                          and facts["query_type"] == "domain" and original == left)
+            if facts["stage"] == "expand":
+                supported = (row_is_dns and left[0] in {"ipv4", "ipv6"}
+                             and right == (kind, address)
+                             and normalize(right[0], facts["value"]) == right[1])
+            elif facts["stage"] == "url_host":
+                supported = (row_is_dns and left[0] == "url"
+                             and query_domain == normalize("domain", urlsplit(left[1]).hostname or "")
+                             and right == ("domain", domain)
+                             and normalize("domain", facts["value"]) == domain)
+        elif evidence.fact_type in {"ip_file_behavior", "ip_file_network"} and method.operation == "ip_file_behavior":
+            from .providers.vt_network import NETWORK_FIELDS
+            normalize("sha256", facts["file_hash"])
+            field_matches = (right[0] == "command_api" and evidence.fact_type == "ip_file_behavior"
+                             and facts["field"] in {"command_executions", "calls_highlighted", "invokes"})
+            field_matches = field_matches or (right[0] == "ipv4" and evidence.fact_type == "ip_file_network"
+                                               and facts["field"] in NETWORK_FIELDS)
+            supported = (left == ("ipv4", normalize("ipv4", facts["discovery_ip"]))
+                         and right[1] == normalize(right[0], facts["value"]) and field_matches)
+        elif evidence.fact_type == "ha_report_value" and method.operation == "ha_report":
+            from .providers.ha_report import output_field_matches
+            normalize("sha256", facts["sample_sha256"])
+            supported = (facts["stage"] == "report" and facts["output_type"] == right[0]
+                         and normalize(right[0], facts["value"]) == right[1]
+                         and output_field_matches(right[0], facts["field"]))
+            if left[0] == "command_api":
+                supported = (supported and left[1].casefold() == normalize("command_api", facts["runtime_command"]).casefold()
+                             and output_field_matches("command_api", facts["runtime_locator"]))
+        elif evidence.fact_type == "otx_pulse_indicator" and method.operation == "pulse_search":
+            pulse_id = facts["pulse_id"]
+            if (not isinstance(pulse_id, str) or len(pulse_id) != 24
+                    or any(char not in "0123456789abcdef" for char in pulse_id)):
+                return reject("invalid_evidence_fields")
+            if facts["search_text"] != left[1] or normalize(right[0], facts["value"]) != right[1]:
+                return reject("wrong_query")
+            indicator_type = facts["indicator_type"].lower()
+            native_kind = {"domain": "domain", "hostname": "domain", "email": "email", "ipv4": "ipv4"}.get(indicator_type)
+            if native_kind:
+                supported = right == (native_kind, normalize(native_kind, facts["indicator"]))
+            elif indicator_type == "url":
+                source_url = normalize("url", facts["indicator"])
+                parts = urlsplit(source_url)
+                scheme = normalize("protocol", parts.scheme)
+                port = str(parts.port) if parts.port is not None else ""
+                consistent_url = (source_url == normalize("url", facts["url"])
+                                  and scheme == facts["scheme"]
+                                  and bool(port) and port == normalize("port", str(facts["explicit_port"])))
+                if left[0] == "port":
+                    supported = consistent_url and left[1] == port and right == ("protocol", scheme)
+                elif left[0] == "protocol":
+                    supported = consistent_url and left[1] == scheme and right == ("port", port)
         if not supported:
             return reject("relationship_not_supported_by_fields")
         return ValidationResult(True, "supported", relationship(left[0], right[0]).label,

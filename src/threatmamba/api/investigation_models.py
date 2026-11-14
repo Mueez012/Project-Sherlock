@@ -66,6 +66,8 @@ class RunMetadata(BaseModel):
     stop_reason: str
     diagnostics: list[dict[str, object]]
     extraction_options: dict[str, bool]
+    algorithm: dict[str, object] | None = None
+    dataset: dict[str, object] | None = None
 
 
 class SavedReport(BaseModel):
@@ -132,8 +134,9 @@ class Admission(BaseModel):
     accepted: bool
     reason: str
     overlap_ids: list[str]
-    reward: None = None
-    reward_status: Literal["not_evaluated"]
+    reward: Literal[0, 1] | None = None
+    reward_status: Literal["not_evaluated", "evaluated"]
+    paper_overlap_pass: bool | None = None
 
 
 class StepSummary(BaseModel):
@@ -169,6 +172,7 @@ class LookupReceipt(BaseModel):
     partial_reasons: list[str]
     started_at: str
     finished_at: str
+    acquisition: dict[str, object] = Field(default_factory=dict)
 
 
 class SavedStep(StepSummary):

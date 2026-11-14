@@ -50,7 +50,7 @@ def capture_examples():
         {"url": "http://localhost:3000", "description": "Existing Next.js development proxy"},
     ]
     specification["info"]["description"] = (
-        "Frontend handoff snapshot, 7 November 2026. Browser clients use /api/investigations. "
+        "Frontend handoff snapshot, 11 November 2026. Browser clients use /api/investigations. "
         "Authentication verification is supplied by an external identity provider; there is no login/token issuer. "
         "Explicit local development mode uses no Authorization header. See FRONTEND_API_REFERENCE.md."
     )
@@ -59,7 +59,7 @@ def capture_examples():
         "description": (
             "Synthetic fixture data generated through the actual Hub and IOC HTTP routes; no live provider calls."
         ),
-        "documentation_date": "2026-11-07",
+        "documentation_date": "2026-11-11",
         "redactions": {"export-response.json": ["run.replay.manifest: absolute server path replaced"]},
         "captures": [],
     }
@@ -434,7 +434,7 @@ document.getElementById("filter").addEventListener("input", function () {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Project Sherlock · Frontend API reference</title><style>{styles}</style></head><body>
 <header><strong>Project Sherlock</strong>
-<p>Frontend API reference · 7 November 2026 · Implemented endpoints</p></header>
+<p>Frontend API reference · 11 November 2026 · Implemented endpoints</p></header>
 <div class="layout"><nav aria-label="Table of contents">
 <input id="filter" type="search" placeholder="Filter contents" aria-label="Filter table of contents">
 {toc_html}</nav><main>{content}

@@ -3,7 +3,7 @@
   "info": {
     "title": "ThreatMAMBA",
     "version": "0.0.0",
-    "description": "Frontend handoff snapshot, 7 November 2026. Browser clients use /api/investigations. Authentication verification is supplied by an external identity provider; there is no login/token issuer. Explicit local development mode uses no Authorization header. See FRONTEND_API_REFERENCE.md."
+    "description": "Frontend handoff snapshot, 11 November 2026. Browser clients use /api/investigations. Authentication verification is supplied by an external identity provider; there is no login/token issuer. Explicit local development mode uses no Authorization header. See FRONTEND_API_REFERENCE.md."
   },
   "paths": {
     "/api/investigations": {
@@ -1203,13 +1203,38 @@
             "title": "Overlap Ids"
           },
           "reward": {
-            "type": "null",
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Reward"
           },
           "reward_status": {
             "type": "string",
-            "const": "not_evaluated",
+            "enum": [
+              "not_evaluated",
+              "evaluated"
+            ],
             "title": "Reward Status"
+          },
+          "paper_overlap_pass": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paper Overlap Pass"
           }
         },
         "type": "object",
@@ -1984,6 +2009,11 @@
           "finished_at": {
             "type": "string",
             "title": "Finished At"
+          },
+          "acquisition": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Acquisition"
           }
         },
         "type": "object",
@@ -2242,6 +2272,30 @@
             },
             "type": "object",
             "title": "Extraction Options"
+          },
+          "algorithm": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Algorithm"
+          },
+          "dataset": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataset"
           }
         },
         "type": "object",

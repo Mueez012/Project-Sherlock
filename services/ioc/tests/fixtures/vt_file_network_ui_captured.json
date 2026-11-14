@@ -1,0 +1,127 @@
+{
+  "data": [
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_CAPE Sandbox",
+      "type": "file_behaviour",
+      "attributes": {
+        "ip_traffic": [
+          {
+            "destination_ip": "204.79.197.203",
+            "destination_port": 443,
+            "transport_layer_protocol": "TCP"
+          }
+        ],
+        "analysis_date": 1715008037
+      }
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_Microsoft Sysinternals",
+      "type": "file_behaviour",
+      "attributes": {
+        "ip_traffic": [
+          {
+            "transport_layer_protocol": "TCP",
+            "destination_ip": "20.99.184.37",
+            "destination_port": 443
+          },
+          {
+            "transport_layer_protocol": "UDP",
+            "destination_ip": "a83f:8110:2800:1800:4000:1800:1800:100",
+            "destination_port": 53
+          },
+          {
+            "transport_layer_protocol": "TCP",
+            "destination_ip": "23.216.147.64",
+            "destination_port": 443
+          }
+        ],
+        "dns_lookups": [
+          {
+            "hostname": "www.microsoft.com",
+            "resolved_ips": [
+              "104.125.89.159",
+              "23.216.81.152",
+              "23.55.140.42",
+              "184.27.218.92",
+              "104.71.214.69",
+              "23.0.166.89"
+            ]
+          },
+          {
+            "hostname": "res.public.onecdn.static.microsoft",
+            "resolved_ips": [
+              "152.195.19.97",
+              "23.192.210.9",
+              "23.215.176.35",
+              "23.215.176.19",
+              "23.41.4.207",
+              "23.41.4.198",
+              "23.41.4.216",
+              "23.41.4.206",
+              "23.32.75.164",
+              "23.32.75.157",
+              "23.32.75.148"
+            ]
+          },
+          {
+            "hostname": "www.microsoft.com",
+            "resolved_ips": [
+              "23.55.140.42"
+            ]
+          }
+        ],
+        "analysis_date": 1671810907
+      }
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_SecondWrite",
+      "type": "file_behaviour",
+      "attributes": {
+        "dns_lookups": [
+          {
+            "resolved_ips": [
+              "40.119.148.38"
+            ],
+            "hostname": "time.windows.com"
+          }
+        ],
+        "analysis_date": 1671908958
+      }
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_VirusTotal Jujubox",
+      "type": "file_behaviour",
+      "attributes": {
+        "ip_traffic": [
+          {
+            "transport_layer_protocol": "TCP",
+            "destination_ip": "209.197.3.8",
+            "destination_port": 80
+          }
+        ],
+        "analysis_date": 1671810990
+      }
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_Zenbox",
+      "type": "file_behaviour",
+      "attributes": {
+        "dns_lookups": [
+          {
+            "resolved_ips": [
+              "192.229.211.108"
+            ],
+            "hostname": "fp2e7a.wpc.phicdn.net"
+          },
+          {
+            "hostname": "fp2e7a.wpc.2be4.phicdn.net"
+          }
+        ],
+        "analysis_date": 1671810979
+      }
+    }
+  ],
+  "meta": {
+    "count": 5
+  }
+}

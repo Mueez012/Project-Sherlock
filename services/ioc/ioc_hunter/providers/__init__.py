@@ -1,11 +1,11 @@
 """Provider discovery and compatibility entry points; no source-specific branching."""
-from . import rapiddns, alienvault, virustotal
-from .base import ParsedPage, Provider
+from . import rapiddns, alienvault, virustotal, hybridanalysis
+from .base import FollowUp, ParsedPage, Provider
 from .common import ResultTables
 from ..transport.models import LookupError
 
 PROVIDERS: dict[str, Provider] = {
-    provider.source: provider for provider in (rapiddns, alienvault, virustotal)
+    provider.source: provider for provider in (rapiddns, alienvault, virustotal, hybridanalysis)
 }
 
 
@@ -24,5 +24,5 @@ def parse_document(ioc, method, document):
     return get_provider(method.source).parse_document(ioc, method, document)
 
 
-__all__ = ["ParsedPage", "Provider", "ResultTables", "PROVIDERS", "get_provider",
+__all__ = ["FollowUp", "ParsedPage", "Provider", "ResultTables", "PROVIDERS", "get_provider",
            "requests_for", "parse_document"]

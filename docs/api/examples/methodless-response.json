@@ -1,7 +1,48 @@
 {
-  "run_id": "53e4e31e846a4e45a43555a17326bfe1",
+  "run_id": "77dfc273a74943bf9ef9f2bd46e61a51",
   "node_id": "1ccbc4fb258c050bfd7459ccc75139ab",
   "execution_allowed": true,
   "execution_block_reason": "",
-  "methods": []
+  "methods": [
+    {
+      "id": "hybridanalysis.sha256_to_command_api",
+      "input_type": "sha256",
+      "output_type": "command_api",
+      "source": "hybridanalysis",
+      "operation": "ha_report",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": false,
+      "implemented": true,
+      "description": "Retrieve command_api related to sha256 using hybridanalysis (ha_report).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    },
+    {
+      "id": "virustotal.sha256_to_command_api",
+      "input_type": "sha256",
+      "output_type": "command_api",
+      "source": "virustotal",
+      "operation": "file_behavior",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": true,
+      "implemented": true,
+      "description": "Retrieve command_api related to sha256 using virustotal (file_behavior).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    }
+  ]
 }

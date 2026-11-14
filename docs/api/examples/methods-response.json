@@ -1,9 +1,29 @@
 {
-  "run_id": "53e4e31e846a4e45a43555a17326bfe1",
+  "run_id": "77dfc273a74943bf9ef9f2bd46e61a51",
   "node_id": "e124110e6ed903393fb178c54d8b0b56",
   "execution_allowed": true,
   "execution_block_reason": "",
   "methods": [
+    {
+      "id": "alienvault.domain_to_email",
+      "input_type": "domain",
+      "output_type": "email",
+      "source": "alienvault",
+      "operation": "whois",
+      "unavailable_reason": "no_replay_fixture",
+      "baseline": true,
+      "implemented": true,
+      "description": "Retrieve email related to domain using alienvault (whois).",
+      "availability": {
+        "implementation": "implemented",
+        "primary_transport": "browser",
+        "api_key_configured": false,
+        "browser_library_installed": true,
+        "live_access": "not_checked",
+        "fixture_available": false
+      },
+      "selectable": false
+    },
     {
       "id": "alienvault.domain_to_ipv4",
       "input_type": "domain",

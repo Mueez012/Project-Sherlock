@@ -134,7 +134,7 @@ class RealWorkflowTerminalTests(unittest.TestCase):
             seed = next(node for node in before["graph"]["nodes"] if node["type"] == "domain")
             unsupported = next(node for node in before["graph"]["nodes"] if node["type"] == "sha256")
             discovered = node_id(IOC("192.0.2.12", "ipv4"))
-            script = iter([unsupported["id"], seed["id"], "rapiddns.domain_to_ipv4", "back",
+            script = iter([unsupported["id"], "back", seed["id"], "rapiddns.domain_to_ipv4", "back",
                            discovered, "rapiddns.ipv4_to_domain", "back", "save"])
             output = []
             InvestigationTerminal(runner, input_fn=lambda prompt: next(script), output_fn=output.append).run(run["id"])
@@ -149,7 +149,7 @@ class RealWorkflowTerminalTests(unittest.TestCase):
             self.assertFalse(result["steps"][1]["admission"]["accepted"])
             self.assertEqual(len(result["graph"]["edges"]), 2)
             self.assertIn("sub.example.com", "\n".join(output))
-            self.assertIn("No implemented methods for sha256", "\n".join(output))
+            self.assertIn("No selectable methods in this run", "\n".join(output))
             self.assertTrue(any(node["id"] == unsupported["id"] for node in result["graph"]["nodes"]))
             def eof(prompt):
                 raise EOFError

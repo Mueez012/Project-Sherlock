@@ -1,0 +1,23 @@
+{
+  "count": 398098,
+  "next": "https://otx.alienvault.com/otxapi/pulses/69c08867316c564ade394c69/indicators/?sort=-created&limit=10&page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 4568363726,
+      "pulse_key": "69c08867316c564ade394c69",
+      "type": "domain",
+      "indicator": "ssmp.tech",
+      "created": "2026-11-10T03:36:22",
+      "is_active": 1
+    },
+    {
+      "id": 4572032063,
+      "pulse_key": "69c08867316c564ade394c69",
+      "type": "domain",
+      "indicator": "mrking100062.com",
+      "created": "2026-11-10T01:35:14",
+      "is_active": 1
+    }
+  ]
+}

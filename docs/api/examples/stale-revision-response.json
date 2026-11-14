@@ -2,7 +2,7 @@
   "error": {
     "code": "stale_graph_revision",
     "message": "Reload the investigation before another lookup.",
-    "run_id": "53e4e31e846a4e45a43555a17326bfe1",
+    "run_id": "77dfc273a74943bf9ef9f2bd46e61a51",
     "step_id": null,
     "details": {
       "expected_graph_revision": 1,

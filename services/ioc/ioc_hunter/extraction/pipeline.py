@@ -196,3 +196,20 @@ def extract_report(report: str, *, source: str = "cti report", nlp=None,
     matches = find_sentence_iocs(sentences, extended=extended_types)
     return ExtractionResult(source, report, body, excluded, sentences, matches,
                             build_iocs(sentences, matches, source))
+
+
+def extract_presplit_report(report: str, sentences: list[str], *, source: str = "cti report",
+                            include_references: bool = False,
+                            extended_types: bool = False) -> ExtractionResult:
+    """Match the supplied sentence array without deleting or renumbering it."""
+    from .positions import matching_text, sentence_positions
+
+    if not isinstance(report, str) or not isinstance(sentences, list) or any(
+            not isinstance(sentence, str) for sentence in sentences):
+        raise ValueError("Report and saved sentences must contain text")
+    body, excluded = (report, []) if include_references else filter_report_sections(report)
+    positions = sentence_positions(report, sentences, excluded_sections=excluded)
+    matches = find_sentence_iocs([matching_text(item) for item in positions], extended=extended_types)
+    saved = list(sentences)
+    return ExtractionResult(source, report, body, excluded, saved, matches,
+                            build_iocs(saved, matches, source))

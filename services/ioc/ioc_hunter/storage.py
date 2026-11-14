@@ -1,7 +1,7 @@
 """Local response cache and immutable lookup history; not a graph database."""
 from contextlib import contextmanager
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -21,6 +21,9 @@ class EvidenceStore:
                 CREATE TABLE IF NOT EXISTS cache(key TEXT PRIMARY KEY, snapshot TEXT NOT NULL, expires REAL NOT NULL);
                 CREATE TABLE IF NOT EXISTS lookups(id TEXT PRIMARY KEY, lookup_key TEXT NOT NULL, record TEXT NOT NULL, created REAL NOT NULL);
                 CREATE TABLE IF NOT EXISTS budgets(day TEXT, source TEXT, calls INTEGER NOT NULL, PRIMARY KEY(day, source));
+                CREATE TABLE IF NOT EXISTS provider_limits(source TEXT PRIMARY KEY, profile TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS provider_backoff(source TEXT PRIMARY KEY, failures INTEGER NOT NULL);
+                CREATE TABLE IF NOT EXISTS frozen_lookups(key TEXT PRIMARY KEY, lookup_id TEXT NOT NULL);
             ''')
     @contextmanager
     def connect(self):
@@ -34,7 +37,10 @@ class EvidenceStore:
     def cache_key(request: FetchRequest, transport: str, access_scope: str = "anonymous"):
         # Secret headers influence isolation, but neither they nor their raw values are stored.
         serialized = json.dumps([request.integration_version, request.source, request.url,
-                                 request.operation, request.continuation_url, transport, request.headers, access_scope], sort_keys=True)
+                                 request.operation, request.continuation_url, transport, request.headers, access_scope,
+                                 request.context, request.capture_html, request.ready_selector, request.ready_text,
+                                 request.response_paths, request.response_query, request.response_body,
+                                 request.response_method, request.page_identity_pattern], sort_keys=True)
         return sha256(serialized.encode()).hexdigest()
     def snapshot(self, doc: Document) -> str:
         data = json.dumps(asdict(doc), ensure_ascii=False, sort_keys=True)
@@ -56,8 +62,47 @@ class EvidenceStore:
             row = db.execute("SELECT calls FROM budgets WHERE day=? AND source=?", (day, source)).fetchone()
             count = row[0] if row else 0
             if count >= limit:
-                raise LookupError("budget_exhausted", f"Local daily request budget reached for {source}")
+                now = datetime.now(timezone.utc)
+                reset = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                raise LookupError("budget_exhausted", f"Local daily request budget reached for {source}",
+                                  retry_after=(reset - now).total_seconds())
             db.execute("INSERT OR REPLACE INTO budgets VALUES (?, ?, ?)", (day, source, count + 1))
+    def budget_status(self, source: str, limit: int) -> dict:
+        now = datetime.now(timezone.utc)
+        reset = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        with self.connect() as db:
+            row = db.execute("SELECT calls FROM budgets WHERE day=? AND source=?",
+                             (now.date().isoformat(), source)).fetchone()
+        calls = row[0] if row else 0
+        return {"used": calls, "remaining": max(0, limit - calls), "reset_at": reset.timestamp()}
+    def provider_limit(self, source: str) -> dict | None:
+        with self.connect() as db:
+            row = db.execute("SELECT profile FROM provider_limits WHERE source=?", (source,)).fetchone()
+        return json.loads(row[0]) if row else None
+    def set_provider_limit(self, source: str, profile: dict):
+        with self.connect() as db:
+            db.execute("INSERT INTO provider_limits VALUES (?,?) ON CONFLICT(source) "
+                       "DO UPDATE SET profile=excluded.profile", (source, json.dumps(profile, allow_nan=False)))
+    def backoff_delay(self, source: str, initial: float, maximum: float) -> float:
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT failures FROM provider_backoff WHERE source=?", (source,)).fetchone()
+            failures = row[0] if row else 0
+            db.execute("INSERT INTO provider_backoff VALUES (?,?) ON CONFLICT(source) "
+                       "DO UPDATE SET failures=excluded.failures", (source, failures + 1))
+        return min(maximum, initial * 2 ** min(failures, 30))
+    def clear_backoff(self, source: str):
+        with self.connect() as db:
+            db.execute("DELETE FROM provider_backoff WHERE source=?", (source,))
+    def frozen_lookup(self, key: str) -> dict | None:
+        with self.connect() as db:
+            row = db.execute("SELECT l.record FROM frozen_lookups f JOIN lookups l ON l.id=f.lookup_id "
+                             "WHERE f.key=?", (key,)).fetchone()
+        return json.loads(row[0]) if row else None
+    def freeze_lookup(self, key: str, lookup_id: str):
+        # The first usable acquisition fixes evidence for this build/key.
+        with self.connect() as db:
+            db.execute("INSERT OR IGNORE INTO frozen_lookups VALUES (?,?)", (key, lookup_id))
     def save_record(self, record: LookupRecord, lookup_key: str):
         with self.connect() as db:
             db.execute("INSERT INTO lookups VALUES (?, ?, ?, ?)", (record.id, lookup_key, json.dumps(record.to_dict(), ensure_ascii=False), time.time()))

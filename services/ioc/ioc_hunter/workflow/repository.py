@@ -201,6 +201,27 @@ class WorkflowRepository:
             self._check_revision(current, run)
             self._save_run(db, {**current, **deepcopy(run)})
 
+    def transition_algorithm(self, run: dict, *, used_node_id=None) -> dict:
+        """Publish a no-lookup algorithm checkpoint using the existing revision."""
+        with self.store.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            current = self._read(db, "wf_runs", self._required(run, "id"))
+            self._check_revision(current, run)
+            if current.get("status") in {"completed", "cancelled", "failed"}:
+                raise WorkflowConflict("A closed investigation cannot advance")
+            if used_node_id is not None:
+                row = db.execute("SELECT record FROM wf_nodes WHERE run_id=? AND id=?",
+                                 (run["id"], used_node_id)).fetchone()
+                if not row:
+                    raise WorkflowConflict("Selected algorithm IOC is not in the graph")
+                node = json.loads(row[0])
+                if node.get("used"):
+                    raise WorkflowConflict("Algorithm IOC has already been selected")
+                self._merge_node(db, run["id"], {**node, "used": True})
+            saved = {**current, **deepcopy(run), "graph_revision": self._revision(current) + 1}
+            self._save_run(db, saved)
+        return saved
+
     def _records(self, table: str, run_id: str, order: str) -> list[dict]:
         with self.store.connect() as db:
             self._read(db, "wf_runs", run_id)
@@ -267,16 +288,18 @@ class WorkflowRepository:
                 for step in result["steps"]:
                     if not step.get("lookup"):
                         continue
-                    row = db.execute("SELECT record FROM lookups WHERE id=?", (step["lookup_id"],)).fetchone()
-                    if not row:
-                        raise WorkflowConflict("A saved step has no exact lookup receipt")
-                    receipt = json.loads(row[0])
-                    lookups.append(receipt)
-                    for response in receipt.get("responses", []):
-                        key = response["snapshot_id"]
-                        row = db.execute("SELECT document FROM snapshots WHERE id=?", (key,)).fetchone()
-                        if row:
-                            snapshots[key] = json.loads(row[0])
+                    receipt_ids = dict.fromkeys([*step.get("deferred_lookup_ids", []), step["lookup_id"]])
+                    for lookup_id in receipt_ids:
+                        row = db.execute("SELECT record FROM lookups WHERE id=?", (lookup_id,)).fetchone()
+                        if not row:
+                            raise WorkflowConflict("A saved step has no exact lookup receipt")
+                        receipt = json.loads(row[0])
+                        lookups.append(receipt)
+                        for response in receipt.get("responses", []):
+                            key = response["snapshot_id"]
+                            row = db.execute("SELECT document FROM snapshots WHERE id=?", (key,)).fetchone()
+                            if row:
+                                snapshots[key] = json.loads(row[0])
                 result["evidence"] = {"lookups": lookups, "snapshots": snapshots}
             return result
 

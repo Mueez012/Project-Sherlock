@@ -1,11 +1,15 @@
 """alienvault capabilities, request routes and response field mappings."""
 from urllib.parse import quote
 from ..method_spec import MethodSpec, supported_method
-from ..models import IOC
+from ..models import IOC, normalize
 from ..transport.models import Document, FetchRequest
 from .base import ParsedPage
 from .common import (ObservationBuilder, read_json, parse_html, finish_json,
                      dns_rows, url_rows, country_record, url_details)
+from .otx_whois import parse_whois
+from .otx_http import parse_http_scans
+from .dns_discovery import OPERATION as DNS_DISCOVERY, DNSDiscoveryBuilder, discovery_requests
+from . import otx_pulses
 
 source = "alienvault"
 PRIMARY_TRANSPORT = "browser"
@@ -19,11 +23,44 @@ METHODS = (
     supported_method(source, input_type="url", output_type="domain", operation="url_details"),
     supported_method(source, input_type="ipv4", output_type="geo_location", operation="geo"),
     supported_method(source, input_type="ipv6", output_type="geo_location", operation="geo", baseline=False),
+    supported_method(source, input_type="domain", output_type="email", operation="whois"),
+    supported_method(source, input_type="url", output_type="url", operation="http_scans"),
+    supported_method(source, input_type="ipv4", output_type="ipv4", operation=DNS_DISCOVERY),
+    supported_method(source, input_type="email", output_type="domain", operation=otx_pulses.OPERATION),
+    supported_method(source, input_type="email", output_type="email", operation=otx_pulses.OPERATION),
+    supported_method(source, input_type="geo_location", output_type="ipv4", operation=otx_pulses.OPERATION),
+    supported_method(source, input_type="port", output_type="protocol", operation=otx_pulses.OPERATION),
+    supported_method(source, input_type="protocol", output_type="port", operation=otx_pulses.OPERATION),
 )
 
 def requests_for(ioc: IOC, method: MethodSpec, api_key="") -> list[tuple[str, FetchRequest]]:
+    if method.operation in {otx_pulses.OPERATION, "pulse_indicators"}:
+        return otx_pulses.requests_for(ioc, method, api_key)
+    if method.operation == DNS_DISCOVERY:
+        return discovery_requests(ioc, method, api_key, requests_for)
     value = quote(ioc.value, safe="")
     op = method.operation
+    if op == "whois":
+        # This response path was observed from OTX's domain report page. Its
+        # public API equivalent has not been verified, even when a key exists.
+        value = quote(normalize("domain", ioc.value), safe="")
+        return [("browser", FetchRequest(
+            source, f"https://otx.alienvault.com/indicator/domain/{value}", op,
+            (f"/otxapi/indicators/domain/whois/{value}",),
+            bootstrap_paths=("/otxapi/env",), identity_type="domain",
+            integration_version="3", page_errors=(("Page not found.", "not_found"),),
+        ))]
+    if op == "http_scans":
+        # The stored scan headers are loaded by the URL report itself. Keep
+        # source acquisition inside the existing browser execution path.
+        value = quote(normalize("url", ioc.value), safe="")
+        ui_value = quote(normalize("url", ioc.value), safe=":")
+        return [("browser", FetchRequest(
+            source, f"https://otx.alienvault.com/indicator/url/{ui_value}", op,
+            (f"/otxapi/indicators/url/http_scans/{value}",),
+            bootstrap_paths=("/otxapi/env",), identity_type="url",
+            integration_version="3", page_errors=(("Page not found.", "not_found"),),
+        ))]
     kind = {"ipv4": "IPv4", "ipv6": "IPv6", "url": "url"}.get(ioc.type, ioc.type)
     api_kind = "URL" if ioc.type == "url" else kind
     section = {"dns": "passive_dns", "urls": "url_list", "geo": "geo", "url_details": "general"}[op]
@@ -56,14 +93,24 @@ def requests_for(ioc: IOC, method: MethodSpec, api_key="") -> list[tuple[str, Fe
 
 
 def parse_document(ioc: IOC, method: MethodSpec, document: Document) -> ParsedPage:
+    if method.operation == otx_pulses.OPERATION:
+        return otx_pulses.parse_document(ioc, method, document)
+    if method.operation == DNS_DISCOVERY:
+        return _parse_dns(DNSDiscoveryBuilder(ioc, method, document))
     builder = ObservationBuilder(ioc, method, document)
+    if method.operation in {"whois", "http_scans"} and document.format != "json":
+        return parse_html(builder)
+    if method.operation == "whois":
+        return parse_whois(builder)
+    if method.operation == "http_scans":
+        return parse_http_scans(builder)
+    if method.operation == "dns":
+        return _parse_dns(builder)
     if document.format != "json":
         return parse_html(builder, section_id={"dns": "passive" if ioc.type in {"ipv4", "ipv6"} else "passive_dns",
                                              "urls": "url_list"}.get(method.operation))
     data = read_json(document)
-    if method.operation == "dns":
-        dns_rows(builder, data.get("passive_dns"), "$.passive_dns")
-    elif method.operation == "urls":
+    if method.operation == "urls":
         url_rows(builder, data.get("url_list"), "$.url_list")
     elif method.operation == "geo":
         if not any(key in data for key in ("country_code", "country", "country_name", "city", "asn", "latitude")):
@@ -73,4 +120,15 @@ def parse_document(ioc: IOC, method: MethodSpec, document: Document) -> ParsedPa
         country_record(builder, data.get("ip", ioc.value), data, locator)
     else:
         url_details(builder, data, "$.url" if "url" in data else "$.indicator")
+    return finish_json(builder, data)
+
+
+def _parse_dns(builder):
+    """Share the existing passive-DNS envelope with composed discoveries."""
+    document = builder.document
+    if document.format != "json":
+        section = "passive" if builder.ioc.type in {"ipv4", "ipv6"} else "passive_dns"
+        return parse_html(builder, section_id=section)
+    data = read_json(document)
+    dns_rows(builder, data.get("passive_dns"), "$.passive_dns")
     return finish_json(builder, data)

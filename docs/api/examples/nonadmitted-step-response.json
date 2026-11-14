@@ -1,20 +1,21 @@
 {
   "step": {
-    "id": "662c78c28953485b803f0b66a0156346",
+    "id": "c85689e7e9d0405da3f856befed19b56",
     "sequence": 2,
     "input_node_id": "911854521219a083db3d8ef5d7868088",
     "method_id": "rapiddns.ipv4_to_domain",
-    "lookup_id": "656481e21fe2423bb011bcca26c0cea6",
+    "lookup_id": "2d9f2525c609461481895879b5acf0b9",
     "status": "completed",
-    "started_at": "2026-11-07T19:03:11.435187+00:00",
-    "finished_at": "2026-11-07T19:03:11.599606+00:00",
+    "started_at": "2026-11-11T18:40:03.326460+00:00",
+    "finished_at": "2026-11-11T18:40:03.410370+00:00",
     "outcome_status": "ok",
     "admission": {
       "accepted": false,
       "reason": "no_known_unused_overlap",
       "overlap_ids": [],
       "reward": null,
-      "reward_status": "not_evaluated"
+      "reward_status": "not_evaluated",
+      "paper_overlap_pass": null
     },
     "delta": {
       "new_nodes": 0,
@@ -22,9 +23,9 @@
       "evidence_links": 0
     },
     "error": "",
-    "run_id": "53e4e31e846a4e45a43555a17326bfe1",
+    "run_id": "77dfc273a74943bf9ef9f2bd46e61a51",
     "lookup": {
-      "id": "656481e21fe2423bb011bcca26c0cea6",
+      "id": "2d9f2525c609461481895879b5acf0b9",
       "method_id": "rapiddns.ipv4_to_domain",
       "input_ioc": {
         "value": "192.0.2.12",
@@ -81,7 +82,8 @@
         {
           "snapshot_id": "b72ddcce94fb047f73d0260e73f1c69cead4cbb26e83fadba3dc64f3ec8964e7",
           "url": "https://rapiddns.io/sameip/192.0.2.12?page=1",
-          "transport": "replay"
+          "transport": "replay",
+          "cached": false
         }
       ],
       "transport_errors": [],
@@ -90,12 +92,28 @@
       "error": "",
       "outcome_reason": "",
       "partial_reasons": [],
-      "started_at": "2026-11-07T19:03:11.474154+00:00",
-      "finished_at": "2026-11-07T19:03:11.505439+00:00"
+      "started_at": "2026-11-11T18:40:03.346828+00:00",
+      "finished_at": "2026-11-11T18:40:03.387297+00:00",
+      "acquisition": {
+        "version": 1,
+        "scope": "top_level_fetch",
+        "fetch_attempts": 1,
+        "external_fetch_attempts": 0,
+        "fetch_attempts_by_transport": {
+          "http": 1
+        },
+        "cache_reads": 0,
+        "parsed_pages": 1,
+        "followups_scheduled": 0,
+        "followups_executed": 0,
+        "retry_attempts": 0,
+        "rate_wait_seconds": 0.0,
+        "retry_at": null
+      }
     }
   },
   "run": {
-    "id": "53e4e31e846a4e45a43555a17326bfe1",
+    "id": "77dfc273a74943bf9ef9f2bd46e61a51",
     "status": "ready",
     "mode": "replay",
     "policy": "manual-selection/paper-admission-v1",
@@ -108,15 +126,17 @@
       "mode": "replay"
     },
     "graph_revision": 3,
-    "created_at": "2026-11-07T19:03:05.947991+00:00",
-    "updated_at": "2026-11-07T19:03:11.599606+00:00",
-    "elapsed_seconds": 5.250179999998661,
+    "created_at": "2026-11-11T18:39:59.442687+00:00",
+    "updated_at": "2026-11-11T18:40:03.410370+00:00",
+    "elapsed_seconds": 3.509704000000102,
     "stop_reason": "",
     "diagnostics": [],
     "extraction_options": {
       "include_references": false,
       "extended_types": false
-    }
+    },
+    "algorithm": null,
+    "dataset": null
   },
   "graph": {
     "nodes": [
@@ -131,7 +151,7 @@
           "synthetic-example.txt"
         ],
         "passage_ids": [
-          "051d1481b04b413aa6a2e0c01bd51f58:s2"
+          "4562bf5a33da4ea38cbc928d7f0f69f0:s2"
         ],
         "evidence_ids": [
           "be1d45bfb93a28def0d79db9",
@@ -139,7 +159,7 @@
           "c97215560d29da945370e9ac"
         ],
         "lookup_ids": [
-          "b97b2e19c48043bba713b042c7301993"
+          "b3cede63be0549a294e93f11e8e2f5b0"
         ],
         "origin": "report",
         "used": true
@@ -158,14 +178,14 @@
           "rapiddns"
         ],
         "passage_ids": [
-          "051d1481b04b413aa6a2e0c01bd51f58:s3"
+          "4562bf5a33da4ea38cbc928d7f0f69f0:s3"
         ],
         "evidence_ids": [
           "be1d45bfb93a28def0d79db9",
           "0519f37f4cd621aeb839fe0e"
         ],
         "lookup_ids": [
-          "b97b2e19c48043bba713b042c7301993"
+          "b3cede63be0549a294e93f11e8e2f5b0"
         ],
         "origin": "report",
         "used": false
@@ -181,7 +201,7 @@
           "synthetic-example.txt"
         ],
         "passage_ids": [
-          "051d1481b04b413aa6a2e0c01bd51f58:s4"
+          "4562bf5a33da4ea38cbc928d7f0f69f0:s4"
         ],
         "evidence_ids": [],
         "lookup_ids": [],
@@ -203,7 +223,7 @@
           "c97215560d29da945370e9ac"
         ],
         "lookup_ids": [
-          "b97b2e19c48043bba713b042c7301993"
+          "b3cede63be0549a294e93f11e8e2f5b0"
         ],
         "origin": "lookup",
         "used": true
@@ -221,7 +241,7 @@
           "0519f37f4cd621aeb839fe0e"
         ],
         "lookup_ids": [
-          "b97b2e19c48043bba713b042c7301993"
+          "b3cede63be0549a294e93f11e8e2f5b0"
         ]
       },
       {
@@ -234,7 +254,7 @@
           "c97215560d29da945370e9ac"
         ],
         "lookup_ids": [
-          "b97b2e19c48043bba713b042c7301993"
+          "b3cede63be0549a294e93f11e8e2f5b0"
         ]
       }
     ]

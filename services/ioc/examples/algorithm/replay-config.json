@@ -1,0 +1,9 @@
+{
+  "alpha": 1.0,
+  "method_ids": ["rapiddns.domain_to_ipv4"],
+  "selector": {"kind": "fixture", "path": "selector.json"},
+  "mode": "replay",
+  "replay": "../manual-workflow/replay.json",
+  "frozen_cache": true,
+  "limits": {"max_steps": 50, "max_nodes": 1000, "max_seconds": 600, "max_pages": 1, "max_outputs": 1000}
+}

@@ -149,10 +149,10 @@ def test_invalid_creation_is_rejected_before_persistence(api, change):
 def test_authentication_and_methodless_node(api):
     client, _ = api
     assert client.get("/v1/investigations").status_code == 401
-    saved = create(client).json()
-    hash_node = next(node for node in saved["graph"]["nodes"] if node["type"] == "sha256")
+    saved = create(client, text="CVE-2025-12345.\n" + REPORT, extended_types=True).json()
+    methodless = next(node for node in saved["graph"]["nodes"] if node["type"] == "cve")
     response = client.get(
-        f"/v1/investigations/{saved['run']['id']}/nodes/{hash_node['id']}/methods", headers=headers(),
+        f"/v1/investigations/{saved['run']['id']}/nodes/{methodless['id']}/methods", headers=headers(),
     )
     assert response.status_code == 200
     assert response.json()["methods"] == []

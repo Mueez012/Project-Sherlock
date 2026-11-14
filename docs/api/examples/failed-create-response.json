@@ -1,7 +1,7 @@
 {
   "version": 1,
   "run": {
-    "id": "af0cc56f87b4467b8915271837437616",
+    "id": "0af34d84eeae448ebd0087b7a63a2dca",
     "status": "failed",
     "mode": "replay",
     "policy": "manual-selection/paper-admission-v1",
@@ -14,9 +14,9 @@
       "mode": "replay"
     },
     "graph_revision": 1,
-    "created_at": "2026-11-07T19:03:11.824968+00:00",
-    "updated_at": "2026-11-07T19:03:12.090589+00:00",
-    "elapsed_seconds": 0.23399999999855936,
+    "created_at": "2026-11-11T18:40:03.615204+00:00",
+    "updated_at": "2026-11-11T18:40:03.861072+00:00",
+    "elapsed_seconds": 0.2180000000007567,
     "stop_reason": "initial_node_limit",
     "diagnostics": [
       {
@@ -28,14 +28,16 @@
     "extraction_options": {
       "include_references": false,
       "extended_types": false
-    }
+    },
+    "algorithm": null,
+    "dataset": null
   },
   "report": {
-    "id": "2327d613fb0245f1b19492b025a244b0",
+    "id": "ce70012cb3e247978c25d8bbd51b8d5e",
     "source": "synthetic-example.txt",
     "original_text": "This synthetic CTI report is an offline workflow example, not a real incident.\nThe loader contacted example.com for its configuration.\nThe report also lists 192.0.2.10 as an observed address.\nThe sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.\n\nReferences\nhttps://publisher.example/reference\n",
     "sha256": "ed2b6404d5fec9c422d77d0c0382e3cbceee259efefae70ad219096ebf1a6363",
-    "ingested_at": "2026-11-07T19:03:11.824968+00:00"
+    "ingested_at": "2026-11-11T18:40:03.615204+00:00"
   },
   "extraction": {
     "source": "synthetic-example.txt",
@@ -104,22 +106,22 @@
     ],
     "passages": [
       {
-        "id": "2327d613fb0245f1b19492b025a244b0:s1",
+        "id": "ce70012cb3e247978c25d8bbd51b8d5e:s1",
         "text": "This synthetic CTI report is an offline workflow example, not a real incident.",
         "sentence_index": 0
       },
       {
-        "id": "2327d613fb0245f1b19492b025a244b0:s2",
+        "id": "ce70012cb3e247978c25d8bbd51b8d5e:s2",
         "text": "The loader contacted example.com for its configuration.",
         "sentence_index": 1
       },
       {
-        "id": "2327d613fb0245f1b19492b025a244b0:s3",
+        "id": "ce70012cb3e247978c25d8bbd51b8d5e:s3",
         "text": "The report also lists 192.0.2.10 as an observed address.",
         "sentence_index": 2
       },
       {
-        "id": "2327d613fb0245f1b19492b025a244b0:s4",
+        "id": "ce70012cb3e247978c25d8bbd51b8d5e:s4",
         "text": "The sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.",
         "sentence_index": 3
       }

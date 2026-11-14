@@ -77,6 +77,9 @@ class InvestigationService:
                 client = LookupClient(store=self.store, max_pages=config.max_pages, max_outputs=config.max_outputs)
             runner = WorkflowRunner(client, config)
             if run:
+                if run.get("algorithm"):
+                    from .algorithm.controller import configure_runner
+                    configure_runner(runner, run)
                 runner._check_mode(run)
             return runner
         except (ValueError, OSError, ImportError) as exc:
@@ -264,7 +267,9 @@ class InvestigationService:
         return {"step": step, "run": snapshot["run"], "graph": snapshot["graph"], "replayed": replayed}
 
     def execute(self, actor_id, run_id, node_id, method_id, step_id, expected_revision):
-        self._authorize(actor_id, run_id)
+        saved_run = self._authorize(actor_id, run_id)
+        if saved_run.get("algorithm"):
+            self._error("automatic_run", "Use the algorithm controller to advance this investigation.")
         if not isinstance(step_id, str) or not step_id.strip():
             self._error("invalid_request", "A nonempty step request ID is required.", 422)
         if type(expected_revision) is not int or expected_revision < 0:

@@ -4,6 +4,7 @@ Only reservation writes are serialized. Neither sleeping nor provider acquisitio
 holds a SQL transaction or another provider's lock.
 """
 from threading import Lock
+import math
 import time
 from .models import LookupError
 
@@ -19,7 +20,25 @@ class RateLimiter:
                 columns = {row[1] for row in db.execute("PRAGMA table_info(provider_pacing)")}
                 if "cooldown_until" not in columns:
                     db.execute("ALTER TABLE provider_pacing ADD COLUMN cooldown_until REAL NOT NULL DEFAULT 0")
-    def wait(self, source):
+    def status(self, source):
+        """Inspect the shared gate without reserving a slot or sleeping."""
+        if self.store is not None:
+            with self.store.connect() as db:
+                row = db.execute("SELECT next_at,cooldown_until FROM provider_pacing WHERE source=?",
+                                 (source,)).fetchone()
+            now = time.time()
+            next_at, cooldown = row if row else (0, 0)
+        else:
+            now = time.monotonic()
+            next_at, cooldown = self.next_at.get(source, 0), 0
+        delay = max(0, max(next_at, cooldown) - now)
+        return {"ready": not delay, "retry_at": time.time() + delay,
+                "wait_seconds": delay, "reason": "cooldown" if cooldown > now else ("pacing" if delay else "")}
+    def wait(self, source, *, interval=None):
+        interval = self.interval if interval is None else interval
+        if isinstance(interval, bool) or not isinstance(interval, (int, float)) or not math.isfinite(interval) or interval < 0:
+            raise ValueError("Provider interval must be finite and nonnegative")
+        waited = 0.0
         if self.store is not None:
             with self.store.connect() as db:
                 db.execute("BEGIN IMMEDIATE")
@@ -29,25 +48,32 @@ class RateLimiter:
                 if delay > 30:
                     raise LookupError("rate_limited", "Local source cooldown is active", retry_after=delay)
                 db.execute("INSERT INTO provider_pacing(source,next_at) VALUES (?,?) ON CONFLICT(source) "
-                           "DO UPDATE SET next_at=excluded.next_at", (source, now + delay + self.interval))
+                           "DO UPDATE SET next_at=excluded.next_at", (source, now + delay + interval))
             if delay:
+                started = time.monotonic()
                 time.sleep(delay)
+                waited = max(0, time.monotonic() - started)
             # Another request may receive a provider block while we wait for our
             # reserved slot. Do not bypass that cooldown with an old reservation.
             with self.store.connect() as db:
                 row = db.execute("SELECT cooldown_until FROM provider_pacing WHERE source=?", (source,)).fetchone()
             remaining = max(0, row[0] - time.time()) if row else 0
             if remaining:
-                raise LookupError("rate_limited", "Local source cooldown is active", retry_after=remaining)
-            return
+                error = LookupError("rate_limited", "Local source cooldown is active", retry_after=remaining)
+                error.rate_wait_seconds = waited
+                raise error
+            return waited
         with self.lock:
             now = time.monotonic()
             delay = max(0, self.next_at.get(source, 0) - now)
             if delay > 30:
                 raise LookupError("rate_limited", "Local source cooldown is active", retry_after=delay)
-            self.next_at[source] = now + delay + self.interval
+            self.next_at[source] = now + delay + interval
         if delay:
+            started = time.monotonic()
             time.sleep(delay)
+            waited = max(0, time.monotonic() - started)
+        return waited
     def cooldown(self, source, seconds):
         if self.store is not None:
             with self.store.connect() as db:

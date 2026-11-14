@@ -7,7 +7,8 @@ from ..evidence import utc_now
 
 HOSTS = {"rapiddns": {"rapiddns.io", "www.rapiddns.io"},
          "alienvault": {"otx.alienvault.com"},
-         "virustotal": {"www.virustotal.com", "virustotal.com"}}
+         "virustotal": {"www.virustotal.com", "virustotal.com"},
+         "hybridanalysis": {"hybrid-analysis.com", "www.hybrid-analysis.com"}}
 
 class LookupError(RuntimeError):
     def __init__(self, status: str, message: str, *, retry_after: float | None = None, lookup_id: str = "", document=None):
@@ -30,6 +31,14 @@ class FetchRequest:
     page_errors: tuple[tuple[str, str], ...] = ()
     next_selector: str = ""
     continuation_url: str = ""
+    page_identity_pattern: str = ""  # Group 1 fills {page_id} in response_paths.
+    context: dict = field(default_factory=dict)
+    capture_html: bool = False
+    ready_selector: str = ""
+    ready_text: str = ""
+    response_query: dict[str, str] = field(default_factory=dict)
+    response_body: dict[str, str] = field(default_factory=dict)
+    response_method: str = ""
 
 @dataclass
 class Document:

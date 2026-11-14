@@ -6,6 +6,7 @@ from ..models import IOC, normalize
 from ..transport.models import Document, FetchRequest, allowed_url
 from .base import ParsedPage
 from .common import ObservationBuilder, ResultTables, read_json, parse_html, finish_json, dns_rows
+from .dns_discovery import OPERATION as DNS_DISCOVERY, DNSDiscoveryBuilder, discovery_requests
 
 source = "rapiddns"
 PRIMARY_TRANSPORT = "http"
@@ -15,9 +16,16 @@ METHODS = (
     supported_method(source, input_type="ipv4", output_type="domain", operation="dns"),
     supported_method(source, input_type="domain", output_type="ipv6", operation="dns"),
     supported_method(source, input_type="ipv6", output_type="domain", operation="dns"),
+    supported_method(source, input_type="ipv4", output_type="ipv4", operation=DNS_DISCOVERY),
+    supported_method(source, input_type="ipv4", output_type="ipv6", operation=DNS_DISCOVERY),
+    supported_method(source, input_type="ipv6", output_type="ipv4", operation=DNS_DISCOVERY),
+    supported_method(source, input_type="ipv6", output_type="ipv6", operation=DNS_DISCOVERY),
+    supported_method(source, input_type="url", output_type="domain", operation=DNS_DISCOVERY),
 )
 
 def requests_for(ioc: IOC, method: MethodSpec, api_key="") -> list[tuple[str, FetchRequest]]:
+    if method.operation == DNS_DISCOVERY:
+        return discovery_requests(ioc, method, api_key, requests_for)
     value = quote(ioc.value, safe="")
     op = method.operation
     route = "subdomain" if ioc.type == "domain" else "sameip"
@@ -80,9 +88,10 @@ def _completed_empty(ioc: IOC, document: Document) -> bool:
 
 
 def parse_document(ioc: IOC, method: MethodSpec, document: Document) -> ParsedPage:
-    builder = ObservationBuilder(ioc, method, document)
+    builder = (DNSDiscoveryBuilder(ioc, method, document) if method.operation == DNS_DISCOVERY
+               else ObservationBuilder(ioc, method, document))
     if document.format != "json":
-        return parse_html(builder, completed_empty=_completed_empty(ioc, document))
+        return parse_html(builder, completed_empty=_completed_empty(builder.ioc, document))
     data = read_json(document)
     container = data.get("data", {})
     rows = container.get("data", container.get("records")) if isinstance(container, dict) else None

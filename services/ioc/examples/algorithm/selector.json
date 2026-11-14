@@ -1,0 +1,5 @@
+{
+  "example.com": [
+    {"method_id": "rapiddns.domain_to_ipv4", "reason": "Use the recorded DNS fixture for this synthetic example."}
+  ]
+}

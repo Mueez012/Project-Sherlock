@@ -1,0 +1,31 @@
+{
+  "data": {
+    "id": "b52ed8e59dddda754156b6439e1c7b3f800c61b6a80d6b9135946357d9b55d7d",
+    "type": "url",
+    "attributes": {
+      "url": "https://download.sysinternals.com/files/ProcessExplorer.zip",
+      "last_http_response_headers": {
+        "x-azure-ref": "20261109T010041Z-1644b5fd64cwwn2jhC1DTT9g6s00000017t0000000001rwu",
+        "x-ms-request-id": "46760385-701e-000b-5ecd-6f06fa000000",
+        "x-ms-lease-state": "available",
+        "last-modified": "Thu, 05 Nov 2026 20:32:26 GMT",
+        "x-cache-info": "L1_T2",
+        "content-type": "application/octet-stream",
+        "x-ms-server-encrypted": "true",
+        "x-ms-blob-content-md5": "s9yGpofprd/fq/PN6SdUNw==",
+        "accept-ranges": "bytes",
+        "x-ms-version": "2025-05-05",
+        "x-ms-access-tier-inferred": "true",
+        "date": "Mon, 09 Nov 2026 01:00:41 GMT",
+        "x-cache": "TCP_HIT",
+        "x-ms-lease-status": "unlocked",
+        "x-fd-int-roxy-purgeid": "40",
+        "x-ms-blob-type": "BlockBlob",
+        "x-ms-access-tier": "Hot",
+        "x-ms-creation-time": "Wed, 03 Feb 2016 05:51:06 GMT",
+        "etag": "\"0x8DF3B7BE7B34F59\"",
+        "content-length": "3871135"
+      }
+    }
+  }
+}
