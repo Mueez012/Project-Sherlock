@@ -13,8 +13,8 @@ dependencies = [
     "pymupdf==1.28.2",
     "python-docx==1.2.0",
     "beautifulsoup4==4.15.0",
-    "charset-normalizer==3.4.0",
-    "python-multipart==0.0.33",
+    "charset-normalizer==3.5.2",
+    "python-multipart==0.0.34",
     "pymupdf4llm==1.28.2",
     "pymupdf-layout==1.28.2",
 ]
