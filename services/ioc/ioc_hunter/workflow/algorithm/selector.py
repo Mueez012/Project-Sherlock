@@ -80,7 +80,8 @@ class APISelector:
             {"role": "user", "content": json.dumps(request, ensure_ascii=False)}],
             "temperature": self.config.get("temperature", 0),
             "max_tokens": self.config.get("max_tokens", 2048)}
-        headers = {"Content-Type": "application/json"}
+        # Some hosted endpoints (behind Cloudflare) reject Python's default urllib User-Agent with 403.
+        headers = {"Content-Type": "application/json", "User-Agent": "threatmamba-ioc-hunter/1.0"}
         key_name = self.config.get("api_key_env")
         if key_name:
             key = os.environ.get(key_name)
@@ -96,7 +97,12 @@ class APISelector:
         content = body["choices"][0]["message"]["content"]
         if not isinstance(content, str):
             raise ValueError("Selector returned no text response")
-        return {"selection": json.loads(content), "usage": body.get("usage"),
+        text = content.strip()
+        # Some hosted models wrap their JSON in a ```json ... ``` code fence; parse the inside.
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1] if "\n" in text else ""
+            text = text.rsplit("```", 1)[0]
+        return {"selection": json.loads(text), "usage": body.get("usage"),
                 "model": body.get("model", self.config["model"])}
 
 
