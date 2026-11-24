@@ -16,6 +16,50 @@ def _add_store(parser):
     parser.add_argument("--store", type=Path, help="Evidence and investigation storage directory")
 
 
+def _algorithm_command(args):
+    from .workflow.algorithm.batch import experiment_statistics, export_dataset, normalize_config, run_dataset
+    from .workflow.algorithm.dataset import prepare_dataset
+    from .workflow.algorithm.statistics import summarize
+    from .workflow.runner import build_runner
+
+    if args.command == "dataset":
+        if args.action == "prepare":
+            result = prepare_dataset(args.source, args.output, splits=args.split, report_ids=args.report_id,
+                                     max_reports=args.max_reports, include_references=args.include_references,
+                                     extended_types=args.extended_types)
+            result = {"build_id": result["build_id"], "directory": result["output_dir"], "counts": result["counts"]}
+        else:
+            result = export_dataset(args.build, args.output)
+    elif args.action == "stats":
+        if args.run_id:
+            from .config import resolve_store_directory
+            from .workflow.repository import WorkflowRepository
+            result = summarize(WorkflowRepository(EvidenceStore(resolve_store_directory(args.store))).snapshot(args.run_id))
+        elif args.build and args.experiment:
+            result = experiment_statistics(args.build, args.experiment)
+        else:
+            raise ValueError("Stats requires a run ID or --build and --experiment")
+    else:
+        config = (normalize_config(json.loads(args.config.read_text(encoding="utf-8")), args.config.resolve().parent)
+                  if args.config else None)
+        def progress(snapshot):
+            run = snapshot["run"]
+            state = run["algorithm"]
+            active = next((node for node in snapshot["graph"]["nodes"] if node["id"] == state["active_node_id"]), None)
+            print(json.dumps({"run_id": run["id"], "report_id": run["report"]["id"], "phase": state["phase"],
+                              "round": state["round_index"] + 1 if active else None,
+                              "ioc": {"type": active["type"], "value": active["value"]} if active else None,
+                              "tried": sum(row["tried"] for row in state["method_history"].values()),
+                              "coverage": sum(row["coverage"] for row in state["method_history"].values()),
+                              "nodes": len(snapshot["graph"]["nodes"]), "edges": len(snapshot["graph"]["edges"]),
+                              "wait": state.get("wait")}), file=sys.stderr)
+        result = run_dataset(args.build, args.experiment, config=config, store_directory=args.store,
+                             wait=args.wait, report_ids=args.report_id, max_reports=args.max_reports,
+                             on_progress=progress)
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+    return 0
+
+
 def _workflow(args, parser):
     from .workflow.adapters import TerminalWorkflowAdapter
     from .workflow.models import RunConfig
@@ -129,9 +173,47 @@ def main(argv=None):
     export.add_argument("--output", type=Path, required=True)
     _add_store(export)
     sub.add_parser("mcp")
+    dataset = sub.add_parser("dataset", help="Prepare/export D2 using its saved sentences")
+    dataset_actions = dataset.add_subparsers(dest="action", required=True)
+    prepare = dataset_actions.add_parser("prepare")
+    prepare.add_argument("--source", type=Path, required=True, help="D2 model-ready directory")
+    prepare.add_argument("--output", type=Path, required=True, help="Incremental build directory")
+    prepare.add_argument("--split", choices=("train", "valid", "test"), action="append")
+    prepare.add_argument("--report-id", type=int, action="append")
+    prepare.add_argument("--max-reports", type=int)
+    prepare.add_argument("--include-references", action="store_true")
+    prepare.add_argument("--extended-types", action="store_true")
+    dataset_export = dataset_actions.add_parser("export")
+    dataset_export.add_argument("--build", type=Path, required=True)
+    dataset_export.add_argument("--output", type=Path, required=True)
+    algorithm = sub.add_parser("algorithm", help="Run/continue Algorithm 1 and inspect its statistics")
+    algorithm_actions = algorithm.add_subparsers(dest="action", required=True)
+    for name in ("run", "resume"):
+        command = algorithm_actions.add_parser(name)
+        command.add_argument("--build", type=Path, required=True)
+        command.add_argument("--experiment", required=True)
+        command.add_argument("--config", type=Path, help="Required for a new experiment")
+        command.add_argument("--wait", action="store_true", help="Wait through saved provider cooldowns")
+        command.add_argument("--report-id", type=int, action="append")
+        command.add_argument("--max-reports", type=int, help="Maximum unfinished reports processed this invocation")
+        _add_store(command)
+    stats = algorithm_actions.add_parser("stats")
+    stats.add_argument("run_id", nargs="?")
+    stats.add_argument("--build", type=Path)
+    stats.add_argument("--experiment")
+    _add_store(stats)
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    if args.command in {"dataset", "algorithm"}:
+        try:
+            return _algorithm_command(args)
+        except (OSError, ValueError, KeyError, RuntimeError, ImportError, TypeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+        except KeyboardInterrupt:
+            print("Stopped; completed extraction files and saved workflow steps are preserved.", file=sys.stderr)
+            return 130
     if args.command in {"investigate", "runs", "export"}:
         try:
             return _workflow(args, parser)

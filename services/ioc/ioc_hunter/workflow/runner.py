@@ -32,11 +32,13 @@ UNRESOLVED_LIVE_METHODS = {"virustotal.domain_to_url"}
 
 
 class WorkflowRunner:
-    def __init__(self, client: LookupClient, config: RunConfig | None = None, *, policy=None):
+    def __init__(self, client: LookupClient, config: RunConfig | None = None, *, policy=None,
+                 completion_hook=None):
         self.client = client
         self.config = config or RunConfig()
         self.repository = WorkflowRepository(client.store)
         self.policy = policy or PaperAdmissionPolicy()
+        self.completion_hook = completion_hook
         replay = isinstance(client.http, ReplayTransport) and client.http is client.browser
         if (self.config.mode == "replay") != replay:
             raise ValueError("Replay mode requires fixture transports for both HTTP and browser")
@@ -123,6 +125,40 @@ class WorkflowRunner:
         except (ValueError, TypeError):
             return None
 
+    def create_prepared_run(self, artifact, *, run_id, owner_id=None, algorithm=None):
+        """Publish a frozen-sentence dataset extraction and its seeds atomically."""
+        from copy import deepcopy
+        extraction = deepcopy(artifact["extraction"])
+        passages = extraction["passages"]
+        if len(passages) != len(extraction["sentences"]):
+            raise ValueError("Prepared passages do not match the frozen sentences")
+        now = utc_now()
+        nodes = []
+        for item in artifact["iocs"]:
+            ioc = IOC(item["value"], item["type"], list(item["context"]), item["source"])
+            nodes.append(graph_node(ioc, origin="report", passages=[
+                passages[index]["id"] for index in item["sentence_indices"]]))
+        limited = len(nodes) > self.config.max_nodes
+        run = {
+            "id": run_id, "status": "failed" if limited else "ready", "mode": self.config.mode,
+            "policy": self.policy.name, "config": asdict(self.config), "graph_revision": 1,
+            "created_at": now, "updated_at": now, "elapsed_seconds": 0.0,
+            "stop_reason": "initial_node_limit" if limited else "", "diagnostics": [],
+            "report": {"id": str(artifact["report"]["report_id"]),
+                       "source": extraction["source"], "original_text": artifact["text"],
+                       "sha256": artifact["text_sha256"], "ingested_at": now},
+            "extraction_options": {name: artifact.get("preparation", {}).get(name, False)
+                                   for name in ("include_references", "extended_types")},
+            "extraction": extraction,
+            "dataset": {key: artifact[key] for key in ("build_id", "extraction_id", "report_key")},
+        }
+        if algorithm is not None:
+            run["algorithm"] = deepcopy(algorithm)
+        if self.config.mode == "replay":
+            run["replay"] = {"manifest": str(self.client.http.path), "sha256": self.client.http.digest}
+        self.repository.create_run(run, nodes, owner_id=owner_id)
+        return self.repository.get_run(run_id)
+
     def list_runs(self) -> list[dict]:
         return self.repository.list_runs()
 
@@ -173,7 +209,19 @@ class WorkflowRunner:
                 if previous["status"] == "completed":
                     return previous
                 self.resume(run_id)
-                return self.repository.get_step(step_id, run_id)
+                previous = self.repository.get_step(step_id, run_id)
+                if previous["status"] == "completed" or previous.get("outcome_status") != "deferred":
+                    return previous
+                query_node = self._node(run_id, input_node_id)
+                query = IOC(query_node["value"], query_node["type"], query_node["context"])
+                if hasattr(self.client, "lookup_wait") and self.client.lookup_wait(query, method_id):
+                    return previous
+                # The deferred receipt is immutable. The same logical pending step
+                # reserves a new receipt ID, without consuming another tried count.
+                previous.setdefault("deferred_lookup_ids", []).append(previous["lookup_id"])
+                previous.update(lookup_id=uuid4().hex, lookup=None, outcome_status="pending", error="")
+                self.repository.update_step(previous)
+                return self._execute_reserved(run_id, previous, query_node)
         if run["status"] in TERMINAL_STATUSES:
             raise ValueError("This investigation is " + run["status"] + "; start a new one for further hunting")
         steps = self.repository.steps(run_id)
@@ -201,9 +249,14 @@ class WorkflowRunner:
         run["status"], run["updated_at"] = "running", utc_now()
         self.repository.begin_step(run, step)
         # Respect persisted limits when a run is reopened with a different default configuration.
+        return self._execute_reserved(run_id, step, node)
+
+    def _execute_reserved(self, run_id, step, node):
+        run = self.repository.get_run(run_id)
+        config = RunConfig(**run["config"])
         query = IOC(node["value"], node["type"], list(node["context"]), "; ".join(node["sources"]))
         try:
-            record = self.client.lookup_detailed(query, method_id, lookup_id=step["lookup_id"],
+            record = self.client.lookup_detailed(query, step["method_id"], lookup_id=step["lookup_id"],
                                                  max_pages=config.max_pages, max_outputs=config.max_outputs)
         except LookupError as exc:
             record = LookupRecord.from_dict(self.client.store.get_record(exc.lookup_id))
@@ -218,6 +271,12 @@ class WorkflowRunner:
         query = IOC(seed["value"], seed["type"])
         if identity(query) != identity(record.input_ioc):
             raise ValueError("Saved receipt belongs to another input IOC")
+        if record.status == "deferred":
+            step.update(outcome_status="deferred", lookup=record.to_dict(), error=record.error)
+            self.repository.update_step(step)
+            run.update(status="ready", updated_at=utc_now())
+            self.repository.save_run(run)
+            return self.repository.get_step(step["id"], run_id)
         method = get_method(step["method_id"])
         good_status = record.status in {"ok", "empty", "partial"}
         observations = {evidence.id: evidence for evidence in record.evidence}
@@ -270,12 +329,15 @@ class WorkflowRunner:
             duration = max(0, (datetime.fromisoformat(record.finished_at) - datetime.fromisoformat(record.started_at)).total_seconds())
         except (ValueError, TypeError):
             duration = 0
+        duration -= min(duration, getattr(record, "acquisition", {}).get("rate_wait_seconds", 0))
         run["elapsed_seconds"] += duration
         run["status"], run["stop_reason"] = "ready", ""
         if step["sequence"] >= config.max_steps or run["elapsed_seconds"] >= config.max_seconds:
             run["status"] = "completed"
             run["stop_reason"] = "step_limit" if step["sequence"] >= config.max_steps else "time_limit"
         run["updated_at"] = utc_now()
+        if self.completion_hook:
+            self.completion_hook(run, step, record, admission)
         self.repository.commit_step(run, step, proposed_nodes, proposed_edges)
         return self.repository.get_step(step["id"], run_id)
 
@@ -307,6 +369,8 @@ class WorkflowRunner:
                 if step["sequence"] >= config.max_steps or run["elapsed_seconds"] >= config.max_seconds:
                     run["status"] = "completed"
                     run["stop_reason"] = "step_limit" if step["sequence"] >= config.max_steps else "time_limit"
+                if self.completion_hook:
+                    self.completion_hook(run, step, None, step["admission"])
                 self.repository.commit_step(run, step, [], [])
             else:
                 self._apply_receipt(run_id, step, record)
@@ -355,5 +419,8 @@ def build_runner(store_directory=None, config: RunConfig | None = None, replay_p
         client = LookupClient(store=store, max_pages=config.max_pages, max_outputs=config.max_outputs)
     runner = WorkflowRunner(client, config)
     if saved:
+        if saved.get("algorithm"):
+            from .algorithm.controller import configure_runner
+            configure_runner(runner, saved)
         runner._check_mode(saved)
     return runner

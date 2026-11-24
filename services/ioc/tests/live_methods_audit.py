@@ -20,11 +20,30 @@ from ioc_hunter.providers import PROVIDERS
 from ioc_hunter.storage import EvidenceStore
 
 INPUTS = {
-    "domain": "example.com",
+    "domain": "sysinternals.com",
     "ipv4": "1.1.1.1",
     "ipv6": "2606:4700:4700::1111",
-    "url": "http://example.com/",
+    "url": "https://download.sysinternals.com/files/ProcessExplorer.zip",
+    # Same-file hashes captured from the public report on 9 November 2026.
+    # This is a regression input, not a guarantee of future provider data.
+    "md5": "c438b19e627b1c1e9cb8970f2fe5f929",
+    "sha1": "f9e903e70baf8a3cece4bf554ce3d6fae63c1805",
+    "sha256": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4",
+    "filename": "bounty-27619769908387977",
+    "registry": "HKLM\\SYSTEM\\CONTROLSET001\\SERVICES\\TCPIP\\PARAMETERS",
+    "command_api": "powershell.exe",
+    "email": "info@python.org",
+    "geo_location": "US",
+    "port": "8080",
+    "protocol": "http",
 }
+
+# Public HA report captured during research, not a live-validation claim.
+SOURCE_INPUTS = {"hybridanalysis": {
+    "md5": "0c1eb2f8168941dc911360995e8b200c",
+    "sha1": "cf7debc68f2fb503b92089b3dd1c065b93352854",
+    "sha256": "2e7aa640b2da6d9350afba1b8ad0b65bc85ac335dde42f08cd540da8580e2a78",
+}}
 
 
 def write_json(path, value):
@@ -39,11 +58,15 @@ def outcome(record):
     return "failed: " + record["status"]
 
 
-def audit_source(source, directory, inputs, max_pages, api_keys, method_ids, query_iocs=None):
+def audit_source(source, directory, inputs, max_pages, api_keys, method_ids, query_iocs=None,
+                 max_followups=10, browser_state=None):
     store = EvidenceStore(directory / "stores" / source)
     # Fresh retrieval per method: this audit must not reuse successful cached calls.
     client = LookupClient(store=store, cache_ttl=0, max_pages=max_pages,
-                          api_keys=api_keys, interval=15)
+                          api_keys=api_keys, interval=15, max_followups=max_followups)
+    if browser_state:
+        from ioc_hunter.transport import BrowserTransport
+        client.browser = BrowserTransport(storage_state=browser_state)
     results = []
     for method in list_runnable_methods():
         if method.source != source or (method_ids and method.id not in method_ids):
@@ -95,8 +118,9 @@ def audit_source(source, directory, inputs, max_pages, api_keys, method_ids, que
 def report(directory, rows, manifest):
     lines = ["# Live method audit", "", f"Started (UTC): {manifest['started_at']}", "",
              "This audit contacts the actual providers. It does not use fixtures. Responses are uncached.",
-             f"Each lookup is capped at {manifest['max_pages']} page(s); partial is not exhaustive coverage.",
+             f"Each acquisition stage is capped at {manifest['max_pages']} page(s), with up to {manifest.get('max_followups', 10)} follow-up stages; partial is not exhaustive coverage.",
              "One public input per type is tested. A successful sample does not prove all inputs or access routes work.",
+             "Missing-credential outcomes stop before provider contact and are not live provider verification.",
              "No accepted outputs does not prove the method is broken or positively verified.", "",
              "API keys configured (values never exported): `" + json.dumps(manifest["api_keys_configured"]) + "`.", "",
              "| Method | Input | Outcome | Accepted | Rejected rows | Artifacts |",
@@ -122,18 +146,22 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--max-pages", type=int, default=1)
+    parser.add_argument("--max-followups", type=int, default=10)
+    parser.add_argument("--browser-state", type=Path, help="Existing account session; no account is created")
     parser.add_argument("--source", choices=tuple(PROVIDERS), action="append")
     parser.add_argument("--method", choices=[m.id for m in list_runnable_methods()], action="append",
                         help="Limit a follow-up check to selected implemented methods")
     for kind, default in INPUTS.items():
-        parser.add_argument("--" + kind, default=default)
+        parser.add_argument("--" + kind, default=None, help=f"Default: {default}")
     args = parser.parse_args()
     if args.max_pages < 1:
         parser.error("--max-pages must be positive")
+    if args.max_followups < 0:
+        parser.error("--max-followups cannot be negative")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     directory = (args.output or ROOT / "output" / f"live-methods-{stamp}").resolve()
     directory.mkdir(parents=True, exist_ok=False)
-    inputs = {kind: getattr(args, kind) for kind in INPUTS}
+    inputs = {kind: getattr(args, kind) or default for kind, default in INPUTS.items()}
     keys = api_keys_from_environment()
     sources = list(dict.fromkeys(args.source or list(PROVIDERS)))
     if args.method:
@@ -142,14 +170,22 @@ def main():
             parser.error("Selected methods must belong to the selected sources")
     manifest = {"started_at": datetime.now(timezone.utc).isoformat(), "inputs": inputs,
                 "sources": sources, "method_ids": args.method, "max_pages": args.max_pages, "cache_ttl": 0,
+                "max_followups": args.max_followups, "browser_state_configured": bool(args.browser_state),
+                "browser_context": "fresh_per_lookup",
+                "source_input_defaults": SOURCE_INPUTS,
                 "api_keys_configured": {k: bool(v) for k, v in keys.items()},
                 "python": sys.version}
     write_json(directory / "manifest.json", manifest)
     print(f"ARTIFACTS {directory}", flush=True)
     rows = []
     with ThreadPoolExecutor(max_workers=len(sources)) as pool:
-        futures = [pool.submit(audit_source, source, directory, inputs, args.max_pages, keys, args.method)
-                   for source in sources]
+        futures = []
+        for source in sources:
+            source_inputs = {**inputs, **{kind: value for kind, value in SOURCE_INPUTS.get(source, {}).items()
+                                          if getattr(args, kind) is None}}
+            futures.append(pool.submit(audit_source, source, directory, source_inputs, args.max_pages,
+                                       keys, args.method, max_followups=args.max_followups,
+                                       browser_state=args.browser_state))
         for future in as_completed(futures):
             rows.extend(future.result())
             rows.sort(key=lambda row: row["method"])

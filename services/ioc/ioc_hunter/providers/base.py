@@ -6,12 +6,27 @@ from ..method_spec import MethodSpec
 from ..models import IOC
 from ..transport.models import Document, FetchRequest
 
+@dataclass(frozen=True)
+class FollowUp:
+    """A required source read, executed by LookupClient rather than a parser.
+
+    Typed lookups resolve the provider's normal routes and configured API
+    fallbacks at execution time. Explicit routes support source-local report
+    navigation without introducing public methods outside the ontology.
+    """
+    key: str
+    routes: tuple[tuple[str, FetchRequest], ...] = ()
+    ioc: IOC | None = None
+    method: MethodSpec | None = None
+    context: dict = field(default_factory=dict)
+
 @dataclass
 class ParsedPage:
     observations: list[Observation] = field(default_factory=list)
     next_url: str = ""
     complete: bool = True
     reason: str = ""
+    followups: list[FollowUp] = field(default_factory=list)
 
 class Provider(Protocol):
     source: str

@@ -48,6 +48,8 @@ class LookupRecord:
     partial_reasons: list[str] = field(default_factory=list)
     started_at: str = field(default_factory=utc_now)
     finished_at: str = ""
+    # Empty for historical receipts whose acquisition costs are unknown.
+    acquisition: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return asdict(self)

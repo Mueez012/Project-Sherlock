@@ -1,9 +1,37 @@
 # Method reliability and coverage backlog
 
+Latest 10 November result: **48 implemented / 20 candidates / 68 total**.
+445 tests and 252 subtests passed. Further live verification is tracked in
+[the verification report](METHODS_VERIFICATION_20261110.md); OTX/VT rate limits
+and HA discovery/access gaps remain. Earlier paused-testing notes are historical.
+
+10 November checkpoint: eight HA methods and eight original candidates now have
+code: **43 implemented / 25 candidates / 68 total**. Testing is deferred until
+the user discusses five more from the original 25. See
+[the checkpoint](SIXTEEN_METHODS_IMPLEMENTATION.md); no new test/live result is
+claimed. The older counts below are historical snapshots.
+
 Updated: 14 October 2026. These are future tasks, not completed features.
 This backlog covers provider lookup, parsing and relationship validation after
 report IOC extraction. Workflow and Algorithm 1 work have a separate
 [implementation plan](WORKFLOW_IMPLEMENTATION_PLAN.md).
+
+9 November planning update: use the
+[strict-ontology feasibility matrix](METHODS_FEASIBILITY_MATRIX.md), based on
+the implemented acquisition routes and configured API fallbacks,
+to prioritize the 39 candidates and identify paper entities absent from the
+catalogue. The dated baseline and sprint checklist below remain historical;
+consult current code and the workflow handoff for completed infrastructure work.
+The reassessment distinguishes documented API paths, access/evidence dependencies
+and unsupported baseline contracts. Use the
+[implementation map](METHOD_IMPLEMENTATION_MAP.md) to place new work in existing
+modules and preserve shared acquisition, evidence validation and graph policy.
+
+Implementation update: the first four VirusTotal methods and the next two OTX
+methods bring the current catalogue to **27 implemented / 33 candidates**.
+See the [first-four report](FIRST_FOUR_METHODS_VERIFICATION.md) and
+[next-method report](NEXT_METHODS_VERIFICATION.md). The baseline counts below
+describe the October audit, not current coverage.
 
 ## Current baseline
 

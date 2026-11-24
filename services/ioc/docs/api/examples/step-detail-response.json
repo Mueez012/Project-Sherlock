@@ -1,13 +1,13 @@
 {
   "step": {
-    "id": "8187db04c3b846b2bba78b4a837dc4c3",
+    "id": "ca20fcf9a7bb4d659a367ffbb7e654de",
     "sequence": 1,
     "input_node_id": "e124110e6ed903393fb178c54d8b0b56",
     "method_id": "rapiddns.domain_to_ipv4",
-    "lookup_id": "3f9c433657444c5b9dbeb026678b9d45",
+    "lookup_id": "0fa26a7eb6b14976851663feae212b93",
     "status": "completed",
-    "started_at": "2026-11-08T08:54:11.444698+00:00",
-    "finished_at": "2026-11-08T08:54:11.451146+00:00",
+    "started_at": "2026-11-24T05:01:34.423588+00:00",
+    "finished_at": "2026-11-24T05:01:34.431585+00:00",
     "outcome_status": "ok",
     "admission": {
       "accepted": true,
@@ -16,7 +16,8 @@
         "f1c524957075e2a38d816b02e2072ab4"
       ],
       "reward": null,
-      "reward_status": "not_evaluated"
+      "reward_status": "not_evaluated",
+      "paper_overlap_pass": null
     },
     "delta": {
       "new_nodes": 1,
@@ -24,9 +25,9 @@
       "evidence_links": 3
     },
     "error": "",
-    "run_id": "54acd8b3d9e94c0bba48cdc285fe69b2",
+    "run_id": "95197a67191b4c67a85b4637172f23d9",
     "lookup": {
-      "id": "3f9c433657444c5b9dbeb026678b9d45",
+      "id": "0fa26a7eb6b14976851663feae212b93",
       "method_id": "rapiddns.domain_to_ipv4",
       "input_ioc": {
         "value": "example.com",
@@ -177,7 +178,8 @@
         {
           "snapshot_id": "8ccfca3c20bc5ff17ef819ffe7dd61ca107bbb947d1c1711eab66cd8643b9997",
           "url": "https://rapiddns.io/subdomain/example.com?page=1",
-          "transport": "replay"
+          "transport": "replay",
+          "cached": false
         }
       ],
       "transport_errors": [],
@@ -186,8 +188,24 @@
       "error": "",
       "outcome_reason": "",
       "partial_reasons": [],
-      "started_at": "2026-11-08T08:54:11.446067+00:00",
-      "finished_at": "2026-11-08T08:54:11.449089+00:00"
+      "started_at": "2026-11-24T05:01:34.425720+00:00",
+      "finished_at": "2026-11-24T05:01:34.429217+00:00",
+      "acquisition": {
+        "version": 1,
+        "scope": "top_level_fetch",
+        "fetch_attempts": 1,
+        "external_fetch_attempts": 0,
+        "fetch_attempts_by_transport": {
+          "http": 1
+        },
+        "cache_reads": 0,
+        "parsed_pages": 1,
+        "followups_scheduled": 0,
+        "followups_executed": 0,
+        "retry_attempts": 0,
+        "rate_wait_seconds": 0.0,
+        "retry_at": null
+      }
     }
   },
   "snapshots": {

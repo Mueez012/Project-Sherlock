@@ -1,17 +1,20 @@
 """Capture operation-specific responses from the paper's provider report pages."""
 from hashlib import sha256
+from dataclasses import replace
 from contextlib import contextmanager, ExitStack
 from ipaddress import ip_address
 import json
 from pathlib import Path
+import re
 import time
 from threading import local
 from urllib.parse import unquote, urlsplit, parse_qs
 from .models import Document, FetchRequest, LookupError, allowed_url, check_status
 
 
-def response_matches(request: FetchRequest, url: str) -> bool:
-    """Compare typed IP identities without broadly decoding URL-valued paths."""
+def response_matches(request: FetchRequest, url: str, page_url: str = "",
+                     post_data: str | None = None, method: str = "") -> bool:
+    """Match declared paths, typed IPs and optional actual-page identities."""
     if not allowed_url(request.source, url):
         return False
     def canonical(path):
@@ -24,11 +27,31 @@ def response_matches(request: FetchRequest, url: str) -> bool:
             except ValueError:
                 pass
         return "/".join(segments)
+    expected_paths = list(request.response_paths)
+    if request.page_identity_pattern and allowed_url(request.source, page_url):
+        page_identity = re.fullmatch(request.page_identity_pattern, urlsplit(page_url).path)
+        if page_identity:
+            expected_paths = [path.replace("{page_id}", page_identity.group(1)) for path in expected_paths]
     actual = urlsplit(url).path
-    if not any(canonical(actual) == canonical(expected) for expected in request.response_paths):
+    if not any(canonical(actual) == canonical(expected) for expected in expected_paths):
         return False
     # Never replace the initial page with a prefetched later page.
     query = parse_qs(urlsplit(url).query)
+    if request.response_method and request.response_method.upper() != method.upper():
+        return False
+    if any(query.get(key) != [str(value)] for key, value in request.response_query.items()):
+        return False
+    if request.response_body:
+        try:
+            payload = json.loads(post_data or "")
+            for key, expected_value in request.response_body.items():
+                observed = payload
+                for part in key.split("."):
+                    observed = observed[part]
+                if observed != expected_value:
+                    return False
+        except (ValueError, KeyError, TypeError):
+            return False
     if request.continuation_url:
         expected = urlsplit(request.continuation_url)
         if not allowed_url(request.source, request.continuation_url) or canonical(expected.path) != canonical(actual):
@@ -36,6 +59,19 @@ def response_matches(request: FetchRequest, url: str) -> bool:
         expected_query = parse_qs(expected.query)
         return bool(expected_query) and all(query.get(k) == v for k, v in expected_query.items())
     return not query.get("cursor") and query.get("page", ["1"]) == ["1"]
+
+
+def html_ready(page, request: FetchRequest) -> bool:
+    """Read actual DOM text, including non-visible script payloads.
+
+    Playwright text selectors omit script contents. A provider can instead
+    declare an attached element plus a literal textContent marker.
+    """
+    marker = page.locator(request.ready_selector)
+    if not marker.count():
+        return False
+    return not request.ready_text or marker.evaluate_all(
+        "(nodes, text) => nodes.some(node => (node.textContent || '').includes(text))", request.ready_text)
 
 
 class BrowserTransport:
@@ -101,6 +137,8 @@ class BrowserTransport:
     def fetch(self, request: FetchRequest) -> Document:
         if not allowed_url(request.source, request.url):
             raise LookupError("invalid_request", "Only provider pages may be opened")
+        if request.capture_html and not request.ready_selector:
+            raise LookupError("invalid_request", "HTML capture requires a provider readiness selector")
         try:
             from playwright.sync_api import sync_playwright, Error as BrowserError, TimeoutError as BrowserTimeout
         except ImportError as exc:
@@ -109,7 +147,7 @@ class BrowserTransport:
         deadline = started + self.timeout
         diagnostics = {"operation": request.operation, "expected_paths": list(request.response_paths),
                        "events": [], "observed_paths": [], "body_errors": [], "terminal_state": "pending"}
-        finished, failures, pending = [], [], {}
+        finished, failures, pending, optional_limits = [], [], {}, []
         def remaining():
             return max(1, (deadline - time.monotonic()) * 1000)
         try:
@@ -125,11 +163,18 @@ class BrowserTransport:
                                 response.request.resource_type in {"xhr", "fetch"} and
                                 len(diagnostics["observed_paths"]) < 100):
                             diagnostics["observed_paths"].append({"path": path, "status": response.status})
-                        relevant = response_matches(request, response.url)
+                        relevant = response_matches(
+                            request, response.url, page.url,
+                            response.request.post_data if request.response_body else None,
+                            response.request.method if request.response_method else "")
                         bootstrap = allowed_url(request.source, response.url) and path in request.bootstrap_paths
                         if (allowed_url(request.source, response.url) and response.status == 429
                                 and response.request.resource_type in {"xhr", "fetch"}):
-                            failures.append(response)
+                            if relevant or bootstrap:
+                                failures.append(response)
+                            else:
+                                optional_limits.append(response)
+                                diagnostics.setdefault("optional_rate_limits", []).append({"path": path, "status": 429})
                             return
                         if not relevant and not bootstrap:
                             return
@@ -146,7 +191,10 @@ class BrowserTransport:
                             finished.append(response)
 
                     def failed(req):
-                        if req in pending or response_matches(request, req.url):
+                        if req in pending or response_matches(
+                                request, req.url, page.url,
+                                req.post_data if request.response_body else None,
+                                req.method if request.response_method else ""):
                             pending.pop(req, None)
                             diagnostics["body_errors"].append({"url": req.url, "error": req.failure})
 
@@ -157,6 +205,8 @@ class BrowserTransport:
 
                     def document(body, format, url, state, status=200):
                         diagnostics["terminal_state"] = state
+                        diagnostics["request_url"] = request.url
+                        diagnostics["page_url"] = page.url
                         diagnostics["elapsed_seconds"] = round(time.monotonic()-started, 3)
                         return Document(url, body, format, "browser", status_code=status, diagnostics=diagnostics)
 
@@ -168,7 +218,8 @@ class BrowserTransport:
 
                     try:
                         if request.continuation_url:
-                            if not request.next_selector or not response_matches(request, request.continuation_url):
+                            navigation = replace(request, response_method="", response_body={})
+                            if not request.next_selector or not response_matches(navigation, request.continuation_url, page.url):
                                 raise LookupError("unsafe_pagination", "Continuation left the configured IOC operation")
                             # Click the provider's own control. Never fetch the
                             # captured private next URL directly.
@@ -209,6 +260,13 @@ class BrowserTransport:
                             if "json" in response.headers.get("content-type", ""):
                                 return document(body, "json", response.url, "response_complete", response.status)
                             return document(body, "html", response.url, "unexpected_content", response.status)
+                        if request.capture_html and html_ready(page, request):
+                            if not allowed_url(request.source, page.url):
+                                raise LookupError("unsafe_redirect", "Rendered report left the provider")
+                            body = page.content()
+                            if len(body.encode()) > self.max_bytes:
+                                raise LookupError("response_too_large", "Rendered page exceeded size limit")
+                            return document(body, "html", page.url, "html_ready")
                         for label in (() if request.continuation_url else request.page_labels):
                             if label in clicked or time.monotonic() >= deadline:
                                 continue
@@ -225,6 +283,14 @@ class BrowserTransport:
                         page.wait_for_timeout(min(200, remaining()))
                     if not allowed_url(request.source, page.url):
                         raise LookupError("login_required", "Provider redirected to an external login")
+                    # A completed required response can coexist with an optional
+                    # comments/widget throttle. If required acquisition never
+                    # completed, preserve the conservative provider block.
+                    if optional_limits:
+                        try:
+                            check_status(optional_limits[0].status, optional_limits[0].headers)
+                        except LookupError as exc:
+                            raise failure_snapshot(exc)
                     body = page.content()
                     if len(body.encode()) > self.max_bytes:
                         raise LookupError("response_too_large", "Rendered page exceeded size limit")
@@ -250,6 +316,9 @@ class BrowserTransport:
                 # Recognize local runtime failures without exporting raw Playwright
                 # messages, which can include paths, launch arguments or secrets.
                 message = str(exc).lower()
+                if "err_network_access_denied" in message:
+                    raise LookupError("network_access_denied",
+                                      "Browser navigation was denied by local network policy.") from exc
                 if "executable doesn't exist" in message:
                     command = "python -m playwright install chromium" + (" --only-shell" if self.headless else "")
                     raise LookupError("browser_binary_missing",

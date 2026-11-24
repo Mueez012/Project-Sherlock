@@ -1,0 +1,81 @@
+{
+  "data": [
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_C2AE",
+      "type": "file_behaviour",
+      "attributes": {}
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_CAPA",
+      "type": "file_behaviour",
+      "attributes": {}
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_CAPE Sandbox",
+      "type": "file_behaviour",
+      "attributes": {}
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_Microsoft Sysinternals",
+      "type": "file_behaviour",
+      "attributes": {
+        "command_executions": [
+          "\"%SAMPLEPATH%\\hmaid.exe\" ",
+          "C:\\Windows\\System32\\wuapihost.exe -Embedding",
+          "\"%SAMPLEPATH%\\tvpwin32.exe\" ",
+          "\"C:\\Program Files (x86)\\Google3768_70946431\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {5F544CC6-5CEC-4CF3-8115-913E23F60F9C}",
+          "\"C:\\Program Files (x86)\\Google3768_70946431\\bin\\updater.exe\" --crash-handler --system \"--database=C:\\Program Files (x86)\\Google\\GoogleUpdater\\126.0.6441.0\\Crashpad\" --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=126.0.6441.0 \"--attachment=C:\\Program Files (x86)\\Google\\GoogleUpdater\\updater.log\" --initial-client-data=0x250,0x254,0x258,0x22c,0x25c,0xd47654,0xd47660,0xd4766c",
+          "\"%SAMPLEPATH%\\f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4.exe\" ",
+          "C:\\Windows\\system32\\UI0Detect.exe",
+          "\"C:\\Program Files\\Google3784_386557273\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {0D8C5F0E-DF64-411E-9810-A87232DC4A59}",
+          "\"C:\\Program Files\\Google2092_58662741\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {8780ECAA-DC14-47B2-A36B-6487516DD691}",
+          "\"C:\\Program Files\\Google2836_1756594665\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {3819407E-797E-44F0-9934-BFA4C9FDB5BB}",
+          "\"C:\\Program Files\\Google2428_577407136\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {0410AA84-9D60-4391-8A15-9128013F28ED}",
+          "\"C:\\Program Files\\Google3672_1573715047\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {96F78ED5-AB10-41A2-9638-4867F15AC132}",
+          "\"C:\\Program Files\\Google3092_607645732\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {6F2B3DB8-67A3-467C-A62D-BB30A7E57BF3}",
+          "\"C:\\Program Files\\Google4064_1637359835\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {C4AC01F1-090E-4B22-B0A2-B1BF77D4249D}",
+          "\"C:\\Program Files\\Google3968_755034680\\bin\\updater.exe\" --update --system --enable-logging --vmodule=*/chrome/updater/*=2 /sessionid {B8420774-373D-43F0-A178-0F543A791714}"
+        ]
+      }
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_SecondWrite",
+      "type": "file_behaviour",
+      "attributes": {
+        "command_executions": [
+          "C:\\Users\\Virtual\\AppData\\Local\\Temp\\f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4.exe"
+        ]
+      }
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_Tencent HABO",
+      "type": "file_behaviour",
+      "attributes": {}
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_VirusTotal Jujubox",
+      "type": "file_behaviour",
+      "attributes": {
+        "calls_highlighted": [
+          "GetTickCount"
+        ]
+      }
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_VirusTotal Observer",
+      "type": "file_behaviour",
+      "attributes": {}
+    },
+    {
+      "id": "f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4_Zenbox",
+      "type": "file_behaviour",
+      "attributes": {}
+    }
+  ],
+  "meta": {
+    "count": 9
+  },
+  "links": {
+    "self": "https://www.virustotal.com/ui/files/f55fe457929044e4c4cdc62b4ad0a4955bd2faac2b642318649beede66086eb4/behaviours?limit=40"
+  }
+}

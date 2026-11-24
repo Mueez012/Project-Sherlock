@@ -1,5 +1,12 @@
 # IOC Hunter
 
+10 November final update: **48 implemented / 20 candidates / 68 total**.
+The five ordinary OTX pulse-search methods are implemented. **445 tests and
+252 subtests passed.** Live audits used `cache_ttl=0`; provider rate/access limits
+prevented full live coverage. See [the verification report](METHODS_VERIFICATION_20261110.md)
+for actual outcomes, module boundaries and retained receipts. Earlier checkpoints
+below retain their historical counts and test state.
+
 Submit a report, inspect extracted IOCs, choose a lookup method and save the
 resulting investigation from the terminal. The workflow persists report context,
 validated observations, graph admission decisions, evidence and resumable steps.
@@ -9,10 +16,38 @@ The [saved investigation API guide](API_GUIDE.md) describes the implemented HTTP
 routes, shared terminal/backend service, native sentence identity and common
 store. There are no users or login.
 
-Selection is manual. Graph admission uses Algorithm 1's candidate-overlap
-condition; automatic ranking, coverage/tried counters, LLM selection, SecureBERT
+Manual investigations retain explicit analyst selection. The separate
+[automatic algorithm package](ioc_hunter/workflow/algorithm/README.md) now adds
+D2 preparation from saved sentences, Algorithm 1 ranking/selection/counters,
+shared provider limits, captured evidence reuse and incremental continuation.
+Its runnable example uses replay evidence and an offline selector. Live model
+configuration and provider access require a bounded verification. SecureBERT
 encoding and frontend investigation controls remain future work. Existing methods
 still take an `IOC` and return `list[IOC]`.
+
+10 November implementation checkpoint: eight Hybrid Analysis methods and eight
+original candidates now have acquisition/parser code, giving **43 implemented /
+25 candidates / 68 total**. **Testing is deferred at the user's request.** HA
+historical search coverage, account-dependent content discovery and VT's new
+communicating-file browser path still need verification. See the
+[sixteen-method checkpoint](SIXTEEN_METHODS_IMPLEMENTATION.md) for the methods,
+module owners and access gaps. Dated results below predate this batch.
+
+9 November update: MD5, SHA-1 and SHA-256 share VirusTotal's browser-first
+`file_behavior` operation. These methods open the existing file report and capture
+its page-generated sandbox behavior data without an API key. A configured
+`VT_API_KEY` enables the documented behavior-summary API as an optional fallback. They
+reuse the existing lookup, method-correctness validation and receipt pipeline,
+without an intermediate hash-conversion or hash-provenance mechanism.
+URL-to-filename reads an explicit `Content-Disposition` filename from the existing
+URL-details response, including extended encoded filenames. It reports
+`filename_unavailable` when that optional data is absent. The registry contains
+27 implemented methods and 33 disabled candidates at that checkpoint. The next OTX batch adds
+domain-to-email from explicit WHOIS contact rows and URL-to-URL from stored
+HTTP redirect headers. Both use the existing browser transport without an API key.
+See the [four-method verification report](FIRST_FOUR_METHODS_VERIFICATION.md)
+and [next-method verification report](NEXT_METHODS_VERIFICATION.md) for offline
+checks and separately labelled live results.
 
 See the [repair verification results](METHOD_RELIABILITY_RESULTS.md): 17 of 21
 methods returned validated outputs during the repair checks, three completed with
@@ -20,8 +55,9 @@ no applicable data, and VirusTotal domain-to-URL remains unresolved. Raw respons
 failures are linked there. The [13 October audit](LIVE_METHODS_AUDIT.md) retains
 the earlier baseline.
 
-The paper's report-page routes remain primary; official APIs are optional
-fallbacks. See the [provider implementation guide](PROVIDER_IMPLEMENTATION_GUIDE.md)
+Report-page operations use the existing browser transport and optional API
+fallbacks, including hash behavior. See the
+[provider implementation guide](PROVIDER_IMPLEMENTATION_GUIDE.md)
 for future methods and the [repair plan](METHOD_RELIABILITY_REPAIR_PLAN.md) for
 the roadmap and remaining pagination/access work.
 
@@ -30,6 +66,12 @@ a MageCart report to all eight domain-input methods. It returned 29 distinct
 validated IPv4 outputs, with the report context and raw evidence retained.
 
 Future enrichment sprints are tracked in [the methods backlog](METHODS_TODO.md).
+The [method feasibility matrix](METHODS_FEASIBILITY_MATRIX.md) assesses all
+original 60 registry entries and paper-entity lookup gaps under the strict ontology and
+the implemented provider routes, including configured API fallbacks (baseline
+reassessed 9 November). The [implementation map](METHOD_IMPLEMENTATION_MAP.md)
+identifies existing module owners, reusable mechanisms and the shared work needed
+for dependent acquisitions.
 For the current implementation boundary and next steps, start with
 [the workflow handoff](WORKFLOW_HANDOFF.md).
 

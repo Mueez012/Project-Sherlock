@@ -90,7 +90,11 @@ def test_preflight_does_not_mutate_selection_and_receipts_are_retained(service):
     assert not service.read(run_id)["steps"]
     failure("not_found", lambda: service.methods(run_id, "foreign-node"))
     hashed = next(node for node in snapshot["graph"]["nodes"] if node["type"] == "sha256")
-    assert service.methods(run_id, hashed["id"])["methods"] == []
+    hash_methods = service.methods(run_id, hashed["id"])["methods"]
+    assert [method["id"] for method in hash_methods] == [
+        "hybridanalysis.sha256_to_command_api", "virustotal.sha256_to_command_api"]
+    assert all(not method["selectable"] for method in hash_methods)
+    assert all(method["unavailable_reason"] == "no_replay_fixture" for method in hash_methods)
     execution = service.execute(run_id, node_id, METHOD, "step", 1)
     assert execution["step"]["admission"]["reward"] is None
     assert execution["step"]["lookup"]["rejected"][0]["reason"] == "dns_domain_mismatch"

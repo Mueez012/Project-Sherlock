@@ -4,7 +4,9 @@ Provider-specific endpoints and JSON containers belong in each source module.
 """
 from html.parser import HTMLParser
 import json
-from urllib.parse import urlsplit, urljoin, urlencode, parse_qs, urlunsplit
+import re
+import unicodedata
+from urllib.parse import urlsplit, urljoin, urlencode, parse_qs, urlunsplit, unquote_to_bytes
 from ..evidence import Observation, make_evidence
 from ..models import IOC, normalize
 from ..transport.models import LookupError, allowed_url
@@ -121,9 +123,19 @@ class ObservationBuilder:
 
 
 
-def read_json(document):
+def _unique_json_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("Duplicate JSON object field")
+        result[key] = value
+    return result
+
+
+def read_json(document, *, reject_duplicate_keys=False):
     try:
-        data = json.loads(document.body)
+        data = json.loads(document.body,
+                          object_pairs_hook=_unique_json_object if reject_duplicate_keys else None)
     except (ValueError, TypeError) as exc:
         raise LookupError("parse_error", "Response is not valid JSON") from exc
     if not isinstance(data, dict):
@@ -285,3 +297,147 @@ def url_details(builder, attrs, locator):
     if first and first != url:
         builder.emit("url", first, root_locator + ".redirection_chain", {"url": url, "redirection_chain": attrs.get("redirection_chain"), "last_final_url": final},
                      "url_link", {"from_url": url, "to_url": first, "kind": "redirect"})
+
+
+_HTTP_TOKEN = re.compile(r"[!#$%&'*+\-.^_`|~0-9A-Za-z]+")
+_EXTENDED_FILENAME = re.compile(r"(?:[!#$&+\-.^_`|~0-9A-Za-z]|%[0-9A-Fa-f]{2})*")
+
+
+def content_disposition_filename(header: str) -> str | None:
+    """Read one RFC 6266/8187 filename without guessing or repairing a path.
+
+    Invalid/ambiguous fields fail closed. The extended parameter takes
+    precedence; a broken filename* never silently falls back to filename.
+    """
+    def invalid(message):
+        raise LookupError("parse_error", "Invalid Content-Disposition: " + message)
+
+    if not isinstance(header, str) or any(
+            ord(char) < 32 and char != "\t" or ord(char) == 127 for char in header):
+        invalid("expected a single header string without control characters")
+    value = header.strip(" \t")
+    disposition = _HTTP_TOKEN.match(value)
+    if not disposition:
+        invalid("missing disposition type")
+    position, parameters = disposition.end(), {}
+    while position < len(value):
+        while position < len(value) and value[position] in " \t":
+            position += 1
+        if position == len(value):
+            break
+        if value[position] != ";":
+            invalid("unexpected delimiter or multiple header values")
+        position += 1
+        while position < len(value) and value[position] in " \t":
+            position += 1
+        name = _HTTP_TOKEN.match(value, position)
+        if not name:
+            invalid("missing parameter name")
+        parameter = name.group().lower()
+        if parameter in parameters:
+            invalid("duplicate parameter " + parameter)
+        if re.fullmatch(r"filename\*\d+\*?", parameter):
+            invalid("filename parameter continuations are unsupported")
+        position = name.end()
+        while position < len(value) and value[position] in " \t":
+            position += 1
+        if position == len(value) or value[position] != "=":
+            invalid("missing parameter value")
+        position += 1
+        while position < len(value) and value[position] in " \t":
+            position += 1
+        quoted = position < len(value) and value[position] == '"'
+        if quoted:
+            position += 1
+            characters = []
+            while position < len(value) and value[position] != '"':
+                if value[position] == "\\":
+                    position += 1
+                    if position == len(value):
+                        invalid("unterminated quoted escape")
+                    if value[position] not in {'"', "\\"}:
+                        invalid("ambiguous quoted escape")
+                characters.append(value[position])
+                position += 1
+            if position == len(value):
+                invalid("unterminated quoted value")
+            text = "".join(characters)
+            position += 1
+        else:
+            token = _HTTP_TOKEN.match(value, position)
+            if not token:
+                invalid("invalid unquoted parameter value")
+            text, position = token.group(), token.end()
+        parameters[parameter] = (text, quoted)
+
+    if "filename*" in parameters:
+        encoded, quoted = parameters["filename*"]
+        pieces = encoded.split("'", 2)
+        if quoted or len(pieces) != 3:
+            invalid("malformed extended filename")
+        charset, language, encoded = pieces
+        charsets = {"utf-8": "utf-8", "iso-8859-1": "iso-8859-1", "us-ascii": "ascii"}
+        encoding = charsets.get(charset.lower())
+        if not encoding:
+            invalid("unsupported filename charset")
+        if language and not re.fullmatch(r"[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*", language):
+            invalid("malformed filename language")
+        if not _EXTENDED_FILENAME.fullmatch(encoded):
+            invalid("malformed extended filename encoding")
+        try:
+            filename = unquote_to_bytes(encoded).decode(encoding, errors="strict")
+        except UnicodeError as exc:
+            raise LookupError("parse_error", "Invalid Content-Disposition filename bytes") from exc
+    elif "filename" in parameters:
+        filename = parameters["filename"][0]
+    else:
+        return None
+    if any(unicodedata.category(char) in {"Cc", "Cf", "Cs"} for char in filename):
+        invalid("filename contains control characters")
+    if re.match(r"^[A-Za-z]:", filename):
+        invalid("filename is a drive path")
+    try:
+        normalized = normalize("filename", filename)
+    except (ValueError, TypeError) as exc:
+        raise LookupError("parse_error", "Invalid Content-Disposition filename basename") from exc
+    if normalized != filename:
+        invalid("filename requires whitespace normalization")
+    return normalized
+
+
+def url_filename(builder, attrs, locator):
+    """Map the exact URL's stored response header into filename evidence.
+
+    No URL basename guessing, file retrieval, or unrelated file relationships
+    are used. Missing optional header data is a completed no-data result.
+    """
+    if not isinstance(attrs, dict):
+        raise LookupError("parse_error", "Invalid URL detail attributes")
+    try:
+        url = normalize("url", attrs["url"])
+        if url != normalize("url", builder.ioc.value):
+            raise LookupError("parse_error", "URL details belong to another IOC")
+    except (KeyError, ValueError, TypeError) as exc:
+        raise LookupError("parse_error", "Missing or invalid URL identity") from exc
+    if "last_http_response_headers" not in attrs:
+        builder.result.reason = "filename_unavailable"
+        return
+    headers = attrs["last_http_response_headers"]
+    if not isinstance(headers, dict) or any(
+            not isinstance(key, str) or not isinstance(value, str) for key, value in headers.items()):
+        raise LookupError("parse_error", "Invalid stored HTTP response headers")
+    matches = [(key, value) for key, value in headers.items() if key.lower() == "content-disposition"]
+    if len(matches) > 1:
+        raise LookupError("parse_error", "Multiple stored Content-Disposition headers")
+    if not matches:
+        builder.result.reason = "filename_unavailable"
+        return
+    name, header = matches[0]
+    filename = content_disposition_filename(header)
+    if filename is None:
+        builder.result.reason = "filename_unavailable"
+        return
+    header_locator = locator.rsplit(".", 1)[0] + ".last_http_response_headers[" + json.dumps(name) + "]"
+    facts = {"url": url, "filename": filename, "header": header}
+    builder.emit("filename", filename, header_locator,
+                 {"url": url, "last_http_response_headers": {name: header}}, "url_filename", facts)

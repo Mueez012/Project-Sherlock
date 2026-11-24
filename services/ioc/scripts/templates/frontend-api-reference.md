@@ -107,7 +107,7 @@ delay or block a particular acquisition without mixing investigation results.
 | Supported | Not currently provided |
 | --- | --- |
 | Report text in JSON, saved extraction and graph | Multipart PDF/DOCX/binary upload or conversion |
-| Manual node/method selection | Automatic Algorithm 1 ranking or LLM selection |
+| Manual node/method selection | Automatic-run submission/control endpoints (the algorithm CLI is separate) |
 | Saved steps, receipts, evidence and raw response inspection | Percentage progress, SSE or WebSocket updates |
 | History, reopening, explicit recovery, close and JSON export | Delete, rename, clone, CSV/STIX export or hard in-flight cancellation endpoints |
 | Synchronous request/response execution | A `202` background-job submission contract |
@@ -304,11 +304,16 @@ used, at least one validated result must match a known unused IOC. A passing
 batch admits all supported outputs/edges within graph limits. A non-admitted
 batch retains its observations and evidence without graph additions. Do not
 append every `lookup.outputs` item to the displayed admitted graph yourself.
-Reward remains null / `not_evaluated`.
+Manual-run reward remains null / `not_evaluated`. CLI-created automatic runs
+may expose `algorithm`/`dataset` metadata and evaluated numeric 0/1 rewards.
+Their method selection and waiting are controlled by the algorithm CLI;
+manual step submission to an automatic run is rejected.
 
 The revision increases on extraction publication and every completed step,
-including steps that add no graph data. It does not increase for every status
-or used-flag change, so it is not a complete HTTP ETag or progress signal.
+including steps that add no graph data. Automatic runs also increment it on
+saved algorithm transitions, including selection and round advancement.
+It does not increase for every status change, so it is not a complete HTTP
+ETag or progress signal.
 
 Complete examples: [admitted step](examples/step-response.json),
 [valid observations without graph admission](examples/nonadmitted-step-response.json),

@@ -102,10 +102,14 @@ def test_repeated_discoveries_merge_evidence_and_never_duplicate_graph(runner):
     assert all(len(edge["lookup_ids"]) == 2 for edge in graph["edges"])
 
 
-def test_unsupported_hash_stays_visible_and_cannot_start_lookup(runner):
+def test_hash_method_is_visible_but_needs_a_fixture_and_matching_type(runner):
     run = runner.create_run(REPORT)
     hash_node = next(node for node in runner.get_result(run["id"])["graph"]["nodes"] if node["type"] == "sha256")
-    assert runner.list_methods(run["id"], hash_node["id"]) == []
+    methods = runner.list_methods(run["id"], hash_node["id"])
+    assert [method["id"] for method in methods] == [
+        "hybridanalysis.sha256_to_command_api", "virustotal.sha256_to_command_api"]
+    assert all(not method["selectable"] for method in methods)
+    assert all(method["unavailable_reason"] == "no_replay_fixture" for method in methods)
     with pytest.raises(ValueError, match="compatible"):
         runner.execute_step(run["id"], hash_node["id"], METHOD)
     assert not runner.repository.steps(run["id"])

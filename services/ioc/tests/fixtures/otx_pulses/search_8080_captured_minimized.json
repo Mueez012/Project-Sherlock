@@ -1,0 +1,22 @@
+{
+  "count": 6522,
+  "next": "https://otx.alienvault.com/otxapi/pulses/?limit=20&page=2&sort=-modified&q=8080",
+  "previous": null,
+  "results": [
+    {
+      "id": "69c08867316c564ade394c69",
+      "indicator_type_counts": {
+        "domain": 250480,
+        "hostname": 147614
+      },
+      "indicator_count": 398094
+    },
+    {
+      "id": "6af28ffdfd229294441dfabc",
+      "indicator_type_counts": {
+        "IPv4": 14
+      },
+      "indicator_count": 14
+    }
+  ]
+}

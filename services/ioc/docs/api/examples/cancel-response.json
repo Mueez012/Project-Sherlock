@@ -1,7 +1,7 @@
 {
   "version": 1,
   "run": {
-    "id": "60333376ff6349c4b6839d236be4da9a",
+    "id": "af6ce8dfb9fa45119faeaa9c54a13d1d",
     "status": "cancelled",
     "mode": "replay",
     "policy": "manual-selection/paper-admission-v1",
@@ -14,22 +14,24 @@
       "mode": "replay"
     },
     "graph_revision": 2,
-    "created_at": "2026-11-08T08:54:11.665216+00:00",
-    "updated_at": "2026-11-08T08:54:11.770351+00:00",
-    "elapsed_seconds": 0.08181813299999721,
+    "created_at": "2026-11-24T05:01:34.621391+00:00",
+    "updated_at": "2026-11-24T05:01:34.706495+00:00",
+    "elapsed_seconds": 0.04737949599998943,
     "stop_reason": "user_cancelled",
     "diagnostics": [],
     "extraction_options": {
       "include_references": false,
       "extended_types": false
-    }
+    },
+    "algorithm": null,
+    "dataset": null
   },
   "report": {
-    "id": "5655c0263b5a43839107c4d92006df0b",
+    "id": "d76606bf85ba4aa6b6fda0f48df1a0e2",
     "source": "synthetic-example.txt",
     "original_text": "This synthetic CTI report is an offline workflow example, not a real incident.\nThe loader contacted example.com for its configuration.\nThe report also lists 192.0.2.10 as an observed address.\nThe sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.\n\nReferences\nhttps://publisher.example/reference\n",
     "sha256": "ed2b6404d5fec9c422d77d0c0382e3cbceee259efefae70ad219096ebf1a6363",
-    "ingested_at": "2026-11-08T08:54:11.665216+00:00"
+    "ingested_at": "2026-11-24T05:01:34.621391+00:00"
   },
   "extraction": {
     "source": "synthetic-example.txt",
@@ -98,22 +100,22 @@
     ],
     "passages": [
       {
-        "id": "5655c0263b5a43839107c4d92006df0b:s1",
+        "id": "d76606bf85ba4aa6b6fda0f48df1a0e2:s1",
         "text": "This synthetic CTI report is an offline workflow example, not a real incident.",
         "sentence_index": 0
       },
       {
-        "id": "5655c0263b5a43839107c4d92006df0b:s2",
+        "id": "d76606bf85ba4aa6b6fda0f48df1a0e2:s2",
         "text": "The loader contacted example.com for its configuration.",
         "sentence_index": 1
       },
       {
-        "id": "5655c0263b5a43839107c4d92006df0b:s3",
+        "id": "d76606bf85ba4aa6b6fda0f48df1a0e2:s3",
         "text": "The report also lists 192.0.2.10 as an observed address.",
         "sentence_index": 2
       },
       {
-        "id": "5655c0263b5a43839107c4d92006df0b:s4",
+        "id": "d76606bf85ba4aa6b6fda0f48df1a0e2:s4",
         "text": "The sample SHA256 is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.",
         "sentence_index": 3
       }
@@ -132,7 +134,7 @@
           "synthetic-example.txt"
         ],
         "passage_ids": [
-          "5655c0263b5a43839107c4d92006df0b:s2"
+          "d76606bf85ba4aa6b6fda0f48df1a0e2:s2"
         ],
         "evidence_ids": [],
         "lookup_ids": [],
@@ -150,7 +152,7 @@
           "synthetic-example.txt"
         ],
         "passage_ids": [
-          "5655c0263b5a43839107c4d92006df0b:s3"
+          "d76606bf85ba4aa6b6fda0f48df1a0e2:s3"
         ],
         "evidence_ids": [],
         "lookup_ids": [],
@@ -168,7 +170,7 @@
           "synthetic-example.txt"
         ],
         "passage_ids": [
-          "5655c0263b5a43839107c4d92006df0b:s4"
+          "d76606bf85ba4aa6b6fda0f48df1a0e2:s4"
         ],
         "evidence_ids": [],
         "lookup_ids": [],
@@ -180,21 +182,22 @@
   },
   "steps": [
     {
-      "id": "6b9f4c9c59ee4f279ecabba33e7ee824",
+      "id": "c96b80bd24c64ba3a9f2728533b768fa",
       "sequence": 1,
       "input_node_id": "e124110e6ed903393fb178c54d8b0b56",
       "method_id": "rapiddns.domain_to_ipv4",
-      "lookup_id": "429ab254ac5f415e897effa7bf7fa60a",
+      "lookup_id": "7fa3d00988e94751a3e09492d80d017f",
       "status": "completed",
-      "started_at": "2026-11-08T08:54:11.758089+00:00",
-      "finished_at": "2026-11-08T08:54:11.763421+00:00",
+      "started_at": "2026-11-24T05:01:34.687907+00:00",
+      "finished_at": "2026-11-24T05:01:34.698305+00:00",
       "outcome_status": "challenge",
       "admission": {
         "accepted": false,
         "reason": "lookup_failed",
         "overlap_ids": [],
         "reward": null,
-        "reward_status": "not_evaluated"
+        "reward_status": "not_evaluated",
+        "paper_overlap_pass": null
       },
       "delta": {
         "new_nodes": 0,

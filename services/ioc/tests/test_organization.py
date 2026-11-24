@@ -67,9 +67,9 @@ class ExtractionInterfaceTests(unittest.TestCase):
 
 class RegistryCompatibilityTests(unittest.TestCase):
     def test_legacy_catalogue_and_provider_declarations_agree(self):
-        self.assertEqual(len(list_methods()), 60)
-        self.assertEqual(len(list_runnable_methods()), 21)
-        self.assertEqual(len(list_candidates()), 39)
+        self.assertEqual(len(list_methods()), 68)
+        self.assertEqual(len(list_runnable_methods()), 48)
+        self.assertEqual(len(list_candidates()), 20)
         declared = {m.id for provider in PROVIDERS.values() for m in provider.METHODS}
         self.assertEqual(declared, {m.id for m in list_runnable_methods()})
         self.assertFalse(declared & {m.id for m in list_candidates()})
@@ -85,7 +85,7 @@ class RegistryCompatibilityTests(unittest.TestCase):
         self.assertEqual(method_status(get_method("rapiddns.domain_to_url"))["implementation"], "candidate")
 
     def test_cli_old_and_new_discovery_filters(self):
-        for args, count in (([], 60), (["--implemented"], 21), (["--candidates"], 39)):
+        for args, count in (([], 68), (["--implemented"], 48), (["--candidates"], 20)):
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
                 self.assertEqual(main(["methods", *args]), 0)

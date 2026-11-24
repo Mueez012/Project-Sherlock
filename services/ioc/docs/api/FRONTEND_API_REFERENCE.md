@@ -107,7 +107,7 @@ delay or block a particular acquisition without mixing investigation results.
 | Supported | Not currently provided |
 | --- | --- |
 | Report text in JSON, saved extraction and graph | Multipart PDF/DOCX/binary upload or conversion |
-| Manual node/method selection | Automatic Algorithm 1 ranking or LLM selection |
+| Manual node/method selection | Automatic-run submission/control endpoints (the algorithm CLI is separate) |
 | Saved steps, receipts, evidence and raw response inspection | Percentage progress, SSE or WebSocket updates |
 | History, reopening, explicit recovery, close and JSON export | Delete, rename, clone, CSV/STIX export or hard in-flight cancellation endpoints |
 | Synchronous request/response execution | A `202` background-job submission contract |
@@ -273,7 +273,7 @@ Complete examples: [compatible methods](examples/methods-response.json),
 
 ```json
 {
-  "step_id": "8187db04c3b846b2bba78b4a837dc4c3",
+  "step_id": "ca20fcf9a7bb4d659a367ffbb7e654de",
   "input_node_id": "e124110e6ed903393fb178c54d8b0b56",
   "method_id": "rapiddns.domain_to_ipv4",
   "expected_graph_revision": 1
@@ -321,11 +321,16 @@ used, at least one validated result must match a known unused IOC. A passing
 batch admits all supported outputs/edges within graph limits. A non-admitted
 batch retains its observations and evidence without graph additions. Do not
 append every `lookup.outputs` item to the displayed admitted graph yourself.
-Reward remains null / `not_evaluated`.
+Manual-run reward remains null / `not_evaluated`. CLI-created automatic runs
+may expose `algorithm`/`dataset` metadata and evaluated numeric 0/1 rewards.
+Their method selection and waiting are controlled by the algorithm CLI;
+manual step submission to an automatic run is rejected.
 
 The revision increases on extraction publication and every completed step,
-including steps that add no graph data. It does not increase for every status
-or used-flag change, so it is not a complete HTTP ETag or progress signal.
+including steps that add no graph data. Automatic runs also increment it on
+saved algorithm transitions, including selection and round advancement.
+It does not increase for every status change, so it is not a complete HTTP
+ETag or progress signal.
 
 Complete examples: [admitted step](examples/step-response.json),
 [valid observations without graph admission](examples/nonadmitted-step-response.json),
@@ -474,7 +479,7 @@ unchanged:
   "error": {
     "code": "stale_graph_revision",
     "message": "Reload the investigation before another lookup.",
-    "run_id": "54acd8b3d9e94c0bba48cdc285fe69b2",
+    "run_id": "95197a67191b4c67a85b4637172f23d9",
     "step_id": null,
     "details": {
       "expected_graph_revision": 1,
@@ -664,6 +669,8 @@ Empty JSON object `{}`.
 | `stop_reason` | `string` | Yes | — |
 | `diagnostics` | `Array<object>` | Yes | — |
 | `extraction_options` | `Record<string, boolean>` | Yes | — |
+| `algorithm` | `object or null` | No | — |
+| `dataset` | `object or null` | No | — |
 
 ### Schema: RunConfig
 
@@ -759,8 +766,9 @@ Unknown fields are rejected.
 | `accepted` | `boolean` | Yes | — |
 | `reason` | `string` | Yes | — |
 | `overlap_ids` | `Array<string>` | Yes | — |
-| `reward` | `null` | No | — |
-| `reward_status` | `"not_evaluated"` | Yes | — |
+| `reward` | `0 / 1 or null` | No | — |
+| `reward_status` | `"not_evaluated" / "evaluated"` | Yes | — |
+| `paper_overlap_pass` | `boolean or null` | No | — |
 
 ### Schema: StepSummary
 
@@ -819,6 +827,7 @@ Unknown fields are rejected.
 | `partial_reasons` | `Array<string>` | Yes | — |
 | `started_at` | `string` | Yes | — |
 | `finished_at` | `string` | Yes | — |
+| `acquisition` | `object` | No | — |
 
 ### Schema: InvestigationList
 
